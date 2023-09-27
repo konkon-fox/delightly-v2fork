@@ -1,7 +1,7 @@
 BBS_TITLE=åfé¶î¬
 background=#fafafa
 BBS_NONAME_NAME=ñºñ≥ÇµÇ≥ÇÒ
-DELETED_TEXT=Ç…Ç·ÇÒÇ’Ç¡Ç’Å[
+DELETED_TEXT=Ç†Ç⁄Å[ÇÒ
 use_capture=checked
 ip_geolocation=checked
 capture_authorize=checked
