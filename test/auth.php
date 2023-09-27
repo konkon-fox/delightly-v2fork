@@ -1,8 +1,9 @@
 <?php
 error_reporting(E_COMPILE_ERROR | E_RECOVERABLE_ERROR | E_ERROR | E_CORE_ERROR | E_PARSE);
-# Google reCAPTCHA sitekey,secretkey
-$sitekey = '';
-$secretkey = '';
+# Cloudflare Turnstile sitekey,secretkey
+$sitekey = '0xXXXXXXXXXXXXXXXXXXXXXX';
+$SECRET_KEY = '0xXXXXXXXXXXXXXXXXXXXXXX';
+
 $FORCESSL = true; #https未対応の場合はfalseにすること
 $NOWTIME = time();
 $HOST = gethostbyaddr($_SERVER['REMOTE_ADDR']);
@@ -16,6 +17,11 @@ if (!isset($_SERVER['HTTP_SEC_CH_UA_ARCH'])) $_SERVER['HTTP_SEC_CH_UA_ARCH'] = '
 if (!isset($_SERVER['HTTP_SEC_CH_UA_MODEL'])) $_SERVER['HTTP_SEC_CH_UA_MODEL'] = '';
 if (!isset($_SERVER['HTTP_SEC_CH_UA_MOBILE'])) $_SERVER['HTTP_SEC_CH_UA_MOBILE'] = '';
 if (!isset($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'])) $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'] = '';
+
+// POSTデータを取得
+$token = isset($_POST['cf-turnstile-response']) ? $_POST['cf-turnstile-response'] : '';
+$HOST = gethostbyaddr($_SERVER['REMOTE_ADDR']);
+
 // IPv6に対応したサーバ用
 $count_semi = substr_count($_SERVER['REMOTE_ADDR'], ':');
 $count_dot = substr_count($_SERVER['REMOTE_ADDR'], '.');
@@ -73,26 +79,38 @@ if (isset($_SERVER['HTTP_SP_HOST'])) $PROXY = true;
 if (isset($_SERVER['HTTP_X_LOCKING'])) $PROXY = true;
 #if ($PROXY) exit('認証エラー'); // 環境によっては誤判定が起きるので使わない
 
- if (isset($_POST['g-recaptcha-response'])) {
-    $url = 'https://www.google.com/recaptcha/api/siteverify';
-    $param = array(
-      'secret' => $secretkey,
-      'response' => $_POST['g-recaptcha-response']
+if (isset($_POST['cf-turnstile-response'])) {
+    // フォームデータを準備
+    $post_data = array(
+        'secret' => $SECRET_KEY,
+        'response' => $token,
+        'remoteip' => $IP_ADDR,
     );
-    $context = array(
-      'http' => array(
-        'method'  => 'POST',
-        'header'  => 'Content-Type: application/x-www-form-urlencoded\r\n',
-        'content' => http_build_query($param)
-      )
-    );
-    $json = file_get_contents($url, false, stream_context_create($context));
-    $results = json_decode($json,true);
-    $success = $results["success"];
-    $error = $results["error-codes"];
-    if (strlen($_POST['ClientID']) != 32 || $success == false || $error) {
-	exit("認証に失敗しました。再度やりなおしてください");
+    // cURLセッション初期化
+    $ch = curl_init();
+    // cURLのオプションを設定
+    curl_setopt($ch, CURLOPT_URL, 'https://challenges.cloudflare.com/turnstile/v0/siteverify');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post_data));
+    // リクエストを実行し、レスポンスを取得
+    $response = curl_exec($ch);
+    // エラーがある場合はエラー情報を取得
+    if(curl_errno($ch)){
+        echo 'Curl error: ' . curl_error($ch);
     }
+    // cURLセッションを閉じる
+    curl_close($ch);
+
+    // レスポンス
+    $result = json_decode($response, true);
+    $success = $result["success"];
+    $error = $result["error-codes"];
+
+    if (strlen($_POST['ClientID']) != 32 || $success == false) {
+        print_r($success);
+        exit("認証に失敗しました。再度やりなおしてください");
+        }
 
 // smart phone marks
 $admin = false;
@@ -179,8 +197,8 @@ if (!is_file($file)) {
     $HAP = ["first"=>$NOWTIME,
  	  "last"=>'',
  	  "comment"=>'',
-   	  "HOST"=>$HOST,
-   	  "REMOTE_ADDR"=>$IP_ADDR,
+          "HOST"=>$HOST,
+          "REMOTE_ADDR"=>$IP_ADDR,
  	  "USER_AGENT"=>$_SERVER['HTTP_USER_AGENT'],
  	  "CH_UA"=>$CH_UA,
  	  "ACCEPT"=>$ACCEPT,
@@ -203,20 +221,22 @@ if (!is_file($file)) {
  }else exit("認証データがありません");
 }
 ?>
-<HTML>
-<HEAD>
-<title>投稿前確認</title>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
 <META HTTP-EQUIV="pragma" CONTENT="no-cache">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>投稿前確認</title>
 <script src="/static/clientid.js"></script>
-<script src="https://www.google.com/recaptcha/api.js"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback" defer></script>
 <script>
 function onSubmit(token) {
- document.getElementById('postForm').submit();
+    document.getElementById('postForm').submit();
 }
 </script>
-</HEAD><body>
+</head>
+<body>
 <h4>法的な投稿前確認画面</h4>
 <form method="POST" accept-charset="Shift_JIS" id="postForm" action=""><b><div>投稿を行うには下記に同意し、「同意する」をクリックする必要があります。</div>
 <div>
@@ -231,20 +251,42 @@ function onSubmit(token) {
 </div>
 </b>
 <div>上記に同意できない場合は前ページ等へ戻ってください。なお同意しない場合は投稿することはできません。</div>
-<input type=hidden name=time value=<?php echo time(); ?>>
-<input type=hidden name=HOST value=<?=$HOST?>>
-<input type=hidden name=recaptcha_challenge_field>
-<input type=hidden name=recaptcha_response_field>
-<input type=hidden name=ClientID id=ClientID>
-<button class="g-recaptcha" data-sitekey="<?=$sitekey?>" data-callback="onSubmit" error-callback="onReCaptchaError">上記全てに同意する</button>
+
+<div class="#example-container">
+<form action="/test/nice.php" method="POST">
+    <input type=hidden name=time value=<?php echo time(); ?>>
+    <input type=hidden name=HOST value=<?=$HOST?>>
+    <input type=hidden name=ClientID id=ClientID>
+   <div class="cf-turnstile" data-sitekey="<?=$sitekey?>"></div>
+   <button type="submit" value="Submit">上記全てに同意する</button>
 </form>
+</div>
+
+
+<pre>
+<?php
+// 上記のコードから $result を取得
+
+// $result を整形して出力
+print_r($result);
+?>
+</pre>
 <script>
-  const getclientid = clientid.load()
-  getclientid
+    const getclientid = clientid.load()
+    getclientid
     .then(fp => fp.get())
     .then(result => document.getElementById('ClientID').value = result.visitorId)
+
+    window.onloadTurnstileCallback = function () {
+    turnstile.render('#example-container', {
+        sitekey: '<?=$sitekey?>',
+        callback: function(token) {
+            console.log(`Challenge Success ${token}`);
+        },
+    });
+};
 </script>
 </body>
-</HTML>
+</html>
 <?
-exit;	
+exit;

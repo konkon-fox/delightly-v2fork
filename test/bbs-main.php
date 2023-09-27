@@ -836,6 +836,10 @@ if ($M) $DATM = ' </b>('.$M.')<b>';
 else $DATM = '';
 $outdat = mb_convert_encoding($_POST['name'].$DATM."<>".$_POST['mail']."<>".$DATE." ".$ID."<>".$_POST['comment']."<>".$_POST['title']."\n", "SJIS-win", "UTF-8");
 // datに書き込み
+$directoryPath = $PATH . "dat/";
+if (!file_exists($directoryPath)) {
+    mkdir($directoryPath, 0777, true);
+}
 $fp = fopen($DATFILE, "a"); #ログを開く
 fputs($fp, $outdat); #書き込み
 fclose($fp);
