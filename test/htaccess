@@ -1,0 +1,7 @@
+<Files ~ "^(bbs-main\.php|createcode\.cgi)$">
+  deny from all
+</Files>
+RewriteEngine on
+RewriteRule ^read\.cgi/(.*?)/(.*?)/(.*)$ /#$1/$2 [L,R=301,NE]
+RewriteRule bbs.cgi bbs.php
+SetEnvIf Request_URI "bbs.php$" CONTENT_TYPE=application/x-www-form-urlencoded

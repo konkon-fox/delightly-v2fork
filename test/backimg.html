@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>スレッド背景画像の設定</title><link href="/static/a.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="/static/jquery-1.11.3.min.js"></script></head><body><div id="container"><section><h1 class="section-title">スレッド背景画像の設定</h1><div class="contents"><input id="imgurl" type="text" class="form-control" name="key" placeholder="画像URL"><p class="notice mt5">背景画像に設定するURLを入力してください</p></div><div class="contents">直接画像を選択：<input id="uploadImage" type="file" name="file" size="50" onchange="upload();"><p class="notice mt5">こちらでファイルを選択すると自動的にURLが入力されます。※imgur.comにアップロードされます</p></div><div class="contents"><button onclick="setimg()" class="btn btn-primary btn-block">設定</button><br><br><button onclick="delimg()" class="btn btn-primary btn-block">削除</button><h3 id="ntxt"></h3></div></section></div>
+<hr><a href="#" onclick="window.history.go(-1);">前ページに戻る</a><br><a href="#" onclick="window.history.go(-2);">2つ前のページに戻る</a><br><a href="https://rentalbbs.net/">トップページに戻る</a>
+<script>
+if (localStorage.getItem('backimg')) document.getElementById('imgurl').value = localStorage.getItem('backimg');
+function setimg() {
+	localStorage.setItem('backimg', document.getElementById('imgurl').value);
+	document.getElementById('ntxt').innerHTML = '設定完了';
+}
+function delimg() {
+	localStorage.removeItem('backimg');
+	document.getElementById('ntxt').innerHTML = '削除完了';
+}
+function upload() {
+  const preview = document.querySelector('img');
+  const file = document.querySelector('input[type=file]').files[0];
+  const reader = new FileReader();
+
+  reader.addEventListener("load", () => {
+    base64Url = reader.result;
+    base64 = base64Url.replace(new RegExp('data.*base64,'), '');
+	imgur();
+  }, false);
+
+  if (file) {
+    reader.readAsDataURL(file);
+  }
+	/// APIに渡すときは先頭の data:~~~base64 を除外
+
+function imgur() {
+let imgurkey = '34ee59e33373302';
+$.ajax({
+  url: 'https://api.imgur.com/3/image',
+  method: 'POST',
+  headers: {
+	"Authorization": 'Client-ID '+imgurkey
+  },
+  data: {
+    image: base64,
+    type: 'base64'
+  },
+  success: function(r){
+	imgurlink = r.data.link
+	document.getElementById('imgurl').value = imgurlink; 
+  },
+
+  error: function () {
+	document.getElementById('ntxt').innerHTML = '画像アップロードに失敗　ページをリロードしてください';
+  }
+});
+
+}
+
+}
+</script>
+</body></html>

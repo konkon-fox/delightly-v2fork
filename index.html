@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="application-name" content="delight">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="favicon.ico">
+<meta name="referrer" content="origin">
+<script type="text/javascript" src="/static/jquery-1.11.3.min.js"></script>
+<link href="/static/st.css" rel="stylesheet" type="text/css">
+<link href="/static/milligram.css" rel="stylesheet" type="text/css">
+<link href="/static/s.css" rel="stylesheet" type="text/css">
+<link href="/static/read.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<section class="section">
+<div id="body">
+<script type="text/javascript" src="/static/thread.js"></script>
+<div id="followheader" class="hidden maxwidth100 height2p5 stickymenu container" style="display: block;"><div class="row noflex maxwidth100 white padding0p5 maxheight2p5 borderbottomlightgrey"><div class="topmenu" id="header"></div></div></div>
+<div class="title" id="title"></div>
+<div class="pagestats" id="count"></div>
+<div class="search"><input type="text" id="searchInput" placeholder="スレ内検索" onchange="search()"></div>
+<div class="thread" id="thread">
+<noscript><p>JavaScriptを有効にしてください<br>Please turn on your JavaScript</p></noscript>
+</div>
+<div class="newposts"><center><a href="javascript:load()">リロード<img alt="再読み込み" loading="lazy" decoding="async" data-nimg="1" style="color: transparent;" src="/static/reload.svg" width="16" height="16"></a></center><hr></div><div class="bottommenu"></div><div class="formbox" style="display:none"><form method="POST" accept-charset="UTF-8" action="/test/post-v2.php"><div class="fbox" style="max-width: 600px;"><span class="fhead"><span class="spformhead" style="display:none;border-radius:3px 3px 0 0;color:#666;padding:3px;"><span style="padding-top: 10px;display: inline-block;" onclick="fclose()">キャンセル</span></span><span class="submitbtn"><input type="submit" value="新規投稿" name="submit" onclick="Post()"></span></span><span class="input" style="display: block;"><a id="iconlink" target="_blank"><img id="icon" class="icon" width="50" height="50" align="left"></a><input name="name" style="width:50%;" placeholder="名前"></span><span class="input"><input name="mail" size="19" value="" placeholder="E-mail"></span><div class="backmsg" style="display: inline-block;"><input value="on" type="checkbox" id="seticon" name="icon" checked><a href="/test/icon.html">アイコン</a> <a href="javascript:BackMSG()">下書きを復元</a></div><textarea rows="5" cols="70" wrap="off" name="comment"></textarea><br>画像：<input id="uploadImage" type="file" name="file" size="50" onchange="upload();"><br></div></form></div>
+<div id="hidemetoo" class="side p85 slightpad nobullets">
+<div style="min-height:50px" id="rule">■ ローカルルール<br></div>
+<div style="min-height:50px" id="kokuti">■ 告知欄<br></div>
+<p style="margin: 5rem 0"></p>
+</div>
+<script type="text/javascript" src="/static/read.js"></script>
+<div class="footer">We're sure you'll have a good time with delight and/or 3ch. :)</div>
+</div></section>
+</body>
+</html>

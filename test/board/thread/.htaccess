@@ -1,0 +1,3 @@
+<FilesMatch "\.dat$">
+Header set Content-Type 'text/plain; charset=utf-8'
+</FilesMatch>

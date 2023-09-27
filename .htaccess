@@ -1,0 +1,6 @@
+<FilesMatch "\.html$">
+Header set Content-Type 'text/html; charset=UTF-8'
+</FilesMatch>
+<FilesMatch "\.js$">
+Header set Content-Type 'application/javascript; charset=UTF-8'
+</FilesMatch>

@@ -1,0 +1,80 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>アイコン設定</title><link href="/static/a.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="https://rentalbbs.net/js/jquery-1.11.3.min.js"></script></head><body><div id="container"><section><h1 class="section-title">アイコン設定</h1><div class="contents"><img id="iconimg" style="padding: 3px;  margin-right: 3px;  border-radius: 45px;  display: block;  padding-bottom: 5px;  margin-left: -.1em;" width="45" height="45" align="left">：現在のアイコン<input id="imgurl" type="text" class="form-control" name="key" placeholder="画像URL"><p class="notice mt5">アイコンに設定するURLを入力してください</p></div><div class="contents">直接画像を選択：<input id="uploadImage" type="file" name="file" size="50" onchange="upload();"><p class="notice mt5">こちらでファイルを選択すると自動的にURLが入力されます。※imgur.comにアップロードされます</p></div><div class="contents"><input id="homepage" type="text" class="form-control" name="key" placeholder="ホームページURL"><p class="notice mt5">入力したURLがアイコンのリンク先となります</p></div><div class="contents"><button onclick="setimg()" class="btn btn-primary btn-block">設定</button><br><br><button onclick="delimg()" class="btn btn-primary btn-block">削除</button><h3 id="ntxt"></h3></div></section></div>
+<hr><a href="#" onclick="window.history.go(-1);">前ページに戻る</a><br><a href="#" onclick="window.history.go(-2);">2つ前のページに戻る</a><br><a href="https://rentalbbs.net/">トップページに戻る</a>
+<script>
+if (getCookie("icon")) {
+ document.getElementById('imgurl').value = getCookie("icon");
+ document.getElementById('iconimg').src = getCookie("icon");
+}
+if (getCookie("homepage")) {
+ document.getElementById('homepage').value = getCookie("homepage");
+}
+function setimg() {
+ let cookname = escape(document.getElementById('imgurl').value); 
+ document.cookie = "icon="+cookname+"; Max-Age=315360000; path=/";
+ let cookhome = escape(document.getElementById('homepage').value); 
+ document.cookie = "homepage="+cookhome+"; Max-Age=315360000; path=/";
+ document.getElementById('ntxt').innerHTML = '設定完了';
+}
+function delimg() {
+ document.cookie = "icon=; Max-Age=0; path=/";
+ document.cookie = "homepage=; Max-Age=0; path=/";
+ document.getElementById('ntxt').innerHTML = '削除完了';
+}
+function upload() {
+  const preview = document.querySelector('img');
+  const file = document.querySelector('input[type=file]').files[0];
+  const reader = new FileReader();
+
+  reader.addEventListener("load", () => {
+    base64Url = reader.result;
+    base64 = base64Url.replace(new RegExp('data.*base64,'), '');
+	imgur();
+  }, false);
+
+  if (file) {
+    reader.readAsDataURL(file);
+  }
+	/// APIに渡すときは先頭の data:~~~base64 を除外
+
+function imgur() {
+let imgurkey = '34ee59e33373302';
+$.ajax({
+  url: 'https://api.imgur.com/3/image',
+  method: 'POST',
+  headers: {
+	"Authorization": 'Client-ID '+imgurkey
+  },
+  data: {
+    image: base64,
+    type: 'base64'
+  },
+  success: function(r){
+	imgurlink = r.data.link
+	document.getElementById('imgurl').value = imgurlink; 
+  },
+
+  error: function () {
+	document.getElementById('ntxt').innerHTML = '画像アップロードに失敗　ページをリロードしてください';
+  }
+});
+
+}
+
+}
+function getCookie(key, tmp1, tmp2, xx1, xx2, xx3) {
+ tmp1 = " " + document.cookie + ";";
+ while(tmp1.match(/\+/)) {tmp1 = tmp1.replace("+", " ");};
+ xx1 = xx2 = 0;
+ len = tmp1.length;
+ while (xx1 < len) {
+  xx2 = tmp1.indexOf(";", xx1);
+  tmp2 = tmp1.substring(xx1 + 1, xx2);
+  xx3 = tmp2.indexOf("=");
+  if (tmp2.substring(0, xx3) == key) {return(unescape(tmp2.substring(xx3 + 1, xx2 - xx1 - 1)));}
+  xx1 = xx2 + 1;
+ }
+ return("");
+}
+</script>
+</body></html>

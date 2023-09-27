@@ -1,0 +1,36 @@
+.desktop{display:none;}a:visited{color:#9b4dca;}a:hover{color:#FF0000;}#postForm{display:none;}.spformhead{display:inline !important;}.fhead{border-radius:3px 3px 0 0;color:#666; padding:3px;}a{text-decoration: none;color: #1a98ff}.post{word-break: break-all;white-space: normal}details{color:#4d4d4d;}.number{color:#4d4d4d;font-size:80%;font-weight:bold;}.name{color:#4d4d4d !important;font-size: 80%;}.id2{color:#4d4d4d !important;}.date{display:block;color:#ccc;font-size:80%;padding-left:0}.id{right:10px;position:absolute;color:#9ba1a8;color:#9ba1a8;}.message{margin-top:1px;margin-bottom:1px;max-height:500px;overflow-y:scroll}.date>ins{text-align:left;}ins{word-break: break-all;border:0 !important;border-radius: 5px 5px 5px 5px;background-color: #fafafa !important;white-space: normal;box-shadow: 5px 3px 5px rgba(0, 0, 0, .3);}.rep-comment{word-break: break-all;border:0 !important;border-radius: 5px 5px 5px 5px;background-color: #fafafa !important;box-shadow: 5px 3px 5px rgba(0, 0, 0, .3);}.menuitem{color:#646464 !important;font-size: 80%;text-decoration:underline;}.anka{left: 0.5em;right: 0.5em;}.image{max-width: 95%;}.formbox{display: block;}#postForm{position:fixed;top:0px;left:0px;z-index:2000;width:100%;height:100%;text-align:center;background-color:rgba(0, 0, 0, 0.4) !important}.fbox{padding:10px;margin-top:10px;border-radius:3px;background:#eeeeee;box-shadow: 1px 1px 2px gray;width:90%;display:inline-block;text-align:left}#bbs-textarea{font-variant: inherit;font-weight: inherit;font-stretch: inherit;border-radius: 0px 0px 5px 5px;padding: 0px;word-break: break-all;overflow: auto;width: 100%;margin: 2px;height: auto}.input input{margin: 2px;}.backmsg{display:block !important;text-align: center;}.submitbtn{color:#000;float:right;font-size:28px;font-weight:bold;cursor:pointer;display:inline-block;padding-right:5px;}input[type="submit"]{cursor: pointer;border: none; background: rgb(29, 155, 240);color: #ffffff;}#postForm label{display:none}.asetting_4{display: none;}.newposts{font-size:14px}.AA {padding-top: 2px;font-family: saitamaar,ＭＳ Ｐゴシック,ms pgothic,ipamonapgothic;word-wrap: normal;font-size: 10pt;line-height: 11pt;}.input{display:block;}#modal_text .id{right:20px;}
+.postbutton {
+	z-index:1500;
+	display: block !important;
+	border: 0px solid black;
+	right: 10px;
+	bottom: 10px;
+	position: fixed;
+	margin-bottom: 10px;
+	background: rgb(29, 155, 240);
+	border-radius: 30px 30px 30px 30px;
+	box-sizing: border-box;
+	box-shadow: 5px 3px 2px rgba(0, 0, 0, .3);
+}
+.postbutton a {
+	width: 3.5em;
+	display: block;
+	height: 3.5em;
+	color: rgb(255, 255, 255) !important;
+	box-sizing: content-box !important;
+}
+.postopen {
+	fill: currentcolor;
+	width: 1.5em;
+	height: 1.5em;
+	padding: 13px 0px 0px 13px;
+}
+.postopen g {
+	color: rgb(255, 255, 255) !important;
+}
+path {
+	color: rgb(255, 255, 255) !important;
+}
+.option_noti_1 {
+	z-index: 150000;
+}

@@ -1,0 +1,96 @@
+body {
+	background: #262626 !important;
+	color: #fff !important;
+}
+#body {
+	background-color: #262626;
+}
+.post_hover,.rep-comment {
+	background: #262626 !important;
+	color: #fff !important;
+	border: 1px solid #808080 !important;
+}
+.treeView {
+	background: #262626 !important;
+	color: #fff !important;
+}
+.message,.title,.number,#postForm,.t,.menulink,.option_style_2,.option_style_5,.tlnotice,#rule,#kokuti {
+	color: #fff !important;
+}
+ins {
+	background: #262626 !important;
+	color: #fff !important;
+}
+body > .topmenu a {
+	color: darkgoldenrod !important;
+}
+body > .bottommenu a {
+	color: darkgoldenrod !important;
+}
+.date,.created {
+	color: #808080 !important;
+}
+.id {
+	color: #999999 !important;
+}
+.menu {
+	background: #262626 !important;
+}
+.bbs-textarea {
+	background: #262626 !important;
+	color: #fff !important;
+}
+input {
+	background: #262626 !important;
+	color: #fff !important;
+}
+textarea {
+	background: #262626 !important;
+	color: #fff !important;
+}
+#rModal > div {
+	background: #262626 !important;
+	color: #fff !important;
+}
+.box,.side {
+	background: #262626 !important;
+	color: #fff !important;
+}
+.thread {
+	background: #262626 !important;
+	color: #fff;
+}
+table {
+	background: #262626 !important;
+	color: #fff !important;
+}
+#sp-header {
+	background: #262626 !important;
+	color: #fff !important;
+	border: 1px solid #808080 !important;
+}
+body > .newposts a[href] {
+	color: darkgoldenrod !important;
+}
+.search-header, .wi {
+	background: #262626 !important;
+}
+.fbox {
+	background: #262626 !important;
+}
+.rclose,.mclose,.rcount,.fas,.back-link,.mbutton {
+	color: #808080 !important;
+}
+.post {
+	border-bottom: .5px solid #333;
+}
+.asetting_5 {
+	border-top: .5px solid #333;
+	border-left: .5px solid #333;
+}
+.threads {
+border-bottom: .5px solid #333;
+}
+#hidemetoo a {
+color: darkgoldenrod !important;
+}

@@ -1,0 +1,15 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>カスタムcssの設定</title><link href="/static/a.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="/static/jquery-1.11.3.min.js"></script></head><body><div id="container"><section><h1 class="section-title">カスタムcssの設定</h1><div class="contents"><input id="css" type="text" class="form-control" name="css" placeholder="カスタムcss"></div><div class="contents"><button onclick="setcss()" class="btn btn-primary btn-block">設定</button><br><br><button onclick="delcss()" class="btn btn-primary btn-block">削除</button><h3 id="ntxt"></h3></div></section></div>
+<hr><a href="#" onclick="window.history.go(-1);">前ページに戻る</a><br><a href="#" onclick="window.history.go(-2);">2つ前のページに戻る</a><br><a href="https://rentalbbs.net/">トップページに戻る</a>
+<script>
+if (localStorage.getItem('css')) document.getElementById('css').value = localStorage.getItem('css');
+function setcss() {
+	localStorage.setItem('css', document.getElementById('css').value);
+	document.getElementById('ntxt').innerHTML = '設定完了';
+}
+function delcss() {
+	localStorage.removeItem('css');
+	document.getElementById('ntxt').innerHTML = '削除完了';
+}
+</script>
+</body></html>
