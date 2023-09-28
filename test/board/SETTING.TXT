@@ -1,7 +1,7 @@
-BBS_TITLE=њњњ
+BBS_TITLE=МfО¶Ф¬
 background=#fafafa
-BBS_NONAME_NAME=њњњњњ
-DELETED_TEXT=њњњњ
+BBS_NONAME_NAME=ЦЉЦ≥ВµВ≥Вс
+DELETED_TEXT=В†ВЏБ[Вс
 use_capture=checked
 ip_geolocation=checked
 capture_authorize=checked
@@ -72,4 +72,5 @@ disp_slipname=
 slip=
 fusianasan=
 createid=checked
-BBS_JP_CHECK=
+BBS_JP_CHECK
+=
