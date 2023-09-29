@@ -41,10 +41,13 @@ if (strlen($_SERVER['HTTP_USER_AGENT']) != mb_strlen($_SERVER['HTTP_USER_AGENT']
 if (strpos($_SERVER['HTTP_USER_AGENT'], 'Mozilla/5.0') === false && strpos($_SERVER['HTTP_USER_AGENT'], 'Monazilla/1.00') === false) Error2("invalid:4");
 
 // refererが無い
-if (empty($_SERVER['HTTP_REFERER'])) Error2("invalid:5");
-else {
- if ($_SERVER['HTTP_HOST'] != $_SERVER['SERVER_NAME']) Error2("invalid:host");
- if (!stristr($_SERVER['HTTP_REFERER'], $_SERVER['HTTP_HOST'])) Error2("invalid:ref1");
+// 開発環境ではスキップ
+if (!getenv('SKIP_VERIFICATION')) {
+        if (empty($_SERVER['HTTP_REFERER'])) Error2("invalid:5");
+        else {
+            if ($_SERVER['HTTP_HOST'] != $_SERVER['SERVER_NAME']) Error2("invalid:host");
+            if (!stristr($_SERVER['HTTP_REFERER'], $_SERVER['HTTP_HOST'])) Error2("invalid:ref1");
+        }
 }
 
 // IPv6に対応したサーバ用
