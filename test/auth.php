@@ -1,8 +1,9 @@
 <?php
 error_reporting(E_COMPILE_ERROR | E_RECOVERABLE_ERROR | E_ERROR | E_CORE_ERROR | E_PARSE);
 # Cloudflare Turnstile sitekey,secretkey
-$sitekey = '0xXXXXXXXXXXXXXXXXXXXXXX';
-$SECRET_KEY = '0xXXXXXXXXXXXXXXXXXXXXXX';
+# 初期設定はAlways passes https://developers.cloudflare.com/turnstile/reference/testing/
+$sitekey = '1x00000000000000000000AA';
+$SECRET_KEY = '1x0000000000000000000000000000000AA';
 
 $FORCESSL = true; #https未対応の場合はfalseにすること
 $NOWTIME = time();
