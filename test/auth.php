@@ -1,7 +1,6 @@
 <?php
 error_reporting(E_COMPILE_ERROR | E_RECOVERABLE_ERROR | E_ERROR | E_CORE_ERROR | E_PARSE);
 # Cloudflare Turnstile sitekey,secretkey
-# 初期設定はAlways passes https://developers.cloudflare.com/turnstile/reference/testing/
 $sitekey = '1x00000000000000000000AA';
 $SECRET_KEY = '1x0000000000000000000000000000000AA';
 
@@ -62,10 +61,13 @@ if (strlen($_SERVER['HTTP_USER_AGENT']) != mb_strlen($_SERVER['HTTP_USER_AGENT']
 if (strpos($_SERVER['HTTP_USER_AGENT'], 'Mozilla/5.0') === false) exit('専ブラからは認証できません。Webブラウザを使用してください');
 
 // refererが無い
-if (empty($_SERVER['HTTP_REFERER'])) exit('認証エラー');
-else {
- if (!stristr($_SERVER['HTTP_REFERER'], $_SERVER['HTTP_HOST'])) exit('認証エラー');
- if ($_SERVER['HTTP_HOST'] != $_SERVER['SERVER_NAME']) exit('認証エラー');
+// 開発環境ではスキップ
+if (!getenv('SKIP_VERIFICATION')) {
+    if (empty($_SERVER['HTTP_REFERER'])) exit('認証エラー');
+    else {
+        if (!stristr($_SERVER['HTTP_REFERER'], $_SERVER['HTTP_HOST'])) exit('認証エラー');
+        if ($_SERVER['HTTP_HOST'] != $_SERVER['SERVER_NAME']) exit('認証エラー');
+    }
 }
 
 // 簡易PROXYチェック
