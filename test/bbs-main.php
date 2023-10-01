@@ -627,6 +627,11 @@ if (!$tlonly && $SETTING['threadcheck'] == "checked") {
  if ($count >= $SETTING['timecover']) Error("このスレッド内で一定時間内に投稿可能な上限に達しました");
  array_unshift($IP, $NOWTIME."<>".$IP_ADDR."<>".$WrtAgreementKey."\n");
  while (count($IP) > $SETTING['threadcount']) array_pop($IP);
+ // datディレクトリがあるかチェック
+ $directoryPath = $PATH . "dat/";
+ if (!file_exists($directoryPath)) {
+        mkdir($directoryPath, 0777, true);
+ }
  $fp = @fopen($PATH."dat/".$_POST['thread']."_kisei.cgi", "w");
  foreach($IP as $tmp) fputs($fp, $tmp);
  fclose($fp);
@@ -839,9 +844,10 @@ if ($M) $DATM = ' </b>('.$M.')<b>';
 else $DATM = '';
 $outdat = mb_convert_encoding($_POST['name'].$DATM."<>".$_POST['mail']."<>".$DATE." ".$ID."<>".$_POST['comment']."<>".$_POST['title']."\n", "SJIS-win", "UTF-8");
 // datに書き込み
+// datディレクトリがあるかチェック
 $directoryPath = $PATH . "dat/";
 if (!file_exists($directoryPath)) {
-    mkdir($directoryPath, 0777, true);
+        mkdir($directoryPath, 0777, true);
 }
 $fp = fopen($DATFILE, "a"); #ログを開く
 fputs($fp, $outdat); #書き込み
