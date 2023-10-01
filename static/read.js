@@ -9,7 +9,7 @@
 	if (localStorage.getItem('darkmode') === null) localStorage.setItem('darkmode', false);
 	if (localStorage.getItem('autodark') === null) localStorage.setItem('autodark', true);
 	if (localStorage.getItem('autoscroll') === null) localStorage.setItem('autoscroll', false);
-	if (localStorage.getItem('origdate') === null) localStorage.setItem('origdate', false);
+	if (localStorage.getItem('origdate') === null) localStorage.setItem('origdate', true);
 	if (localStorage.getItem('css') === null) localStorage.setItem('css', '');
 	document.head.innerHTML += "<style>"+localStorage.getItem('css')+"</style>";
 	localStorage.setItem('autoPost', true);
