@@ -477,6 +477,7 @@ if ($SETTING['unauthorized_half_check'] == "checked" && strlen($_POST['comment']
 // 安価と競合しないように一時変換
 $_POST['comment'] = str_replace('&gt;&gt;',' &gt;&gt;',$_POST['comment']);
 
+//レス表示用の装飾
 // 折りたたみ・要約
 $_POST['comment'] = str_replace('&lt;details&gt;','<details>',$_POST['comment']);
 $_POST['comment'] = str_replace('&lt;/details&gt;','</details>',$_POST['comment']);
@@ -492,13 +493,13 @@ $_POST['comment'] = preg_replace('/\*\*\*(.*?)\*\*\*/','<em><strong>$1</strong><
 // 太字
 $_POST['comment'] = preg_replace('/\*\*(.*?)\*\*/','<strong>$1</strong>',$_POST['comment']);
 // 斜体
-$_POST['comment'] = preg_replace('/\*(.*?)\*/','<em>$1</em>',$_POST['comment']);
+//$_POST['comment'] = preg_replace('/\*(.*?)\*/','<em>$1</em>',$_POST['comment']);
 // 取り消し線
 $_POST['comment'] = preg_replace('/~~(.*?)~~/','<del>$1</del>',$_POST['comment']);
 // 目立たなくする
-$_POST['comment'] = preg_replace('/\^(.*?)\^/','<small style="opacity: 0.7;">$1</small>',$_POST['comment']);
+//$_POST['comment'] = preg_replace('/\^(.*?)\^/','<small style="opacity: 0.7;">$1</small>',$_POST['comment']);
 // ぼかし
-$_POST['comment'] = preg_replace('/{(.*?)}/','<span class="_mfm_blur_">$1</span>',$_POST['comment']);
+//$_POST['comment'] = preg_replace('/{(.*?)}/','<span class="_mfm_blur_">$1</span>',$_POST['comment']);
 // マーカー
 $_POST['comment'] = preg_replace('/==(.*?)==/','<mark>$1</mark>',$_POST['comment']);
 // 下線
