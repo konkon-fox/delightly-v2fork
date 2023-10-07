@@ -81,16 +81,19 @@ if ($SETTING['BBS_UNICODE'] != "checked") {
   $_POST['title'] = str_replace('>', '&#62;', $_POST['title']);
   $_POST['title'] = str_replace("'", '&#39;', $_POST['title']);
 }
-// 先頭と末尾の空白文字を削除
-$_POST['title'] = trim($_POST['title']);
-// 元コードではおそらくtrim後のスレタイが空文字の場合に半角空白にしたかったようなので修正
-if($_POST['title'] === ''){
-  $_POST['title'] = ' ';
-}
 // &#10;(LF) &#13;(CR) をエスケープ
 $_POST['title'] = preg_replace("/&#0*1[03];/", "&#32;", $_POST['title']);
 // &#x0a;(LF) &#x0d;(CR) をエスケープ
 $_POST['title'] = preg_replace("/&#[xX]0*[aAdD];/", "&#32;", $_POST['title']);
+// スレ立て時の判定 ※$_POST['title']が空文字か否かでレスかスレ立てかを判別してるようなので
+if($_POST['title']!==''){
+  // 先頭と末尾の空白文字を削除
+  $_POST['title'] = trim($_POST['title']);
+  // trim後のスレタイが空文字ならerror
+  if($_POST['title'] === ''){
+    Error2("invalid:1");
+  }
+}
 $_POST['name'] = str_replace('"', "&quot;", $_POST['name']);
 $_POST['name'] = str_replace("<", "&lt;", $_POST['name']);
 $_POST['name'] = str_replace(">", "&gt;", $_POST['name']);
@@ -329,7 +332,7 @@ if (!$newthread && !$tlonly && $reload) {
  file_put_contents($THREADFILE, $fp, LOCK_EX);
 }
 
-// // スレッドタイトルの変換形式
+// スレッドタイトルの変換形式
 // if ($SETTING['BBS_UNICODE'] != "checked") {
 // $_POST['title'] = htmlspecialchars($_POST['title'], ENT_QUOTES, 'UTF-8');
 // }else {
