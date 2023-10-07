@@ -5,6 +5,10 @@ $sitekey = '1x00000000000000000000AA';
 $SECRET_KEY = '1x0000000000000000000000000000000AA';
 
 $FORCESSL = true; #https未対応の場合はfalseにすること
+if (getenv('SKIP_VERIFICATION')) {
+  // 開発環境ではhttp可
+  $FORCESSL = false;
+}
 $NOWTIME = time();
 $HOST = gethostbyaddr($_SERVER['REMOTE_ADDR']);
 $area = [];
