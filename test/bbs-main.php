@@ -70,7 +70,27 @@ if ($ipv6 === true) {
 }
 
 // 特殊な文字等変換
-$_POST['title'] = str_replace(array("\r\n","\r","\n"), " ", $_POST['title']);
+if ($SETTING['BBS_UNICODE'] != "checked") {
+  // 絵文字禁止モードなのでhtmlspecialcharsでok
+  $_POST['title'] = htmlspecialchars($_POST['title'], ENT_QUOTES, 'UTF-8');
+}else {
+  // 絵文字をhtmlspecialcharsしてしまうと数値実体参照の文字列になってしまうので個別にエスケープ処理
+  $_POST['title'] = preg_replace('/&(?!#[a-zA-Z0-9]+;)/', '&#38;', $_POST['title']);
+  $_POST['title'] = str_replace('"', '&#34;', $_POST['title']);
+  $_POST['title'] = str_replace('<', '&#60;', $_POST['title']);
+  $_POST['title'] = str_replace('>', '&#62;', $_POST['title']);
+  $_POST['title'] = str_replace("'", '&#39;', $_POST['title']);
+}
+// 先頭と末尾の空白文字を削除
+$_POST['title'] = trim($_POST['title']);
+// 元コードではおそらくtrim後のスレタイが空文字の場合に半角空白にしたかったようなので修正
+if($_POST['title'] === ''){
+  $_POST['title'] = ' ';
+}
+// &#10;(LF) &#13;(CR) をエスケープ
+$_POST['title'] = preg_replace("/&#0*1[03];/", "&#32;", $_POST['title']);
+// &#x0a;(LF) &#x0d;(CR) をエスケープ
+$_POST['title'] = preg_replace("/&#[xX]0*[aAdD];/", "&#32;", $_POST['title']);
 $_POST['name'] = str_replace('"', "&quot;", $_POST['name']);
 $_POST['name'] = str_replace("<", "&lt;", $_POST['name']);
 $_POST['name'] = str_replace(">", "&gt;", $_POST['name']);
@@ -93,8 +113,6 @@ $_POST['comment'] = str_replace(array('[', ']'), array('［', '］'), $_POST['co
 $_POST['comment'] = str_replace(array("\r\n","\r","\n"), "<br>", $_POST['comment']);
 $_POST['comment'] = preg_replace("/&#0*10([^0-9]|$)/", "<br>", $_POST['comment']);
 $_POST['comment'] = preg_replace("/&#[xX]0*[aA]([^a-zA-Z0-9]|$)/", "<br>", $_POST['comment']);
-$_POST['title'] = preg_replace("/&#0*10([^0-9]|$)/", "<br>", $_POST['title']);
-$_POST['title'] = preg_replace("/&#[xX]0*[aA]([^a-zA-Z0-9]|$)/", "<br>", $_POST['title']);
 $_POST['name'] = preg_replace("/&#0*10([^0-9]|$)/", "", $_POST['name']);
 $_POST['name'] = preg_replace("/&#[xX]0*[aA]([^a-zA-Z0-9]|$)/", "", $_POST['name']);
 $msgbr = explode("<br>", $_POST['comment']);
@@ -311,18 +329,18 @@ if (!$newthread && !$tlonly && $reload) {
  file_put_contents($THREADFILE, $fp, LOCK_EX);
 }
 
-// スレッドタイトルの変換形式
-if ($SETTING['BBS_UNICODE'] != "checked") {
-$_POST['title'] = htmlspecialchars($_POST['title'], ENT_QUOTES, 'UTF-8');
-}else {
-$_POST['title'] = str_replace('"', "&quot;", $_POST['title']);
-$_POST['title'] = str_replace("<", "&lt;", $_POST['title']);
-$_POST['title'] = str_replace(">", "&gt;", $_POST['title']);
-$_POST['title'] = str_replace("'", "&#039;", $_POST['title']);
-$_POST['title'] = str_replace("&amp", "？", $_POST['title']);
-$_POST['title'] .= " ";
-$_POST['title'] = trim($_POST['title']);
-}
+// // スレッドタイトルの変換形式
+// if ($SETTING['BBS_UNICODE'] != "checked") {
+// $_POST['title'] = htmlspecialchars($_POST['title'], ENT_QUOTES, 'UTF-8');
+// }else {
+// $_POST['title'] = str_replace('"', "&quot;", $_POST['title']);
+// $_POST['title'] = str_replace("<", "&lt;", $_POST['title']);
+// $_POST['title'] = str_replace(">", "&gt;", $_POST['title']);
+// $_POST['title'] = str_replace("'", "&#039;", $_POST['title']);
+// $_POST['title'] = str_replace("&amp", "？", $_POST['title']);
+// $_POST['title'] .= " ";
+// $_POST['title'] = trim($_POST['title']);
+// }
 
 if (!$newthread && !$tlonly) {
  // スレッドファイルが無い
