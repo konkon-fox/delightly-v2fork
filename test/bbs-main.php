@@ -70,7 +70,7 @@ if ($ipv6 === true) {
 }
 
 // 特殊な文字等変換
-function escapePostData(&$postData){
+function escapePostData(&$postData, $keepNewLine){
   // 絵文字等が初期値では許可(checked)のはずが空文字列になってるので両方に対応
   if (!isset($SETTING['BBS_UNICODE']) || $SETTING['BBS_UNICODE'] === 'checked') {
     // 絵文字等をhtmlspecialcharsしてしまうと数値実体参照の文字列になってしまうので個別にエスケープ処理
@@ -87,15 +87,16 @@ function escapePostData(&$postData){
   $postData = preg_replace('/&#0*1[03];/', '&nbsp;', $postData);
   // &#x0a;(LF) &#x0d;(CR) をエスケープ
   $postData = preg_replace('/&#[xX]0*[aAdD];/', '&nbsp;', $postData);
-  // 改行系の制御文字をエスケープ
-  $postData = str_replace(array('\r','\n'), '&nbsp;', $postData);
+  // 改行コードをエスケープ ※本文のみ<br>に変換
+  $newLineChar = $keepNewLine ? '<br>' : '&nbsp;';
+  $postData = preg_replace('/(\r\n|\r|\n)/', $newLineChar, $postData);
   // trim
   $postData = trim($postData);
 }
-escapePostData($_POST['title']);
-escapePostData($_POST['name']);
-escapePostData($_POST['mail']);
-escapePostData($_POST['comment']);
+escapePostData($_POST['title'], false);
+escapePostData($_POST['name'], false);
+escapePostData($_POST['mail'], false);
+escapePostData($_POST['comment'], true);
 $_POST['board'] = str_replace(array('.','/','|'), '', $_POST['board']);
 $_POST['thread'] = str_replace(array('.','/','|'), '', $_POST['thread']);
 $msgbr = explode("<br>", $_POST['comment']);
