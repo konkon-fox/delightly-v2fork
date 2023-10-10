@@ -70,23 +70,38 @@ if ($ipv6 === true) {
 }
 
 // 特殊な文字等変換
-if ($SETTING['BBS_UNICODE'] != "checked") {
-  // 絵文字禁止モードなのでhtmlspecialcharsでok
-  $_POST['title'] = htmlspecialchars($_POST['title'], ENT_QUOTES, 'UTF-8');
-}else {
-  // 絵文字をhtmlspecialcharsしてしまうと数値実体参照の文字列になってしまうので個別にエスケープ処理
-  $_POST['title'] = preg_replace('/&(?!#[a-zA-Z0-9]+;)/', '&#38;', $_POST['title']);
-  $_POST['title'] = str_replace('"', '&#34;', $_POST['title']);
-  $_POST['title'] = str_replace('<', '&#60;', $_POST['title']);
-  $_POST['title'] = str_replace('>', '&#62;', $_POST['title']);
-  $_POST['title'] = str_replace("'", '&#39;', $_POST['title']);
+function escapePostData(&$postData){
+  // 絵文字等が初期値では許可(checked)のはずが空文字列になってるので両方に対応
+  if (!isset($SETTING['BBS_UNICODE']) || $SETTING['BBS_UNICODE'] === 'checked') {
+    // 絵文字等をhtmlspecialcharsしてしまうと数値実体参照の文字列になってしまうので個別にエスケープ処理
+    $postData = preg_replace('/&(?!#[a-zA-Z0-9]+;)/', '&amp;', $postData);
+    $postData = str_replace('<', '&lt;', $postData);
+    $postData = str_replace('>', '&gt;', $postData);
+    $postData = str_replace('"', '&quot;', $postData);
+    $postData = str_replace("'", '&apos;', $postData);
+  }else {
+    // 絵文字等禁止モードなのでhtmlspecialcharsでok
+    $postData = htmlspecialchars($postData, ENT_QUOTES, 'UTF-8');
+  }
+  // &#10;(LF) &#13;(CR) をエスケープ
+  $postData = preg_replace('/&#0*1[03];/', '&nbsp;', $postData);
+  // &#x0a;(LF) &#x0d;(CR) をエスケープ
+  $postData = preg_replace('/&#[xX]0*[aAdD];/', '&nbsp;', $postData);
+  // 改行系の制御文字をエスケープ
+  $postData = str_replace(array('\r','\n'), '&nbsp;', $postData);
+  // trim
+  $postData = trim($postData);
 }
-// &#10;(LF) &#13;(CR) をエスケープ
-$_POST['title'] = preg_replace("/&#0*1[03];/", "&#32;", $_POST['title']);
-// &#x0a;(LF) &#x0d;(CR) をエスケープ
-$_POST['title'] = preg_replace("/&#[xX]0*[aAdD];/", "&#32;", $_POST['title']);
-// スレ立て時の判定 ※$_POST['title']が空文字か否かでレスかスレ立てかを判別してるようなので
-if($_POST['title']!==''){
+escapePostData($_POST['title']);
+escapePostData($_POST['name']);
+escapePostData($_POST['mail']);
+escapePostData($_POST['comment']);
+$_POST['board'] = str_replace(array('.','/','|'), '', $_POST['board']);
+$_POST['thread'] = str_replace(array('.','/','|'), '', $_POST['thread']);
+$msgbr = explode("<br>", $_POST['comment']);
+
+// スレ立て時の判定
+if($newthread){
   // 先頭と末尾の空白文字を削除
   $_POST['title'] = trim($_POST['title']);
   // trim後のスレタイが空文字ならerror
@@ -94,31 +109,6 @@ if($_POST['title']!==''){
     Error2("invalid:1");
   }
 }
-$_POST['name'] = str_replace('"', "&quot;", $_POST['name']);
-$_POST['name'] = str_replace("<", "&lt;", $_POST['name']);
-$_POST['name'] = str_replace(">", "&gt;", $_POST['name']);
-$_POST['name'] = str_replace("'", "&#039;", $_POST['name']);
-$_POST['name'] = str_replace("&amp", "", $_POST['name']);
-$_POST['name'] = str_replace(array("\r\n","\r","\n"), " ", $_POST['name']);
-$_POST['name'] = trim($_POST['name']);
-$_POST['mail'] = htmlspecialchars($_POST['mail'], ENT_QUOTES, 'UTF-8');
-$_POST['mail'] = str_replace(array("\r\n","\r","\n"), " ", $_POST['mail']);
-$_POST['mail'] = trim($_POST['mail']);
-$_POST['board'] = str_replace(array(".","/","|"), "", $_POST['board']);
-$_POST['thread'] = str_replace(array(".","/","|"), "", $_POST['thread']);
-$_POST['comment'] = str_replace('"', "&quot;", $_POST['comment']);
-$_POST['comment'] = str_replace("<", "&lt;", $_POST['comment']);
-$_POST['comment'] = str_replace(">", "&gt;", $_POST['comment']);
-$_POST['comment'] = str_replace("'", "&#039;", $_POST['comment']);
-$_POST['comment'] = str_replace("&amp", "", $_POST['comment']);
-$_POST['comment'] = trim($_POST['comment']);
-$_POST['comment'] = str_replace(array('[', ']'), array('［', '］'), $_POST['comment']); //レス情報欄偽造防止
-$_POST['comment'] = str_replace(array("\r\n","\r","\n"), "<br>", $_POST['comment']);
-$_POST['comment'] = preg_replace("/&#0*10([^0-9]|$)/", "<br>", $_POST['comment']);
-$_POST['comment'] = preg_replace("/&#[xX]0*[aA]([^a-zA-Z0-9]|$)/", "<br>", $_POST['comment']);
-$_POST['name'] = preg_replace("/&#0*10([^0-9]|$)/", "", $_POST['name']);
-$_POST['name'] = preg_replace("/&#[xX]0*[aA]([^a-zA-Z0-9]|$)/", "", $_POST['name']);
-$msgbr = explode("<br>", $_POST['comment']);
 
 // 変換
 if ($SETTING['change_sakujyo'] == "checked") {
@@ -194,7 +184,7 @@ list($_POST['name'],$trip) = explode("◆", $_POST['name']);
 
 // トリップを表示する場合
 if ($trip) {
- if ((strpos($_POST['name'], '!hide') === false && strpos($_POST['mail'], '!hide') === false && $SETTING['DISABLE_TRIP'] != "checked") || $SETTING['FORCE_DISP_TRIP'] == "checked") $_POST['name'] .= " </b>◆".$trip." <b>";
+ if ((strpos($_POST['name'], '!hide') === false && strpos($_POST['mail'], '!hide') === false && $SETTING['DISABLE_TRIP'] != "checked") || $SETTING['FORCE_DISP_TRIP'] == "checked") $_POST['name'] .= " <b>◆".$trip." </b>";
 }
 $_POST['name'] = str_replace("!hide", '', $_POST['name']);
 $_POST['mail'] = str_replace("!hide", '', $_POST['mail']);
