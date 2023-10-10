@@ -75,10 +75,6 @@ function escapePostData(&$postData, $keepNewLine){
   //   絵文字が初期値では許可(checked)のはずが空文字列になってるので両方に対応
   //   if (!isset($SETTING['BBS_UNICODE']) || $SETTING['BBS_UNICODE'] === 'checked') {
   $postData = htmlspecialchars($postData, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-  // &#10;(LF) &#13;(CR) をエスケープ
-  // $postData = preg_replace('/&#0*1[03];/', '&nbsp;', $postData);
-  // &#x0a;(LF) &#x0d;(CR) をエスケープ
-  // $postData = preg_replace('/&#[xX]0*[aAdD];/', '&nbsp;', $postData);
   // 改行コードをエスケープ ※本文のみ<br>に変換
   $newLineChar = $keepNewLine ? '<br>' : '&nbsp;';
   $postData = preg_replace('/(\r\n|\r|\n)/', $newLineChar, $postData);
