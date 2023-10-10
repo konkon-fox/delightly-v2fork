@@ -71,22 +71,14 @@ if ($ipv6 === true) {
 
 // 特殊な文字等変換
 function escapePostData(&$postData, $keepNewLine){
-  // 絵文字等が初期値では許可(checked)のはずが空文字列になってるので両方に対応
-  if (!isset($SETTING['BBS_UNICODE']) || $SETTING['BBS_UNICODE'] === 'checked') {
-    // 絵文字等をhtmlspecialcharsしてしまうと数値実体参照の文字列になってしまうので個別にエスケープ処理
-    $postData = preg_replace('/&(?!#[a-zA-Z0-9]+;)/', '&amp;', $postData);
-    $postData = str_replace('<', '&lt;', $postData);
-    $postData = str_replace('>', '&gt;', $postData);
-    $postData = str_replace('"', '&quot;', $postData);
-    $postData = str_replace("'", '&apos;', $postData);
-  }else {
-    // 絵文字等禁止モードなのでhtmlspecialcharsでok
-    $postData = htmlspecialchars($postData, ENT_QUOTES, 'UTF-8');
-  }
+  // 現在のコードでは絵文字禁止が働かないので分岐を削除 ※絵文字禁止に関しては別の機会に修正予定
+  //   絵文字が初期値では許可(checked)のはずが空文字列になってるので両方に対応
+  //   if (!isset($SETTING['BBS_UNICODE']) || $SETTING['BBS_UNICODE'] === 'checked') {
+  $postData = htmlspecialchars($postData, ENT_QUOTES | ENT_HTML5, 'UTF-8');
   // &#10;(LF) &#13;(CR) をエスケープ
-  $postData = preg_replace('/&#0*1[03];/', '&nbsp;', $postData);
+  // $postData = preg_replace('/&#0*1[03];/', '&nbsp;', $postData);
   // &#x0a;(LF) &#x0d;(CR) をエスケープ
-  $postData = preg_replace('/&#[xX]0*[aAdD];/', '&nbsp;', $postData);
+  // $postData = preg_replace('/&#[xX]0*[aAdD];/', '&nbsp;', $postData);
   // 改行コードをエスケープ ※本文のみ<br>に変換
   $newLineChar = $keepNewLine ? '<br>' : '&nbsp;';
   $postData = preg_replace('/(\r\n|\r|\n)/', $newLineChar, $postData);
