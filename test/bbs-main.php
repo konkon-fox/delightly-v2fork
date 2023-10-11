@@ -173,7 +173,7 @@ list($_POST['name'],$trip) = explode("◆", $_POST['name']);
 
 // トリップを表示する場合
 if ($trip) {
- if ((strpos($_POST['name'], '!hide') === false && strpos($_POST['mail'], '!hide') === false && $SETTING['DISABLE_TRIP'] != "checked") || $SETTING['FORCE_DISP_TRIP'] == "checked") $_POST['name'] .= " <b>◆".$trip." </b>";
+ if ((strpos($_POST['name'], '!hide') === false && strpos($_POST['mail'], '!hide') === false && $SETTING['DISABLE_TRIP'] != "checked") || $SETTING['FORCE_DISP_TRIP'] == "checked") $_POST['name'] .= " </b>◆".$trip." <b>";
 }
 $_POST['name'] = str_replace("!hide", '', $_POST['name']);
 $_POST['mail'] = str_replace("!hide", '', $_POST['mail']);
@@ -781,12 +781,14 @@ if (!$_POST['name']) {
 if ($SETTING['NAME_ARR'] == "checked") $_POST['name'] .= "@転載禁止";
 
 // 県名表示
-if ($SETTING['BBS_JP_CHECK'] && $SETTING['BBS_JP_CHECK'] != "none" && !$admin) $M .= $HAP['region'];
+if ($SETTING['BBS_JP_CHECK'] && $SETTING['BBS_JP_CHECK'] != "none" && !$admin) $M .= ' </b>('.$HAP['region'].')<b>';
 
 // 回線別末尾+新規表示
 if ($SETTING['slip'] == "checked" && !$admin) {
- if ($LV < 1) $M .= "新規";
- $M .= $slip;
+ $endChar = '';
+ if ($LV < 1) $endChar .= "新規";
+ $endChar .= $slip;
+ $M .= " </b>($endChar)<b>";
 }
 
 // BBS_SLIP=vvvvv相当
@@ -798,18 +800,15 @@ $slipac = substr(crypt(md5($ACCEPT.$_POST['board'].date("Ym").substr(date("d"), 
 $vvvvv = preg_replace('/\./','+',$sliprange.$slipid."-".$slipua.$slipac);
 $vvvvv = str_replace('/','+',$vvvvv);
 $vvvvv = str_replace('+','0',$vvvvv);	// read.js対策
-if ($SETTING['disp_slipname'] == "checked" && !$authorized && !$admin) $M .= $SLIP_NAME." ".$vvvvv;
+if ($SETTING['disp_slipname'] == "checked" && !$authorized && !$admin) $M .= " </b>({$SLIP_NAME} {$vvvvv})<b>";
 
 // 強制リモートホスト表示
-if ($SETTING['fusianasan'] == "name" && !$authorized && !$admin) $M .= " ".$HOST;
+if ($SETTING['fusianasan'] == "name" && !$authorized && !$admin) $M .= " </b>($HOST)<b>";
 // 強制ClientID表示
-elseif ($SETTING['fusianasan'] == "id" && !$authorized && !$admin) $M .= " ".$WrtAgreementKey;
+elseif ($SETTING['fusianasan'] == "id" && !$authorized && !$admin) $M .= " </b>($WrtAgreementKey)<b>";
 
 // スレッド主表示
-if (!$newthread && $supervisor && !$no && $SETTING['id']!=='') $M .= " 主";
-
-// 空白を削除(レス情報欄)
-$M = trim($M);
+if (!$newthread && $supervisor && !$no && $SETTING['id']!=='') $M .= " </b>(主)<b>";
 
 // KOROKOROをタイトルに表示
 if ($newthread && $SETTING['createid'] == "checked" && !$admin) {
@@ -818,16 +817,16 @@ if ($newthread && $SETTING['createid'] == "checked" && !$admin) {
 }
 
 // fusianasanでホスト表示
-$_POST['name'] = str_replace("fusianasan", "<b>".$HOST."</b>", $_POST['name']);
+$_POST['name'] = str_replace("fusianasan", " </b>(".$HOST.")<b>", $_POST['name']);
 // ClientID表示
-$_POST['name'] = str_replace("!clientid", "<b>".$WrtAgreementKey."</b>", $_POST['name']);
+$_POST['name'] = str_replace("!clientid", " </b>(".$WrtAgreementKey.")<b>", $_POST['name']);
 // 県名表示
-$_POST['name'] = str_replace("!ken", "<b>".$HAP['region']."</b>", $_POST['name']);
+$_POST['name'] = str_replace("!ken", " </b>(".$HAP['region'].")<b>", $_POST['name']);
 // ID表示
-$_POST['name'] = str_replace("!id", "<b>".$SLIP_IP.$SLIP_ID.$SLIP_AC.$SLIP_TE."</b>", $_POST['name']);
+$_POST['name'] = str_replace("!id", " </b>(".$SLIP_IP.$SLIP_ID.$SLIP_AC.$SLIP_TE.")<b>", $_POST['name']);
 
 // ワッチョイ等を表示
-if ($M) $_POST['name'] .= " <b>($M)</b>";
+if ($M) $_POST['name'] .= $M;
 
 // mail欄にはTLでの返信に使うNoを入れる
 // $_POST['mail'] = 'No.'.$NOWTIME;
