@@ -23,7 +23,7 @@ $DATFILE = $PATH."dat/".$_POST['thread'].".dat";	//Shift_JIS 専ブラ用 ※過
 # 記録ファイルが設置された場所。
 $HAP_PATH = './HAP/';
 mb_substitute_character('entity');
-$M =  $ken = $ncolor = $Cookmail = $LV = $CAPID = $accountid = '';
+$M =  $ken = $ncolor = $Cookmail = $LV = $CAPID = $accountid = $supervisorID = '';
 $stop = $admin = $sage = $supervisor = $authorized = $PROXY = false;
 
 // GETメソッド
@@ -70,34 +70,34 @@ if ($ipv6 === true) {
 }
 
 // 特殊な文字等変換
-$_POST['title'] = str_replace(array("\r\n","\r","\n"), " ", $_POST['title']);
-$_POST['name'] = str_replace('"', "&quot;", $_POST['name']);
-$_POST['name'] = str_replace("<", "&lt;", $_POST['name']);
-$_POST['name'] = str_replace(">", "&gt;", $_POST['name']);
-$_POST['name'] = str_replace("'", "&#039;", $_POST['name']);
-$_POST['name'] = str_replace("&amp", "", $_POST['name']);
-$_POST['name'] = str_replace(array("\r\n","\r","\n"), " ", $_POST['name']);
-$_POST['name'] = trim($_POST['name']);
-$_POST['mail'] = htmlspecialchars($_POST['mail'], ENT_QUOTES, 'UTF-8');
-$_POST['mail'] = str_replace(array("\r\n","\r","\n"), " ", $_POST['mail']);
-$_POST['mail'] = trim($_POST['mail']);
-$_POST['board'] = str_replace(array(".","/","|"), "", $_POST['board']);
-$_POST['thread'] = str_replace(array(".","/","|"), "", $_POST['thread']);
-$_POST['comment'] = str_replace('"', "&quot;", $_POST['comment']);
-$_POST['comment'] = str_replace("<", "&lt;", $_POST['comment']);
-$_POST['comment'] = str_replace(">", "&gt;", $_POST['comment']);
-$_POST['comment'] = str_replace("'", "&#039;", $_POST['comment']);
-$_POST['comment'] = str_replace("&amp", "", $_POST['comment']);
-$_POST['comment'] = trim($_POST['comment']);
-$_POST['comment'] = str_replace(array('[', ']'), array('［', '］'), $_POST['comment']); //レス情報欄偽造防止
-$_POST['comment'] = str_replace(array("\r\n","\r","\n"), "<br>", $_POST['comment']);
-$_POST['comment'] = preg_replace("/&#0*10([^0-9]|$)/", "<br>", $_POST['comment']);
-$_POST['comment'] = preg_replace("/&#[xX]0*[aA]([^a-zA-Z0-9]|$)/", "<br>", $_POST['comment']);
-$_POST['title'] = preg_replace("/&#0*10([^0-9]|$)/", "<br>", $_POST['title']);
-$_POST['title'] = preg_replace("/&#[xX]0*[aA]([^a-zA-Z0-9]|$)/", "<br>", $_POST['title']);
-$_POST['name'] = preg_replace("/&#0*10([^0-9]|$)/", "", $_POST['name']);
-$_POST['name'] = preg_replace("/&#[xX]0*[aA]([^a-zA-Z0-9]|$)/", "", $_POST['name']);
+function escapePostData(&$postData, $keepNewLine){
+  // 現在のコードでは絵文字禁止が働かないので分岐を削除 ※絵文字禁止に関しては別の機会に修正予定
+  //   絵文字が初期値では許可(checked)のはずが空文字列になってるので両方に対応
+  //   if (!isset($SETTING['BBS_UNICODE']) || $SETTING['BBS_UNICODE'] === 'checked') {
+  $postData = htmlspecialchars($postData, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+  // 改行コードをエスケープ ※本文のみ<br>に変換
+  $newLineChar = $keepNewLine ? '<br>' : '&nbsp;';
+  $postData = preg_replace('/(\r\n|\r|\n)/', $newLineChar, $postData);
+  // trim
+  $postData = trim($postData);
+}
+escapePostData($_POST['title'], false);
+escapePostData($_POST['name'], false);
+escapePostData($_POST['mail'], false);
+escapePostData($_POST['comment'], true);
+$_POST['board'] = str_replace(array('.','/','|'), '', $_POST['board']);
+$_POST['thread'] = str_replace(array('.','/','|'), '', $_POST['thread']);
 $msgbr = explode("<br>", $_POST['comment']);
+
+// スレ立て時の判定
+if($newthread){
+  // 先頭と末尾の空白文字を削除
+  $_POST['title'] = trim($_POST['title']);
+  // trim後のスレタイが空文字ならerror
+  if($_POST['title'] === ''){
+    Error2("invalid:1");
+  }
+}
 
 // 変換
 if ($SETTING['change_sakujyo'] == "checked") {
@@ -283,13 +283,13 @@ if ($newthread) {
  // 主表示
  if ($SETTING['thread_supervisor'] == "checked") {
  $supervisor = true;
- $M = substr(md5($_POST['thread'].$HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 5);
+ $supervisorID = substr(md5($_POST['thread'].$HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 8);
  }
 }elseif (!$tlonly) {
  // スレッドタイトルを取得
  $LOG = file($THREADFILE);
  list($n,$m,$d,$message,$subject) = explode("<>", $LOG[0]);
- if (strpos($m, substr(md5($_POST['thread'].$HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 5)) !== false) $supervisor = true;
+ if (strpos($m, substr(md5($_POST['thread'].$HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 8)) !== false) $supervisor = true;
  $subject = str_replace(array("\r\n","\r","\n"), "", $subject);
 }
 
@@ -302,28 +302,6 @@ if ($SETTING['timeinterval'] && !$tlonly && !$newthread) {
  if ($NOWTIME < filemtime($THREADFILE) + $SETTING['timeinterval']) Error("このスレッドでは直前の投稿から".$SETTING['timeinterval']."秒経たなければ投稿することができません");
 }
 
-// >>1への変更を反映させる
-if (!$newthread && !$tlonly && $reload) {
- array_shift($LOG);
- array_unshift($LOG, $n."<>".$m."<>".$d."<>".$message."<>".$subject."\n");
- $fp = '';
- foreach($LOG as $tmp) $fp .= $tmp;
- file_put_contents($THREADFILE, $fp, LOCK_EX);
-}
-
-// スレッドタイトルの変換形式
-if ($SETTING['BBS_UNICODE'] != "checked") {
-$_POST['title'] = htmlspecialchars($_POST['title'], ENT_QUOTES, 'UTF-8');
-}else {
-$_POST['title'] = str_replace('"', "&quot;", $_POST['title']);
-$_POST['title'] = str_replace("<", "&lt;", $_POST['title']);
-$_POST['title'] = str_replace(">", "&gt;", $_POST['title']);
-$_POST['title'] = str_replace("'", "&#039;", $_POST['title']);
-$_POST['title'] = str_replace("&amp", "？", $_POST['title']);
-$_POST['title'] .= " ";
-$_POST['title'] = trim($_POST['title']);
-}
-
 if (!$newthread && !$tlonly) {
  // スレッドファイルが無い
  if (!is_file($THREADFILE)) Error("該当するスレッドがありません");
@@ -331,6 +309,17 @@ if (!$newthread && !$tlonly) {
  if (!is_file($DATFILE)) Error("このスレッドは過去ログのため投稿できません");
  // 強制sage
  if ($SETTING['BBS_FORCE_SAGE'] && $_POST['thread'] + $SETTING['BBS_FORCE_SAGE'] < $NOWTIME) $sage = true;
+}
+
+// >>1への変更を反映させる
+if (!$newthread && !$tlonly && $reload) {
+  array_shift($LOG);
+  array_unshift($LOG, $n."<>".$m."<>".$d."<>".$message."<>".$subject."\n");
+  $fp = '';
+  foreach($LOG as $tmp) $fp .= $tmp;
+  file_put_contents($THREADFILE, $fp, LOCK_EX);
+  $shiftJisDat = mb_convert_encoding(implode($LOG,''), "SJIS-win", "UTF-8");
+  file_put_contents($DATFILE, $shiftJisDat, LOCK_EX);
 }
 
 // レス番号を取得
@@ -452,7 +441,7 @@ if (!$provider) {
 $SLIP_IP = substr(crypt(md5($HAP['range'].$SLIP_SERV), md5($HAP['range'].$SLIP_SERV)), 2, 2); #IPの一部
 $SLIP_ID = substr(crypt(md5($HAP['provider'].$SLIP_SERV), md5($HAP['provider'].$SLIP_SERV)), 2, 2); #プロバイダ
 $SLIP_AC = substr(crypt(md5($HAP['CH_UA'].$SLIP_SERV), md5($HAP['CH_UA'].$SLIP_SERV)), 2, 2);	#ブラウザ
-$SLIP_TE = substr(crypt(md5($HAP['ACCEPT'].$SLIP_SERV), md5($HAP['ACCEPT'].$SLIP_SERV)), 2, 2);
+$SLIP_TE = substr(crypt(md5($HAP['ACCEPT'].$SLIP_SERV), md5($HAP['ACCEPT'].$SLIP_SERV)), 2, 2); #ACCEPTヘッダー
 
 // モバイル等
 if ($HAP['slip'] != '0') {
@@ -469,7 +458,8 @@ elseif ($SETTING['id']) $ID = "ID:".$SLIP_IP.$SLIP_ID.$SLIP_AC.$SLIP_TE;
 $ID = preg_replace('/\./','+',$ID);
 $ID = str_replace('/','+',$ID);
 $ID = str_replace('+','0',$ID);	// read.js対策
-if (!$CAPID && $SETTING['id'] != "siberia" && $SETTING['id']) $ID .= substr(hash('sha256', $IP_ADDR.md5($IP_ADDR)), 2, 1);
+// 最後の1文字は飛行機で変わるので不要
+// if (!$CAPID && $SETTING['id'] != "siberia" && $SETTING['id']) $ID .= substr(hash('sha256', $IP_ADDR.md5($IP_ADDR)), 2, 1);
 
 // 未ログイン時で本文が半角文字のみ
 if ($SETTING['unauthorized_half_check'] == "checked" && strlen($_POST['comment']) == mb_strlen($_POST['comment'],"UTF-8") && !$authorized) DispError("この掲示板・スレッドでは未承認ユーザでの日本語を含まない投稿が禁止されています");
@@ -791,12 +781,14 @@ if (!$_POST['name']) {
 if ($SETTING['NAME_ARR'] == "checked") $_POST['name'] .= "@転載禁止";
 
 // 県名表示
-if ($SETTING['BBS_JP_CHECK'] && $SETTING['BBS_JP_CHECK'] != "none" && !$admin) $M .= $HAP['region'];
+if ($SETTING['BBS_JP_CHECK'] && $SETTING['BBS_JP_CHECK'] != "none" && !$admin) $M .= ' </b>('.$HAP['region'].')<b>';
 
 // 回線別末尾+新規表示
 if ($SETTING['slip'] == "checked" && !$admin) {
- if ($LV < 1) $M .= "新規";
- $M .= $slip;
+ $endChar = '';
+ if ($LV < 1) $endChar .= "新規";
+ $endChar .= $slip;
+ $M .= " </b>($endChar)<b>";
 }
 
 // BBS_SLIP=vvvvv相当
@@ -808,42 +800,43 @@ $slipac = substr(crypt(md5($ACCEPT.$_POST['board'].date("Ym").substr(date("d"), 
 $vvvvv = preg_replace('/\./','+',$sliprange.$slipid."-".$slipua.$slipac);
 $vvvvv = str_replace('/','+',$vvvvv);
 $vvvvv = str_replace('+','0',$vvvvv);	// read.js対策
-if ($SETTING['disp_slipname'] == "checked" && !$authorized && !$admin) $M .= $SLIP_NAME." ".$vvvvv;
+if ($SETTING['disp_slipname'] == "checked" && !$authorized && !$admin) $M .= " </b>({$SLIP_NAME} {$vvvvv})<b>";
 
 // 強制リモートホスト表示
-if ($SETTING['fusianasan'] == "name" && !$authorized && !$admin) $M .= " ".$HOST;
+if ($SETTING['fusianasan'] == "name" && !$authorized && !$admin) $M .= " </b>($HOST)<b>";
 // 強制ClientID表示
-elseif ($SETTING['fusianasan'] == "id" && !$authorized && !$admin) $M .= " ".$WrtAgreementKey;
+elseif ($SETTING['fusianasan'] == "id" && !$authorized && !$admin) $M .= " </b>($WrtAgreementKey)<b>";
 
 // スレッド主表示
-if (!$newthread && $supervisor && !$no) $M .= " 主";
-
-// 空白を削除(レス情報欄)
-$M = trim($M);
+if (!$newthread && $supervisor && !$no && $SETTING['id']!=='') $M .= " </b>(主)<b>";
 
 // KOROKOROをタイトルに表示
-if ($newthread && $SETTING['createid'] == "checked" && !$admin) {
+if ($newthread && $SETTING['createid'] == "checked" && $SETTING['id'] && !$admin) {
  $_POST['title'] .= " [".$SLIP_IP.$SLIP_ID.$SLIP_AC.$SLIP_TE."★]";
  $subject .= " [".$SLIP_IP.$SLIP_ID.$SLIP_AC.$SLIP_TE."★]";
 }
 
 // fusianasanでホスト表示
-$_POST['name'] = str_replace("fusianasan", "</b>".$HOST."<b>", $_POST['name']);
+$_POST['name'] = str_replace("fusianasan", " </b>(".$HOST.")<b>", $_POST['name']);
 // ClientID表示
-$_POST['name'] = str_replace("!clientid", "</b>".$WrtAgreementKey."<b>", $_POST['name']);
+$_POST['name'] = str_replace("!clientid", " </b>(".$WrtAgreementKey.")<b>", $_POST['name']);
 // 県名表示
-$_POST['name'] = str_replace("!ken", "</b>".$HAP['region']."<b>", $_POST['name']);
+$_POST['name'] = str_replace("!ken", " </b>(".$HAP['region'].")<b>", $_POST['name']);
 // ID表示
-$_POST['name'] = str_replace("!id", "</b>".$SLIP_IP.$SLIP_ID.$SLIP_AC.$SLIP_TE."<b>", $_POST['name']);
+$_POST['name'] = str_replace("!id", " </b>(".$SLIP_IP.$SLIP_ID.$SLIP_AC.$SLIP_TE.")<b>", $_POST['name']);
+
+// ワッチョイ等を表示
+if ($M) $_POST['name'] .= $M;
 
 // mail欄にはTLでの返信に使うNoを入れる
-$_POST['mail'] = 'No.'.$NOWTIME;
+// $_POST['mail'] = 'No.'.$NOWTIME;
+// 鍵漏れ等の対策としてメール欄の内容は削除
+$_POST['mail'] = '';
 
 // dat用にShift_JISに再変換
 if (!$tlonly) {
-if ($M) $DATM = ' </b>('.$M.')<b>';
-else $DATM = '';
-$outdat = mb_convert_encoding($_POST['name'].$DATM."<>".$_POST['mail']."<>".$DATE." ".$ID."<>".$_POST['comment']."<>".$_POST['title']."\n", "SJIS-win", "UTF-8");
+$DATMAIL = $newthread ? $supervisorID : $_POST['mail'];
+$outdat = mb_convert_encoding($_POST['name']."<>".$DATMAIL."<>".$DATE." ".$ID."<>".$_POST['comment']."<>".$_POST['title']."\n", "SJIS-win", "UTF-8");
 // datに書き込み
 // datディレクトリがあるかチェック
 $directoryPath = $PATH . "dat/";
@@ -856,7 +849,7 @@ fclose($fp);
 }
 
 // レス情報を本文末尾に追加
-if ($M) $_POST['comment'] .= '<br><font color="gray"><small>['.$M.']</small></font>';
+// if ($M) $_POST['comment'] .= '<br><font color="gray"><small>['.$M.']</small></font>';
 
 // URLをリンクに変換
  $_POST['comment'] = preg_replace("/\[(.+?)\]\(https?:\/\/([\w;\/\?:\@&=\+\$,\-\.!~\*'\(\)%#]+)\)/", "<a href=\"//$2\" rel=\"nofollow noopener\" target=\"_blank\" title=\"//$2\">$1</a>", $_POST['comment']);
@@ -944,7 +937,7 @@ if (!$tlonly) {
 makeDir($PATH."thread/".substr($_POST['thread'], 0, 4)."/");
 // スレッドファイルに書き込み
 $fp = fopen($THREADFILE, "a"); #ログを開く
-fputs($fp, $_POST['name']."<>".$_POST['mail']."<>".$DATE." ".$ID."<>".$_POST['comment']."<>".$_POST['title']."\n"); #書き込み
+fputs($fp, $_POST['name']."<>".$DATMAIL."<>".$DATE." ".$ID."<>".$_POST['comment']."<>".$_POST['title']."\n"); #書き込み
 fclose($fp);
 }
 
@@ -967,7 +960,7 @@ if (!$sage) {
  if (!is_file($LTLFILE)) $LTL = [];
  $count = 0;
  $post = ["name"=>$_POST['name'],
- 	  "mail"=>$_POST['mail'],
+ 	  "mail"=>'No.'.$NOWTIME,
  	  "date"=>$DATE,
  	  "id"=>$ID,
  	  "comment"=>$_POST['comment'],

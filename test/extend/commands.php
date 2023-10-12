@@ -48,7 +48,7 @@ if ($supervisor || $admin) {
   if (strpos($_POST['comment'], "!") !== false) $reload = true;
   if (strpos($_POST['comment'], '!stop') !== false) $stop = true;
    // 追記
-   if (preg_match("/!add(.*)/", $_POST['comment'], $match) && $number != 1) {
+   if (preg_match("/\!add(.*)/", $_POST['comment'], $match) && $number != 1) {
     $message .="<br><font class=\"add\" color=\"red\">※追記 {$DATE}</font>{$match[1]}";
    }
   // 部分削除
@@ -57,5 +57,14 @@ if ($supervisor || $admin) {
     $message = str_replace($sakujyo[1],'',$message);
     }
    }
+  // idchange
+  if ($newthread && strpos($_POST['comment'], '!idchange') !== false) $SETTING['BBS_ID_CHANGE'] = "checked";
+  // noid
+  if ($newthread && strpos($_POST['comment'], '!noid') !== false) {
+    $SETTING['id'] = "";
+    $SETTING['slip'] = "";
+    $SETTING['disp_slipname'] = "";
+    $SETTING['BBS_JP_CHECK'] = "";
+  }
 }
  }
