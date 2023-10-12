@@ -811,7 +811,7 @@ elseif ($SETTING['fusianasan'] == "id" && !$authorized && !$admin) $M .= " </b>(
 if (!$newthread && $supervisor && !$no && $SETTING['id']!=='') $M .= " </b>(主)<b>";
 
 // KOROKOROをタイトルに表示
-if ($newthread && $SETTING['createid'] == "checked" && !$admin) {
+if ($newthread && $SETTING['createid'] == "checked" && $SETTING['id'] && !$admin) {
  $_POST['title'] .= " [".$SLIP_IP.$SLIP_ID.$SLIP_AC.$SLIP_TE."★]";
  $subject .= " [".$SLIP_IP.$SLIP_ID.$SLIP_AC.$SLIP_TE."★]";
 }
