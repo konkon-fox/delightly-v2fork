@@ -32,7 +32,7 @@ foreach($LOG as $tmp) {
 	$n++;
 	$tmp = rtrim($tmp);
 	list($name,$mail,$dateid,$comment,$title,$key,$number,$HOST,$IP,$UA,$CH_UA,$ACCEPT,$accountid,$LV,$PORT,$CF_IPCOUNTRY,,$ken,$slip,) = explode("<>", $tmp);
-	echo "<dt>".$n."[$d] ：".$name."[".$mail."]：".$dateid." 発信元:".$IP."<".$PORT."> HOST:".$HOST."<dd>".$comment."<hr>ClientID:".$accountid."<Lv".$LV."><br>User-Agent:".$UA."<br>Sec-CH-UA:".$CH_UA."<br>ACCEPT:".$ACCEPT."<br>IPCOUNTRY:".$CF_IPCOUNTRY." 認証時データ:".$ken." ".$slip."<br>URL:<a href='https://".$_SERVER['HTTP_HOST']."/?st=".$number."#".$_REQUEST['bbs']."/".$key."/' target='_new'>https://".$_SERVER['HTTP_HOST']."/?st=".$number."#".$_REQUEST['bbs']."/".$key."/</a></dd>\n";
+	echo "<dt>".$n."[$d] ：<b>".$name."</b>[".$mail."]：".$dateid." 発信元:".$IP."<".$PORT."> HOST:".$HOST."<dd>".$comment."<hr>ClientID:".$accountid."<Lv".$LV."><br>User-Agent:".$UA."<br>Sec-CH-UA:".$CH_UA."<br>ACCEPT:".$ACCEPT."<br>IPCOUNTRY:".$CF_IPCOUNTRY." 認証時データ:".$ken." ".$slip."<br>URL:<a href='https://".$_SERVER['HTTP_HOST']."/?st=".$number."#".$_REQUEST['bbs']."/".$key."/' target='_new'>https://".$_SERVER['HTTP_HOST']."/?st=".$number."#".$_REQUEST['bbs']."/".$key."/</a></dd>\n";
 }
 ?></div>
 </body>
