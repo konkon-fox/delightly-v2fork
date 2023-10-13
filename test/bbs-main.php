@@ -14,6 +14,7 @@ if (!isset($_SERVER['HTTP_SEC_CH_UA_MODEL'])) $_SERVER['HTTP_SEC_CH_UA_MODEL'] =
 if (!isset($_SERVER['HTTP_SEC_CH_UA_MOBILE'])) $_SERVER['HTTP_SEC_CH_UA_MOBILE'] = '';
 if (!isset($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'])) $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'] = '';
 $DATE = date("Y/m/d H:i:s", $NOWTIME);
+if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) $_SERVER['REMOTE_ADDR'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
 $HOST = gethostbyaddr($_SERVER['REMOTE_ADDR']);
 $subjectfile = $PATH."subject.json";	//スレッド一覧
 $LTLFILE = $PATH."index.json";	//ローカルタイムライン
@@ -71,12 +72,18 @@ if ($ipv6 === true) {
 
 // 特殊な文字等変換
 function escapePostData(&$postData, $keepNewLine){
-  // 現在のコードでは絵文字禁止が働かないので分岐を削除 ※絵文字禁止に関しては別の機会に修正予定
-  //   絵文字が初期値では許可(checked)のはずが空文字列になってるので両方に対応
-  //   if (!isset($SETTING['BBS_UNICODE']) || $SETTING['BBS_UNICODE'] === 'checked') {
-  $postData = htmlspecialchars($postData, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+  // 専ブラからの絵文字は数値実体参照で送られてくるのでhtmlspecialcharsは不可
+  $postData = preg_replace('/&(?!#[a-zA-Z0-9]+;)/', '&amp;', $postData);
+  $postData = str_replace('<', '&lt;', $postData);
+  $postData = str_replace('>', '&gt;', $postData);
+  $postData = str_replace('"', '&quot;', $postData);
+  $postData = str_replace("'", '&apos;', $postData);
+  // &#10;(LF) &#13;(CR) をエスケープ
+  $postData = preg_replace('/&#0*1[03];/', ' ', $postData);
+  // &#x0a;(LF) &#x0d;(CR) をエスケープ
+  $postData = preg_replace('/&#[xX]0*[aAdD];/', ' ', $postData);
   // 改行コードをエスケープ ※本文のみ<br>に変換
-  $newLineChar = $keepNewLine ? '<br>' : '&nbsp;';
+  $newLineChar = $keepNewLine ? '<br>' : ' ';
   $postData = preg_replace('/(\r\n|\r|\n)/', $newLineChar, $postData);
   // trim
   $postData = trim($postData);
