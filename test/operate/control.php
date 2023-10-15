@@ -110,8 +110,13 @@ if ($_POST['del']) {
 			$fp = '';
 			foreach($LOG as $tmp) $fp .= $tmp."\n";
 			file_put_contents($THREADFILE, $fp, LOCK_EX);
-			if (is_file($DATFILE)) file_put_contents($DATFILE, mb_convert_encoding($fp, "SJIS-win", "UTF-8"), LOCK_EX);
-			$result = "実行しました";
+
+			$prevChar = mb_substitute_character();
+			mb_substitute_character('entity');
+			if (is_file($DATFILE)) file_put_contents($DATFILE, mb_convert_encoding($fp, 'SJIS-win', 'UTF-8'), LOCK_EX);
+			mb_substitute_character($prevChar);
+
+			$result = '実行しました';
 		}
 	}else $result = "確認画面(削除されるレスにチェックが入っています。宜しければ「実行」をクリック)";
 }
