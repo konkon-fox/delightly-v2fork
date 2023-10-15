@@ -55,7 +55,7 @@ $subjectfile = "../".$_REQUEST['bbs']."/subject.json";
 // スレッドが存在しない場合
 if (!is_file($THREADFILE)) Finish('<b>該当するスレッドがありません</b>');
 // スレッド取得
-$LOG = file($THREADFILE);
+$LOG = file($THREADFILE, FILE_IGNORE_NEW_LINES);
 if ($_POST['del']) {
 	if (!$_POST['kakunin']) {
 		// スレッド削除
@@ -89,14 +89,34 @@ if ($_POST['del']) {
 				// 更新
 				file_put_contents($subjectfile, json_encode($PAGEFILE, JSON_UNESCAPED_UNICODE), LOCK_EX);
 			}
-			for ($i = 0; $i < count($LOG); $i++) {
-    			 if ($_POST[$i] == "checked" || ($i + 1 >= $_POST['from'] && $i + 1 <= $_POST['to']) || ($_POST['itti'] && strpos($LOG[$i],$_POST['itti']) !== false)) $LOG[$i] = "<><><>".$SETTING['DELETED_TEXT']."<>\n";
+
+			// >>1保存
+			$AUTHOR = $LOG[0];
+			// 削除後の文字列
+			$REPLACE_TEXT = '</b>'.$SETTING['DELETED_TEXT'].'<b><>'.str_repeat($SETTING['DELETED_TEXT'].'<>', 3);
+			
+			for ($i = 0, $LOG_COUNT = count($LOG); $i < $LOG_COUNT; ++$i) {
+				if ($_POST[$i] === 'checked' // レス個別
+				|| ($i + 1 >= $_POST['from'] && $i + 1 <= $_POST['to']) // レス範囲
+				|| ($_POST['itti'] && strpos($LOG[$i],$_POST['itti']) !== false)) { // レス条件一致
+					$LOG[$i] = $REPLACE_TEXT;
+				}
 			}
+			// >>1が削除対象だった場合、末尾にスレタイ付与
+			if ($LOG[0] === $REPLACE_TEXT) {
+				$LOG[0] .= explode("<>", $AUTHOR)[4];
+			}
+
 			$fp = '';
-			foreach($LOG as $tmp) $fp .= $tmp;
+			foreach($LOG as $tmp) $fp .= $tmp."\n";
 			file_put_contents($THREADFILE, $fp, LOCK_EX);
-			if (is_file($DATFILE)) file_put_contents($DATFILE, mb_convert_encoding($fp, "SJIS-win", "UTF-8"), LOCK_EX);
-			$result = "実行しました";
+
+			$prevChar = mb_substitute_character();
+			mb_substitute_character('entity');
+			if (is_file($DATFILE)) file_put_contents($DATFILE, mb_convert_encoding($fp, 'SJIS-win', 'UTF-8'), LOCK_EX);
+			mb_substitute_character($prevChar);
+
+			$result = '実行しました';
 		}
 	}else $result = "確認画面(削除されるレスにチェックが入っています。宜しければ「実行」をクリック)";
 }
