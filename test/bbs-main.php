@@ -984,10 +984,13 @@ if (!$tlonly) {
  }
  file_put_contents($LTLFILE, json_encode($LTL, JSON_UNESCAPED_UNICODE), LOCK_EX);
  $TTL = array_reverse($LTL);
- $text = str_replace(array("\r\n","\r","\n"), '', file_get_contents($PATH."head.txt"));
- $text2 = str_replace(array("\r\n","\r","\n"), '', file_get_contents($PATH."kokuti.txt"));
- $fp = "ローカルルール<><>99/01/01 00:00:00 <>".$text."<>TL\n";
- $fp .= "告知欄<><>99/01/01 00:00:00 <>".$text2."<>\n";
+ $headText = file_get_contents($PATH."head.txt");
+ $headText = mb_convert_encoding($headText, 'UTF-8', 'SJIS-win');
+ $headText = preg_replace('/(\r\n|\r|\n)/', '', $headText);
+ $kokutiText = file_get_contents($PATH."kokuti.txt");
+ $kokutiText = preg_replace('/(\r\n|\r|\n)/', '', $kokutiText);
+ $fp = "ローカルルール<><>99/01/01 00:00:00 <>".$headText."<>TL\n";
+ $fp .= "告知欄<><>99/01/01 00:00:00 <>".$kokutiText."<>\n";
  foreach ($TTL as $tmp) {
   if (isset($tmp['thread'])) $tt = "<br><hr>".$tmp["title"]."<br>http://".$_SERVER['HTTP_HOST']."/test/read.cgi/".$_POST['board']."/".$tmp['thread']."/";
   else $tt = "";
