@@ -86,7 +86,7 @@ if (document.getElementById('kokuti')) {
 async function getLocalHtml (targetId, targetFile, isShiftJIS) {
 	try{
 		const response = await fetch(targetFile, {cache: 'no-store'});
-		if(!response.ok) throw new Error();
+		if(!response.ok) throw new Error('response error');
 		if(isShiftJIS){
 			const arrayBuffer = await response.arrayBuffer();
 			const utf8Text = arrayBufferToUtf8(arrayBuffer);
@@ -97,6 +97,7 @@ async function getLocalHtml (targetId, targetFile, isShiftJIS) {
 		}
 	}catch(e){
 		console.error(e);
+    document.getElementById(targetId).innerHTML += 'ファイルの取得に失敗しました。';
 	}
 }
 
