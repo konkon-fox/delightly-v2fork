@@ -48,9 +48,18 @@ if ($supervisor || $admin) {
   if (strpos($_POST['comment'], "!") !== false) $reload = true;
   if (strpos($_POST['comment'], '!stop') !== false) $stop = true;
    // 追記
-   if (preg_match("/\!add(.*)/", $_POST['comment'], $match) && $number != 1) {
-    $message .="<br><font class=\"add\" color=\"red\">※追記 {$DATE}</font>{$match[1]}";
-   }
+  if (preg_match("/\!add(.*)/", $_POST['comment'], $addMatches) && $number != 1) {
+    $commentMax = $authorized ? $SETTING['BBS_MESSAGE_COUNT'] * 3 : $SETTING['BBS_MESSAGE_COUNT'];
+    $addComment = $addMatches[1];
+    if(mb_strlen($message, 'UTF-8') + mb_strlen($addComment, 'UTF-8')  > $commentMax){
+      if(strpos($_POST['comment'], '<hr>') === false) $_POST['comment'] .= '<hr>';
+      $_POST['comment'] .= '★追記できる文字数を超えています。';
+    }else{
+      $messageParts = explode('<hr>', $message);
+      $messageParts[0] .="<br><font class=\"add\" color=\"red\">※追記 {$DATE}</font>{$addComment}";
+      $message = implode('<hr>', $messageParts);
+    }
+  }
   // 部分削除
    if (preg_match_all("/!saku:(.*?)(\s|　|<br>)/", $_POST['comment'], $sakus, PREG_SET_ORDER)) {
     foreach ($sakus as $sakujyo) {
