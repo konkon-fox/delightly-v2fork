@@ -53,7 +53,7 @@ if ($supervisor || $admin) {
     $addComment = $addMatches[1];
     if(mb_strlen($message, 'UTF-8') + mb_strlen($addComment, 'UTF-8')  > $commentMax){
       if(strpos($_POST['comment'], '<hr>') === false) $_POST['comment'] .= '<hr>';
-      $_POST['comment'] .= '★追記できる文字数を超えています。';
+      $_POST['comment'] .= '★追記できる文字数を超えています。<br>';
     }else{
       $messageParts = explode('<hr>', $message);
       $messageParts[0] .="<br><font class=\"add\" color=\"red\">※追記 {$DATE}</font>{$addComment}";
