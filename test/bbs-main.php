@@ -325,7 +325,7 @@ if (!$newthread && !$tlonly && $reload) {
   $fp = '';
   foreach($LOG as $tmp) $fp .= $tmp;
   file_put_contents($THREADFILE, $fp, LOCK_EX);
-  $shiftJisDat = mb_convert_encoding(implode($LOG,''), "SJIS-win", "UTF-8");
+  $shiftJisDat = mb_convert_encoding(implode('', $LOG), "SJIS-win", "UTF-8");
   file_put_contents($DATFILE, $shiftJisDat, LOCK_EX);
 }
 
