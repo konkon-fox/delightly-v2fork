@@ -986,9 +986,9 @@ if (!$tlonly) {
  $TTL = array_reverse($LTL);
  $headText = file_get_contents($PATH."head.txt");
  $headText = mb_convert_encoding($headText, 'UTF-8', 'SJIS-win');
- $headText = preg_replace('/(\r\n|\r|\n)/', '', $headText);
+ $headText = str_replace(array("\r\n","\r","\n"), '', $headText);
  $kokutiText = file_get_contents($PATH."kokuti.txt");
- $kokutiText = preg_replace('/(\r\n|\r|\n)/', '', $kokutiText);
+ $kokutiText = str_replace(array("\r\n","\r","\n"), '', $kokutiText);
  $fp = "ローカルルール<><>99/01/01 00:00:00 <>".$headText."<>TL\n";
  $fp .= "告知欄<><>99/01/01 00:00:00 <>".$kokutiText."<>\n";
  foreach ($TTL as $tmp) {
