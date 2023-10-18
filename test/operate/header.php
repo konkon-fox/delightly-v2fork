@@ -1,5 +1,6 @@
 <?php
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['edit'] == "yes") {
+  mb_substitute_character('entity');
   $newHeadText = mb_convert_encoding($_POST['head'], 'SJIS-win', 'UTF-8');
   file_put_contents($PATH."head.txt", $newHeadText);
   $newKokutiText = $_POST['head2'];
