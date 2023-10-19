@@ -84,7 +84,7 @@ function escapePostData(&$postData, $keepNewLine){
   $postData = preg_replace('/&#[xX]0*[aAdD];/', ' ', $postData);
   // 改行コードをエスケープ ※本文のみ<br>に変換
   $newLineChar = $keepNewLine ? '<br>' : ' ';
-  $postData = preg_replace('/(\r\n|\r|\n)/', $newLineChar, $postData);
+  $postData = str_replace(array("\r\n","\r","\n"), $newLineChar, $postData);
   // trim
   $postData = trim($postData);
 }
