@@ -24,23 +24,35 @@ kokutifile = '/'+bbs+'/kokuti.txt';
 			}
 		}
 	}
- if (document.getElementById('rule')) {
-	const lroad = new XMLHttpRequest();
-	lroad.open('get', rulefile);
-	lroad.send();
-	lroad.onreadystatechange = function() {
-		if(lroad.readyState === 4 && lroad.status === 200) {
-			document.getElementById('rule').innerHTML += this.responseText;
+
+if (document.getElementById('rule')) {
+	getLocalHtml('rule', rulefile, true);
+}
+if (document.getElementById('kokuti')) {
+	getLocalHtml('kokuti', kokutifile, false);
+}
+
+async function getLocalHtml (targetId, targetFile, isShiftJIS) {
+	try{
+		const response = await fetch(targetFile, {cache: 'no-store'});
+		if(!response.ok) throw new Error('response error');
+		if(isShiftJIS){
+			const arrayBuffer = await response.arrayBuffer();
+			const utf8Text = arrayBufferToUtf8(arrayBuffer);
+			document.getElementById(targetId).innerHTML += utf8Text;
+		}else{
+			const utf8Text = await response.text();
+			document.getElementById(targetId).innerHTML += utf8Text;
 		}
+	}catch(e){
+		console.error(e);
+		document.getElementById(targetId).innerHTML += 'ファイルの取得に失敗しました。';
 	}
- }
- if (document.getElementById('kokuti')) {
-	const kroad = new XMLHttpRequest();
-	kroad.open('get', kokutifile);
-	kroad.send();
-	kroad.onreadystatechange = function() {
-		if(kroad.readyState === 4 && kroad.status === 200) {
-			document.getElementById('kokuti').innerHTML += this.responseText;
-		}
-	}
- }
+}
+
+function arrayBufferToUtf8 (arrayBuffer) {
+  const textDecoder = new TextDecoder('sjis');
+  const rawUtf8Text = textDecoder.decode(arrayBuffer);
+	const utf8Text = rawUtf8Text.replace(/(\r\n|\r|\n)/g, '');
+  return utf8Text;
+}

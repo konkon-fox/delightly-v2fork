@@ -84,7 +84,7 @@ function escapePostData(&$postData, $keepNewLine){
   $postData = preg_replace('/&#[xX]0*[aAdD];/', ' ', $postData);
   // 改行コードをエスケープ ※本文のみ<br>に変換
   $newLineChar = $keepNewLine ? '<br>' : ' ';
-  $postData = preg_replace('/(\r\n|\r|\n)/', $newLineChar, $postData);
+  $postData = str_replace(array("\r\n","\r","\n"), $newLineChar, $postData);
   // trim
   $postData = trim($postData);
 }
@@ -325,7 +325,7 @@ if (!$newthread && !$tlonly && $reload) {
   $fp = '';
   foreach($LOG as $tmp) $fp .= $tmp;
   file_put_contents($THREADFILE, $fp, LOCK_EX);
-  $shiftJisDat = mb_convert_encoding(implode($LOG,''), "SJIS-win", "UTF-8");
+  $shiftJisDat = mb_convert_encoding(implode('', $LOG), "SJIS-win", "UTF-8");
   file_put_contents($DATFILE, $shiftJisDat, LOCK_EX);
 }
 
@@ -984,10 +984,13 @@ if (!$tlonly) {
  }
  file_put_contents($LTLFILE, json_encode($LTL, JSON_UNESCAPED_UNICODE), LOCK_EX);
  $TTL = array_reverse($LTL);
- $text = str_replace(array("\r\n","\r","\n"), '', file_get_contents($PATH."head.txt"));
- $text2 = str_replace(array("\r\n","\r","\n"), '', file_get_contents($PATH."kokuti.txt"));
- $fp = "ローカルルール<><>99/01/01 00:00:00 <>".$text."<>TL\n";
- $fp .= "告知欄<><>99/01/01 00:00:00 <>".$text2."<>\n";
+ $headText = file_get_contents($PATH."head.txt");
+ $headText = mb_convert_encoding($headText, 'UTF-8', 'SJIS-win');
+ $headText = str_replace(array("\r\n","\r","\n"), '', $headText);
+ $kokutiText = file_get_contents($PATH."kokuti.txt");
+ $kokutiText = str_replace(array("\r\n","\r","\n"), '', $kokutiText);
+ $fp = "ローカルルール<><>99/01/01 00:00:00 <>".$headText."<>TL\n";
+ $fp .= "告知欄<><>99/01/01 00:00:00 <>".$kokutiText."<>\n";
  foreach ($TTL as $tmp) {
   if (isset($tmp['thread'])) $tt = "<br><hr>".$tmp["title"]."<br>http://".$_SERVER['HTTP_HOST']."/test/read.cgi/".$_POST['board']."/".$tmp['thread']."/";
   else $tt = "";
