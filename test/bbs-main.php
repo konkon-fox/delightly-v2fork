@@ -458,13 +458,18 @@ if ($HAP['slip'] != '0') {
 }
 
 // IDの種類
-if ($CAPID) $ID = "ID:".$CAPID;	// キャップID
-elseif ($SETTING['id'] == "siberia") $ID = "発信元:".$_SERVER['REMOTE_ADDR'];
-elseif ($SETTING['id']) $ID = "ID:".$SLIP_IP.$SLIP_ID.$SLIP_AC.$SLIP_TE;
-// 置き換える文字
-$ID = preg_replace('/\./','+',$ID);
-$ID = str_replace('/','+',$ID);
-$ID = str_replace('+','0',$ID);	// read.js対策
+$rawID = $SLIP_IP.$SLIP_ID.$SLIP_AC.$SLIP_TE;
+$rawID = str_replace(array('.', '/', '+'), '0', $rawID);
+if ($CAPID){  // キャップID
+  $rawID = $CAPID;
+  $ID = "ID:".$CAPID;
+}
+elseif ($SETTING['id'] == "siberia"){
+  $ID = "発信元:".$_SERVER['REMOTE_ADDR'];
+}
+elseif ($SETTING['id']){
+  $ID = "ID:".$rawID;
+}
 // 最後の1文字は飛行機で変わるので不要
 // if (!$CAPID && $SETTING['id'] != "siberia" && $SETTING['id']) $ID .= substr(hash('sha256', $IP_ADDR.md5($IP_ADDR)), 2, 1);
 
@@ -819,8 +824,8 @@ if (!$newthread && $supervisor && !$no && $SETTING['id']!=='') $M .= " </b>(主)
 
 // KOROKOROをタイトルに表示
 if ($newthread && $SETTING['createid'] == "checked" && $SETTING['id'] && !$admin) {
- $_POST['title'] .= " [".$SLIP_IP.$SLIP_ID.$SLIP_AC.$SLIP_TE."★]";
- $subject .= " [".$SLIP_IP.$SLIP_ID.$SLIP_AC.$SLIP_TE."★]";
+  $_POST['title'] .= " [".$rawID."★]";
+  $subject .= " [".$rawID."★]";
 }
 
 // fusianasanでホスト表示
