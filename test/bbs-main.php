@@ -23,7 +23,9 @@ if(isset($SETTING['date_comma_digit']) && $SETTING['date_comma_digit'] !== '0'){
 }else{
   $DATE = date("Y/m/d H:i:s", $NOWTIME);
 }
-if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) $_SERVER['REMOTE_ADDR'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
+if (file_exists(__DIR__ . '/.use_cloudflare') && isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
+  $_SERVER['REMOTE_ADDR'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
+}
 $HOST = gethostbyaddr($_SERVER['REMOTE_ADDR']);
 $subjectfile = $PATH."subject.json";	//スレッド一覧
 $LTLFILE = $PATH."index.json";	//ローカルタイムライン

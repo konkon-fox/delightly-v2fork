@@ -10,7 +10,9 @@ if (getenv('SKIP_VERIFICATION')) {
   $FORCESSL = false;
 }
 $NOWTIME = time();
-if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) $_SERVER['REMOTE_ADDR'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
+if (file_exists(__DIR__ . '/.use_cloudflare') && isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
+  $_SERVER['REMOTE_ADDR'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
+}
 $HOST = gethostbyaddr($_SERVER['REMOTE_ADDR']);
 $area = [];
 $area["district"] = $area['proxy'] = $area['hosting'] = $area['regionName'] = $area['city'] = $area['countryCode'] = $area['mobile'] = $area["asname"] = '';
