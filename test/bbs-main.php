@@ -13,8 +13,19 @@ if (!isset($_SERVER['HTTP_SEC_CH_UA_ARCH'])) $_SERVER['HTTP_SEC_CH_UA_ARCH'] = '
 if (!isset($_SERVER['HTTP_SEC_CH_UA_MODEL'])) $_SERVER['HTTP_SEC_CH_UA_MODEL'] = '';
 if (!isset($_SERVER['HTTP_SEC_CH_UA_MOBILE'])) $_SERVER['HTTP_SEC_CH_UA_MOBILE'] = '';
 if (!isset($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'])) $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'] = '';
-$DATE = date("Y/m/d H:i:s", $NOWTIME);
-if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) $_SERVER['REMOTE_ADDR'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
+if(isset($SETTING['date_comma_digit']) && $SETTING['date_comma_digit'] !== '0'){
+  $NOWMICROTIME= microtime(true);
+  $microTime = $NOWMICROTIME - floor($NOWMICROTIME);
+  $commaDigit = (int) $SETTING['date_comma_digit'];
+  $commaTime = floor($microTime * pow(10, $commaDigit));
+  $commaTime = sprintf('%0'.$commaDigit.'d', $commaTime);
+  $DATE = date("Y/m/d H:i:s", $NOWMICROTIME).'.'.$commaTime;
+}else{
+  $DATE = date("Y/m/d H:i:s", $NOWTIME);
+}
+if (file_exists(__DIR__ . '/.use_cloudflare') && isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
+  $_SERVER['REMOTE_ADDR'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
+}
 $HOST = gethostbyaddr($_SERVER['REMOTE_ADDR']);
 $subjectfile = $PATH."subject.json";	//スレッド一覧
 $LTLFILE = $PATH."index.json";	//ローカルタイムライン
@@ -468,10 +479,11 @@ elseif ($SETTING['id'] == "siberia"){
   $ID = "発信元:".$_SERVER['REMOTE_ADDR'];
 }
 elseif ($SETTING['id']){
+  if(isset($SETTING['id_9th_char']) && $SETTING['id_9th_char'] === 'checked'){
+    $rawID .= substr(hash('sha256', $IP_ADDR.md5($IP_ADDR)), 2, 1);
+  }
   $ID = "ID:".$rawID;
 }
-// 最後の1文字は飛行機で変わるので不要
-// if (!$CAPID && $SETTING['id'] != "siberia" && $SETTING['id']) $ID .= substr(hash('sha256', $IP_ADDR.md5($IP_ADDR)), 2, 1);
 
 // 未ログイン時で本文が半角文字のみ
 if ($SETTING['unauthorized_half_check'] == "checked" && strlen($_POST['comment']) == mb_strlen($_POST['comment'],"UTF-8") && !$authorized) DispError("この掲示板・スレッドでは未承認ユーザでの日本語を含まない投稿が禁止されています");
@@ -480,32 +492,34 @@ if ($SETTING['unauthorized_half_check'] == "checked" && strlen($_POST['comment']
 $_POST['comment'] = str_replace('&gt;&gt;',' &gt;&gt;',$_POST['comment']);
 
 //レス表示用の装飾
-// 折りたたみ・要約
-$_POST['comment'] = str_replace('&lt;details&gt;','<details>',$_POST['comment']);
-$_POST['comment'] = str_replace('&lt;/details&gt;','</details>',$_POST['comment']);
-$_POST['comment'] = str_replace('&lt;summary&gt;','<summary>',$_POST['comment']);
-$_POST['comment'] = str_replace('&lt;/summary&gt;','</summary>',$_POST['comment']);
-// 返信
-$_POST['comment'] = preg_replace('/&gt;(No\.[0-9]+?)(<br>|\s|$)/','<a class="reply" href="javascript:IdClick(\'$1\')">&gt;$1</a>',$_POST['comment']);
-// 引用
-$_POST['comment'] = preg_replace('/(<br>|^)&gt;(.*?)(<br>|$)/','$1<div class="quote">&gt;$2</div>$3',$_POST['comment']);
-$_POST['comment'] = preg_replace('/(<br>|^)＞(.*?)(<br>|$)/','$1<font color="gray">＞$2</font>$3',$_POST['comment']);
-// 太字＆斜体
-$_POST['comment'] = preg_replace('/\*\*\*(.*?)\*\*\*/','<em><strong>$1</strong></em>',$_POST['comment']);
-// 太字
-$_POST['comment'] = preg_replace('/\*\*(.*?)\*\*/','<strong>$1</strong>',$_POST['comment']);
-// 斜体
-//$_POST['comment'] = preg_replace('/\*(.*?)\*/','<em>$1</em>',$_POST['comment']);
-// 取り消し線
-$_POST['comment'] = preg_replace('/~~(.*?)~~/','<del>$1</del>',$_POST['comment']);
-// 目立たなくする
-//$_POST['comment'] = preg_replace('/\^(.*?)\^/','<small style="opacity: 0.7;">$1</small>',$_POST['comment']);
-// ぼかし
-//$_POST['comment'] = preg_replace('/{(.*?)}/','<span class="_mfm_blur_">$1</span>',$_POST['comment']);
-// マーカー
-$_POST['comment'] = preg_replace('/==(.*?)==/','<mark>$1</mark>',$_POST['comment']);
-// 下線
-$_POST['comment'] = preg_replace('/\+\+(.*?)\+\+/','<ins>$1</ins>',$_POST['comment']);
+if(isset($SETTING['res_decoration']) && $SETTING['res_decoration'] === 'checked'){
+  // 折りたたみ・要約
+  $_POST['comment'] = str_replace('&lt;details&gt;','<details>',$_POST['comment']);
+  $_POST['comment'] = str_replace('&lt;/details&gt;','</details>',$_POST['comment']);
+  $_POST['comment'] = str_replace('&lt;summary&gt;','<summary>',$_POST['comment']);
+  $_POST['comment'] = str_replace('&lt;/summary&gt;','</summary>',$_POST['comment']);
+  // 返信
+  $_POST['comment'] = preg_replace('/&gt;(No\.[0-9]+?)(<br>|\s|$)/','<a class="reply" href="javascript:IdClick(\'$1\')">&gt;$1</a>',$_POST['comment']);
+  // 引用
+  $_POST['comment'] = preg_replace('/(<br>|^)&gt;(.*?)(<br>|$)/','$1<div class="quote">&gt;$2</div>$3',$_POST['comment']);
+  $_POST['comment'] = preg_replace('/(<br>|^)＞(.*?)(<br>|$)/','$1<font color="gray">＞$2</font>$3',$_POST['comment']);
+  // 太字＆斜体
+  $_POST['comment'] = preg_replace('/\*\*\*(.*?)\*\*\*/','<em><strong>$1</strong></em>',$_POST['comment']);
+  // 太字
+  $_POST['comment'] = preg_replace('/\*\*(.*?)\*\*/','<strong>$1</strong>',$_POST['comment']);
+  // 斜体
+  $_POST['comment'] = preg_replace('/\*(.*?)\*/','<em>$1</em>',$_POST['comment']);
+  // 取り消し線
+  $_POST['comment'] = preg_replace('/~~(.*?)~~/','<del>$1</del>',$_POST['comment']);
+  // 目立たなくする
+  $_POST['comment'] = preg_replace('/\^(.*?)\^/','<small style="opacity: 0.7;">$1</small>',$_POST['comment']);
+  // ぼかし
+  $_POST['comment'] = preg_replace('/{(.*?)}/','<span class="_mfm_blur_">$1</span>',$_POST['comment']);
+  // マーカー
+  $_POST['comment'] = preg_replace('/==(.*?)==/','<mark>$1</mark>',$_POST['comment']);
+  // 下線
+  $_POST['comment'] = preg_replace('/\+\+(.*?)\+\+/','<ins>$1</ins>',$_POST['comment']);
+}
 
 // アイコン
 if ($_POST['icon'] == "on" && $_COOKIE['icon'] && $SETTING['DISABLE_ICON'] != "checked") {

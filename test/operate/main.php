@@ -23,9 +23,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['edit'] == "yes") {
  if (!isset($_POST['disable_kakolog'])) $_POST['disable_kakolog'] = '';
  if (!isset($_POST['thread_supervisor'])) $_POST['thread_supervisor'] = '';
  if (!isset($_POST['aa_check'])) $_POST['aa_check'] = '';
+ $extraSettingsList = [
+   'id_9th_char',
+   'res_decoration',
+   'date_comma_digit'
+ ];
  foreach ($SETTING as $name => $value) {
+  if(in_array($name, $extraSettingsList, true)) continue;
   if (isset($_POST[$name])) $SETTING[$name] = $_POST[$name];
   $SET .= $name."=".$SETTING[$name]."\n";
+ }
+ foreach ($extraSettingsList as $settingName) {
+   if(isset($_POST[$settingName])){
+     $SETTING[$settingName] = $_POST[$settingName];
+   }else{
+     $SETTING[$settingName] = '';
+   }
+   if(isset($SETTING[$settingName])) $SET .= $settingName."=".$SETTING[$settingName]."\n";
  }
  file_put_contents($setfile, json_encode($SETTING, JSON_UNESCAPED_UNICODE), LOCK_EX);
  file_put_contents($settxt, mb_convert_encoding($SET, "SJIS-win", "UTF-8"), LOCK_EX);
@@ -87,6 +101,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['edit'] == "yes") {
 <div><input type="radio" name="commands" value="checked"<?php if ($SETTING['commands'] == "checked") echo " checked"; ?>>有効<input type="radio" name="commands" value=""<?php if (!$SETTING['commands']) echo " checked"; ?>>無効</div>
 <div><b>投稿最大ログ保存件数</b><small class="notice mt5">無記入の場合は上限なし</small></div>
 <div><input type="text" value="<?=$SETTING['LOG_LIMIT']?>" name="LOG_LIMIT"></div>
+<!-- 以降新規追加設定 -->
+<div><b>9桁目のIDを有効にする</b></div>
+<div><input type="checkbox" value="checked" name="id_9th_char"<?php if (isset($SETTING['id_9th_char']) && $SETTING['id_9th_char']=="checked") echo " checked"; ?>>する</div>
+<div><b>レスの装飾機能を有効にする</b></div>
+<div><input type="checkbox" value="checked" name="res_decoration"<?php if (isset($SETTING['res_decoration']) && $SETTING['res_decoration']=="checked") echo " checked"; ?>>する</div>
+<div><b>レスの投稿日時のコンマ桁数</b></div>
+<div>
+  <select name="date_comma_digit">
+    <option value="0">0(表示しない)</option>
+    <option value="1"<?php if (isset($SETTING['date_comma_digit']) && $SETTING['date_comma_digit']=="1") echo " selected"; ?>>1</option>
+    <option value="2"<?php if (isset($SETTING['date_comma_digit']) && $SETTING['date_comma_digit']=="2") echo " selected"; ?>>2</option>
+    <option value="3"<?php if (isset($SETTING['date_comma_digit']) && $SETTING['date_comma_digit']=="3") echo " selected"; ?>>3</option>
+  </select>
+</div>
 <hr><div class="contents"><input type="submit" name="Submit" class="btn btn-primary btn-block" value="適用"></div>
 </form>
 </div>
