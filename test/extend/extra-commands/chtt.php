@@ -38,7 +38,7 @@ function applyChttCommand(
     if(strpos($_POST['comment'], '!chtt:') === false) {
         return;
     }
-    if(!preg_match('/\!chtt:(.+?)((?=\<br\>)|$)/', $_POST['comment'], $commandMatches)) {
+    if(!preg_match('/\!chtt:(.*?)((?=\<br\>)|$)/', $_POST['comment'], $commandMatches)) {
         return;
     }
     // コマンド文字列から新スレタイを抽出
