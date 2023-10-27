@@ -30,6 +30,9 @@ function applyPoolCommand(
     if(!($supervisor || $admin)) {
         return;
     }
+    if (strpos($_POST['name'], '!nocmd') !== false) {
+        return;
+    }
     if(strpos($_POST['comment'], '!pool') === false) {
         return;
     }
