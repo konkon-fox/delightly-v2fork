@@ -329,6 +329,11 @@ if (!$newthread && !$tlonly) {
  if ($SETTING['BBS_FORCE_SAGE'] && $_POST['thread'] + $SETTING['BBS_FORCE_SAGE'] < $NOWTIME) $sage = true;
 }
 
+// !chttコマンド
+@include './extend/extra-commands/chtt.php';
+// !xDy(dice)コマンド
+@include './extend/extra-commands/dice.php';
+
 // >>1への変更を反映させる
 if (!$newthread && !$tlonly && $reload) {
   array_shift($LOG);
@@ -486,7 +491,7 @@ elseif ($SETTING['id']){
 }
 
 // 未ログイン時で本文が半角文字のみ
-if ($SETTING['unauthorized_half_check'] == "checked" && strlen($_POST['comment']) == mb_strlen($_POST['comment'],"UTF-8") && !$authorized) DispError("この掲示板・スレッドでは未承認ユーザでの日本語を含まない投稿が禁止されています");
+if ($SETTING['unauthorized_half_check'] == "checked" && strlen($_POST['comment']) == mb_strlen($_POST['comment'],"UTF-8") && !$authorized) Error("この掲示板・スレッドでは未承認ユーザでの日本語を含まない投稿が禁止されています");
 
 // 安価と競合しないように一時変換
 $_POST['comment'] = str_replace('&gt;&gt;',' &gt;&gt;',$_POST['comment']);
@@ -1060,6 +1065,9 @@ if ($ThreadCount > $SETTING['BBS_THREADS_LIMIT']) {
  }
  $PAGEFILE = array_slice($PAGEFILE, 0, $SETTING['BBS_THREADS_LIMIT']);
 }
+// !poolコマンド
+@include './extend/extra-commands/pool.php';
+
 // 更新
 file_put_contents($subjectfile, json_encode($PAGEFILE, JSON_UNESCAPED_UNICODE), LOCK_EX);
 
