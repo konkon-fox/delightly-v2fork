@@ -5,7 +5,6 @@
  * @param boolean $admin 管理者判定(管理人or常時コマンド権限を持つCAP)
  * @param boolean $newthread スレ立て時判定
  * @param boolean $tlonly TL判定
- * @param string $LTLFILE index.json(TL)へのパス
  * @param string $threadSubjectFile 過去ログ用subject.jsonへのパス
  * @param string $d datファイル1行目の日付ID
  * @param string $message datファイル1行目の本文
@@ -18,7 +17,6 @@ function applyChttCommand(
     $admin,
     $newthread,
     $tlonly,
-    $LTLFILE,
     $threadSubjectFile,
     $d,
     &$message,
@@ -72,15 +70,6 @@ function applyChttCommand(
     if($titleHasId) {
         $newThreadTitle .= " [{$IDMatches[1]}★]";
     }
-    // index.json(TL)に反映 1000000000.datへの反映はbbs-main.phpで行われる
-    $LTL = json_decode(file_get_contents($LTLFILE), true);
-    $LTL = array_map(function ($res) use ($newThreadTitle) {
-        if((int) $res['thread'] === (int) $_POST['thread']) {
-            $res['title'] = $newThreadTitle;
-        }
-        return $res;
-    }, $LTL);
-    file_put_contents($LTLFILE, json_encode($LTL, JSON_UNESCAPED_UNICODE), LOCK_EX);
     // 過去ログ用subject.jsonを更新
     $tlist = json_decode(file_get_contents($threadSubjectFile), true);
     $tlist = array_map(function ($thread) use ($newThreadTitle) {
@@ -102,7 +91,6 @@ applyChttCommand(
     $admin,
     $newthread,
     $tlonly,
-    $LTLFILE,
     $PATH."thread/".substr($_POST['thread'], 0, 4)."/subject.json",
     $d,
     $message,
