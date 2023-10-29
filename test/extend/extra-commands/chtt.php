@@ -38,23 +38,20 @@ function applyChttCommand(
     if(strpos($_POST['comment'], '!chtt:') === false) {
         return;
     }
-    if(!preg_match('/\!chtt:(.*?)((?=\<br\>)|$)/', $_POST['comment'], $commandMatches)) {
+    $commentParts = explode('<hr>', $_POST['comment']);
+    if(!preg_match('/\!chtt:(.*?)((?=\<br\>)|$)/', $commentParts[0], $commandMatches)) {
         return;
     }
     // コマンド文字列から新スレタイを抽出
     $newThreadTitle = trim($commandMatches[1]);
-    // 本文にシステムメッセージ用ラインを追加
-    if(strpos($_POST['comment'], '<hr>') === false) {
-        $_POST['comment'] .= '<hr>';
-    }
     // 空欄エラー
     if($newThreadTitle === '') {
-        $_POST['comment'] .= '★新スレタイが空欄です。<br>';
+        addSystemMessage('★新スレタイが空欄です。<br>');
         return;
     }
     // スレタイ長すぎエラー
     if(mb_strlen($newThreadTitle, 'UTF-8') > $SETTING['BBS_SUBJECT_COUNT']) {
-        $_POST['comment'] .= '★新スレタイが長すぎます。<br>';
+        addSystemMessage('★新スレタイが長すぎます。<br>');
         return;
     }
     // スレタイにIDが存在するかを判定
@@ -63,12 +60,14 @@ function applyChttCommand(
     // 成功メッセージ出力(本文)
     $oldThreadTitle = $titleHasId ? preg_replace('/\s\[[^\[]+?★\]$/', '', $subject) : $subject;
     $changeMessage = "★スレタイ変更【{$oldThreadTitle}】→【{$newThreadTitle}】<br>";
-    $_POST['comment'] .= $changeMessage;
+    addSystemMessage($changeMessage);
     // 成功メッセージ出力(>>1) datへの反映はbbs-main.phpで行われる
-    if(strpos($message, '<hr>') === false) {
-        $message .= '<hr>';
+    $messageParts = explode('<hr>', $message);
+    if(count($messageParts) < 2) {
+        array_push($messageParts, '');
     }
-    $message .= preg_replace('/\!(?=[a-zA-Z0-9])/', '！', $changeMessage);
+    $messageParts[1] .= preg_replace('/\!(?=[a-zA-Z0-9])/', '&#33;', $changeMessage);
+    $message = implode('<hr>', $messageParts);
     // 新スレタイに>>1のIDを追加
     if($titleHasId) {
         $newThreadTitle .= " [{$IDMatches[1]}★]";

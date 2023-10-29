@@ -329,6 +329,8 @@ if (!$newthread && !$tlonly) {
  if ($SETTING['BBS_FORCE_SAGE'] && $_POST['thread'] + $SETTING['BBS_FORCE_SAGE'] < $NOWTIME) $sage = true;
 }
 
+// システムメッセージ用関数
+@include './extend/extra-commands/utilities/add-system-message.php';
 // !chttコマンド
 @include './extend/extra-commands/chtt.php';
 // !xDy(dice)コマンド
