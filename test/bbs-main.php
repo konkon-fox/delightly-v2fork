@@ -36,7 +36,19 @@ $DATFILE = $PATH."dat/".$_POST['thread'].".dat";	//Shift_JIS 専ブラ用 ※過
 $HAP_PATH = './HAP/';
 mb_substitute_character('entity');
 $M =  $ken = $ncolor = $Cookmail = $LV = $CAPID = $accountid = $supervisorID = '';
-$stop = $admin = $sage = $supervisor = $authorized = $PROXY = false;
+$stop = $admin = $sage = $supervisor = $authorized = $PROXY = $threadsStatesReload = false;
+/** 
+ * スレ状態を管理するファイルです。
+ * ファイルは各板直下に生成されます。
+ * $threadsStatesは各コマンドファイルにおいてjson_decode(file_get_contents($THREADS_STATES_FILE), true)で取得される連想配列です。
+ * $threadsStatesのキーはスレッド番号となります。
+ * 
+ * @var string $THREADS_STATES_FILE
+ * @var array<string, array{'774':string, 'gobi': string}> $threadsStates
+ */
+$THREADS_STATES_FILE = $PATH.'threads-states.cgi';
+include './extend/extra-commands/utilities/ThreadsStatesUpdater.php';
+$threadsStatesUpdater = new ThreadsStatesUpdater($THREADS_STATES_FILE);
 
 // GETメソッド
 if ($_SERVER['REQUEST_METHOD'] != 'POST') Error2("invalid:GET");
@@ -1083,6 +1095,23 @@ file_put_contents($subjectfile, json_encode($PAGEFILE, JSON_UNESCAPED_UNICODE), 
  }
  fclose($fp);
  }
+
+// スレ状態ファイルから現存しないスレ番号キーを削除
+// 定期的に行う必要がある処理だが、各レスごとに行う必要はないため$threadsStatesReloadをフラグとする。
+if ($threadsStatesReload && is_file($THREADS_STATES_FILE)) {
+    $threadKeysList = array_map(function ($thread) {
+        return (int) $thread['thread'];
+    }, $PAGEFILE);
+    $threadsStates = $threadsStatesUpdater->get();
+    if($threadsStates){
+        foreach(array_keys($threadsStates) as $threadKey){
+            if(!in_array((int) $threadKey, $threadKeysList, true)){
+                unset($threadsStates[$threadKey]);
+            }
+        }
+        $threadsStatesUpdater->put($threadsStates);
+    }
+}
 }
 
 // 投稿ログ
