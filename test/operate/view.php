@@ -4,8 +4,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['edit'] == "yes") {
   if (isset($_POST[$name])) $SETTING[$name] = $_POST[$name];
   $SET .= $name."=".$SETTING[$name]."\n";
  }
+ 
+ mb_substitute_character('entity');
  file_put_contents($setfile, json_encode($SETTING, JSON_UNESCAPED_UNICODE), LOCK_EX);
  file_put_contents($settxt, mb_convert_encoding($SET, "SJIS-win", "UTF-8"), LOCK_EX);
+
+ $utf8 = $SETTING["BBS_TITLE"];
+ $sjis = mb_convert_encoding($SETTING["BBS_TITLE"], "SJIS-win", "UTF-8");
+ file_put_contents($PATH."index.php", "<?php \$BBS_TITLE_UTF8 = \"{$utf8}\";\$BBS_TITLE_SJIS = \"{$sjis}\";include \"../test/board/index.php\";?>");
 }
 ?>
 <!DOCTYPE html>
