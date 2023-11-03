@@ -26,9 +26,10 @@ if (file_exists("../".$_POST['directory'])) {
  @file_put_contents("../".$_POST['directory']."/passfile.cgi", $password);
  $htaccess = '<Files ~ "\.cgi$">'."\n".'deny from all'."\n".'</Files>';
  @file_put_contents("../".$_POST['directory']."/.htaccess", $htaccess);
- $index = @file_get_contents("../".$_POST['directory']."/index.html");
- $index = str_replace("<BBS>", $_POST['directory'], $index);
- @file_put_contents("../".$_POST['directory']."/index.html", $index);
+ // index.phpの置換
+ $utf8 = $sjis = $_POST['directory'];
+ file_put_contents("../".$_POST['directory']."/index.php", "<?php \$BBS_TITLE_UTF8 = \"{$utf8}\";\$BBS_TITLE_SJIS = \"{$sjis}\";include \"../test/board/index.php\";?>");
+
  header('Location: ../'.$_POST['directory'].'/');
  exit;
 }else Finish("新規掲示板作成に失敗しました");
