@@ -58,21 +58,19 @@ function applyDiceCommand($SETTING)
         $commentParts[0],
         $DICE_LIMIT
     );
-    $newComment = implode('<hr>', $commentParts);
+    // 本文変更
+    $_POST['comment'] = implode('<hr>', $commentParts);
     // 例外メッセージ
     if($xIsOver || $yIsOver) {
-        if(strpos($newComment, '<hr>') === false) {
-            $newComment .= '<hr>';
-        }
+        $systemMessage = '';
         if($xIsOver) {
-            $newComment .= "★x(ダイスの個数)の最大値は{$MAX_NUM_OF_DICE}です。<br>";
+            $systemMessage .= "★x(ダイスの個数)の最大値は{$MAX_NUM_OF_DICE}です。<br>";
         }
         if($yIsOver) {
-            $newComment .= "★y(ダイスの出目)の最大値は{$MAX_DICE_VALUE}です。<br>";
+            $systemMessage .= "★y(ダイスの出目)の最大値は{$MAX_DICE_VALUE}です。<br>";
         }
+        addSystemMessage($systemMessage);
     }
-    // 本文変更
-    $_POST['comment'] = $newComment;
 }
 
 applyDiceCommand($SETTING);

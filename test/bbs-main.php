@@ -36,7 +36,19 @@ $DATFILE = $PATH."dat/".$_POST['thread'].".dat";	//Shift_JIS 専ブラ用 ※過
 $HAP_PATH = './HAP/';
 mb_substitute_character('entity');
 $M =  $ken = $ncolor = $Cookmail = $LV = $CAPID = $accountid = $supervisorID = '';
-$stop = $admin = $sage = $supervisor = $authorized = $PROXY = false;
+$stop = $admin = $sage = $supervisor = $authorized = $PROXY = $threadsStatesReload = false;
+/** 
+ * スレ状態を管理するファイルです。
+ * ファイルは各板直下に生成されます。
+ * $threadsStatesは各コマンドファイルにおいてjson_decode(file_get_contents($THREADS_STATES_FILE), true)で取得される連想配列です。
+ * $threadsStatesのキーはスレッド番号となります。
+ * 
+ * @var string $THREADS_STATES_FILE
+ * @var array<string, array{'774':string, 'gobi': string}> $threadsStates
+ */
+$THREADS_STATES_FILE = $PATH.'threads-states.cgi';
+include './extend/extra-commands/utilities/ThreadsStatesUpdater.php';
+$threadsStatesUpdater = new ThreadsStatesUpdater($THREADS_STATES_FILE);
 
 // GETメソッド
 if ($_SERVER['REQUEST_METHOD'] != 'POST') Error2("invalid:GET");
@@ -329,8 +341,20 @@ if (!$newthread && !$tlonly) {
  if ($SETTING['BBS_FORCE_SAGE'] && $_POST['thread'] + $SETTING['BBS_FORCE_SAGE'] < $NOWTIME) $sage = true;
 }
 
+// システムメッセージ用関数
+@include './extend/extra-commands/utilities/add-system-message.php';
 // !chttコマンド
 @include './extend/extra-commands/chtt.php';
+// !774設定
+@include './extend/extra-commands/set-774.php';
+// !gobi設定
+@include './extend/extra-commands/set-gobi.php';
+// !774適用
+@include './extend/extra-commands/apply-774.php';
+// !gobi適用
+@include './extend/extra-commands/apply-gobi.php';
+// スレ状態更新処理
+@include './extend/extra-commands/utilities/show-threads-states.php';
 // !xDy(dice)コマンド
 @include './extend/extra-commands/dice.php';
 
@@ -1081,6 +1105,23 @@ file_put_contents($subjectfile, json_encode($PAGEFILE, JSON_UNESCAPED_UNICODE), 
  }
  fclose($fp);
  }
+
+// スレ状態ファイルから現存しないスレ番号キーを削除
+// 定期的に行う必要がある処理だが、各レスごとに行う必要はないため$threadsStatesReloadをフラグとする。
+if ($threadsStatesReload && is_file($THREADS_STATES_FILE)) {
+    $threadKeysList = array_map(function ($thread) {
+        return (int) $thread['thread'];
+    }, $PAGEFILE);
+    $threadsStates = $threadsStatesUpdater->get();
+    if($threadsStates){
+        foreach(array_keys($threadsStates) as $threadKey){
+            if(!in_array((int) $threadKey, $threadKeysList, true)){
+                unset($threadsStates[$threadKey]);
+            }
+        }
+        $threadsStatesUpdater->put($threadsStates);
+    }
+}
 }
 
 // 投稿ログ
