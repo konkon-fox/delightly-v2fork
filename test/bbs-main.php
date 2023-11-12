@@ -369,6 +369,8 @@ include './extend/extra-commands/utilities/get-threads-states.php';
 @include './extend/extra-commands/set-774.php';
 // !gobi設定
 @include './extend/extra-commands/set-gobi.php';
+// !rmjコマンド
+@include './extend/extra-commands/rmj.php';
 // !774適用
 @include './extend/extra-commands/apply-774.php';
 // !gobi適用
