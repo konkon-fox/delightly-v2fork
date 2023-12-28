@@ -220,7 +220,13 @@ if (!is_file($hapfile))$hapfile = $HAP_PATH.$_COOKIE['WrtAgreementKey'].'.cgi'; 
 if (!is_file($hapfile)) Error("鍵が失効しています:".$_COOKIE['WrtAgreementKey']);
 setcookie("WrtAgreementKey", $_COOKIE['WrtAgreementKey'], $NOWTIME+31536000, "/");
 // 記録されたデータを取得
-$HAP = json_decode(file_get_contents($hapfile), true);
+$hapfileHandle = fopen($hapfile, 'r');
+if(flock($hapfileHandle, LOCK_SH)){
+    $HAP = json_decode(fread($hapfileHandle, filesize($hapfile)), true);
+}else{
+    $HAP = [];
+}
+fclose($hapfileHandle);
 $WrtAgreementKey = substr(md5($HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 7);
 
  // 指定Lv以上で自動承認
@@ -1187,7 +1193,11 @@ file_put_contents($LOGFILE, $IP, LOCK_EX);
 // 記録
 $HAP['last'] = $NOWTIME;
 $HAP['comment'] = $_POST['comment'];
-file_put_contents($hapfile, json_encode($HAP, JSON_UNESCAPED_UNICODE), LOCK_EX);
+$hapfileHandle = fopen($hapfile, 'w');
+if(flock($hapfileHandle, LOCK_SH)){
+    fwrite($hapfileHandle, json_encode($HAP, JSON_UNESCAPED_UNICODE));
+}
+fclose($hapfileHandle);
 
 // 投稿完了画面
 finish();
