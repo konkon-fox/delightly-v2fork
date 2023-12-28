@@ -1082,81 +1082,95 @@ if (!$tlonly) {
  file_put_contents($PATH."dat/1000000000.dat", mb_convert_encoding($fp, "SJIS-win", "UTF-8"), LOCK_EX);
 }
 
-if (!$tlonly) {
 // スレッド一覧 (subject.json)
-$keyfile = $_POST['thread'].".dat";
-$Threads = json_decode(file_get_contents($subjectfile), true);
-if (!is_file($subjectfile)) $Threads = [];
-$PAGEFILE = [];
-// スレッド数を取得
-$ThreadCount = count($Threads);
-// 新規スレッド作成の場合は1個追加
-if ($newthread) $ThreadCount++;
-// 停止済のスレッド
-if ($stop) $subject = "[stop] ".$subject;
-// 投稿先スレッド
-$posted = ["thread"=>$_POST['thread'],
-	  "title"=>$subject,
-	  "number"=>$number,
-	  "date"=>$NOWTIME,
-	 ];
-// sageでないか新規スレッドの場合投稿先スレッドを先頭にする
-if (!$sage || $newthread) array_push($PAGEFILE,$posted);
-// その他のスレッド
-if ($Threads) {
- foreach ($Threads as $thread) {
-  if ($thread['thread'] != $_POST['thread']) array_push($PAGEFILE,$thread);
-  elseif ($sage && !$newthread) array_push($PAGEFILE,$posted);
- }
-}
-// 上限以下のスレッドを過去ログ化
-if ($ThreadCount > $SETTING['BBS_THREADS_LIMIT']) {
- for ($start = $SETTING['BBS_THREADS_LIMIT']; $start < $ThreadCount; $start++) {
-  // datファイル削除
-  @unlink($PATH."dat/".$PAGEFILE[$start]['thread'].".dat");
-  // 過去ログを保持しない場合
-  if ($SETTING['disable_kakolog'] == "checked") {
-   @unlink($PATH."thread/".substr($PAGEFILE[$start]['thread'], 0, 4)."/".$PAGEFILE[$start]['thread'].".dat");
-  }
-  // datlog削除
-  $datlog = $PATH."dat/".$PAGEFILE[$start]['thread']."_kisei.cgi";
-  if (is_file($datlog)) @unlink($datlog);
- }
- $PAGEFILE = array_slice($PAGEFILE, 0, $SETTING['BBS_THREADS_LIMIT']);
-}
-// !poolコマンド
-@include './extend/extra-commands/pool.php';
-
-// 更新
-file_put_contents($subjectfile, json_encode($PAGEFILE, JSON_UNESCAPED_UNICODE), LOCK_EX);
-
- // subject.txt (専ブラ無効でない場合のみ)
- if ($SETTING['2ch_dedicate_browsers'] != "disable") {
- $fp = fopen($PATH."subject.txt", "w");
-  fputs($fp, mb_convert_encoding("1000000000.dat<>TL (1)\n", "SJIS-win", "UTF-8"));
- foreach ($PAGEFILE as $tmp) {
-  $t = $tmp['thread'].".dat<>".$tmp['title']." (".$tmp['number'].")\n";
-  fputs($fp, mb_convert_encoding($t, "SJIS-win", "UTF-8"));
- }
- fclose($fp);
- }
-
-// スレ状態ファイルから現存しないスレ番号キーを削除
-// 定期的に行う必要がある処理だが、各レスごとに行う必要はないため$threadsStatesReloadをフラグとする。
-if ($threadsStatesReload && is_file($THREADS_STATES_FILE)) {
-    $threadKeysList = array_map(function ($thread) {
-        return (int) $thread['thread'];
-    }, $PAGEFILE);
-    $threadsStates = $threadsStatesUpdater->get();
-    if($threadsStates){
-        foreach(array_keys($threadsStates) as $threadKey){
-            if(!in_array((int) $threadKey, $threadKeysList, true)){
-                unset($threadsStates[$threadKey]);
+if ($newthread || (!$tlonly && !$sage)) {
+    // 停止済のスレッド
+    if ($stop) $subject = "[stop] ".$subject;
+    // 投稿先スレッド
+    $posted = [
+        "thread"=>$_POST['thread'],
+        "title"=>$subject,
+        "number"=>$number,
+        "date"=>$NOWTIME,
+    ];
+    // subject.json更新
+    $subjectfileHandle = fopen($subjectfile, 'c+');
+    if(flock($subjectfileHandle, LOCK_EX)){
+        if(is_file($subjectfile)){
+            $Threads = json_decode(fread($subjectfileHandle, filesize($subjectfile)), true);
+        }else{
+            $Threads = [];
+        }
+        $PAGEFILE = [];
+        $PAGEFILE[] = $posted;
+        // その他のスレッド
+        if ($Threads) {
+            foreach ($Threads as $thread) {
+                if ($thread['thread'] != $_POST['thread']) $PAGEFILE[] = $thread;
             }
         }
-        $threadsStatesUpdater->put($threadsStates);
+        // 過去ログ化チェック
+        if($newthread){
+            // スレッド数を取得
+            $ThreadCount = count($Threads) + 1;
+            // 上限以下のスレッドを過去ログ化
+            if ($ThreadCount > $SETTING['BBS_THREADS_LIMIT']) {
+                for ($start = $SETTING['BBS_THREADS_LIMIT']; $start < $ThreadCount; $start++) {
+                    // datファイル削除
+                    @unlink($PATH."dat/".$PAGEFILE[$start]['thread'].".dat");
+                    // 過去ログを保持しない場合
+                    if ($SETTING['disable_kakolog'] == "checked") {
+                        @unlink($PATH."thread/".substr($PAGEFILE[$start]['thread'], 0, 4)."/".$PAGEFILE[$start]['thread'].".dat");
+                    }
+                    // datlog削除
+                    $datlog = $PATH."dat/".$PAGEFILE[$start]['thread']."_kisei.cgi";
+                    if (is_file($datlog)) @unlink($datlog);
+                }
+                $PAGEFILE = array_slice($PAGEFILE, 0, $SETTING['BBS_THREADS_LIMIT']);
+            }
+        }
+        // !poolコマンド
+        @include './extend/extra-commands/pool.php';
+        // subject.jsonに書き込み
+        ftruncate($subjectfileHandle, 0);
+        rewind($subjectfileHandle);
+        fwrite($subjectfileHandle, json_encode($PAGEFILE, JSON_UNESCAPED_UNICODE));
     }
+    fclose($subjectfileHandle);
+     // subject.txt (専ブラ無効でない場合のみ)
+    if ($SETTING['2ch_dedicate_browsers'] != "disable") {
+        $subjectTxtLines = array_merge(
+            ["1000000000.dat<>TL (1)\n"], 
+            array_map(function($thread){
+                return $thread['thread'].".dat<>".$thread['title']." (".$thread['number'].")\n";
+            }, $PAGEFILE)
+        );
+        $subjectTxtData = mb_convert_encoding(implode('', $subjectTxtLines), "SJIS-win", "UTF-8");
+        $subjectTxtHandle = fopen($PATH.'subject.txt', 'w');
+        if(flock($subjectTxtHandle, LOCK_EX)){
+            fwrite($subjectTxtHandle, $subjectTxtData);
+        }
+        fclose($subjectTxtHandle);
+    }
+
 }
+if (!$tlonly) {
+    // スレ状態ファイルから現存しないスレ番号キーを削除
+    // 定期的に行う必要がある処理だが、各レスごとに行う必要はないため$threadsStatesReloadをフラグとする。
+    if ($threadsStatesReload && is_file($THREADS_STATES_FILE)) {
+        $threadKeysList = array_map(function ($thread) {
+            return (int) $thread['thread'];
+        }, $PAGEFILE);
+        $threadsStates = $threadsStatesUpdater->get();
+        if($threadsStates){
+            foreach(array_keys($threadsStates) as $threadKey){
+                if(!in_array((int) $threadKey, $threadKeysList, true)){
+                    unset($threadsStates[$threadKey]);
+                }
+            }
+            $threadsStatesUpdater->put($threadsStates);
+        }
+    }
 }
 
 // 投稿ログ
