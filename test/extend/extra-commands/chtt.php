@@ -73,14 +73,22 @@ function applyChttCommand(
         $newThreadTitle .= " [{$IDMatches[1]}★]";
     }
     // 過去ログ用subject.jsonを更新
-    $tlist = json_decode(file_get_contents($threadSubjectFile), true);
-    $tlist = array_map(function ($thread) use ($newThreadTitle) {
-        if((int) $thread['thread'] === (int) $_POST['thread']) {
-            $thread['title'] = $newThreadTitle;
+    if(is_file($threadSubjectFile)) {
+        $threadSubjectFileHandle = fopen($threadSubjectFile, 'r+');
+        if(flock($threadSubjectFileHandle, LOCK_EX)) {
+            $tlist = json_decode(fread($threadSubjectFileHandle, filesize($threadSubjectFile)), true);
+            $tlist = array_map(function ($thread) use ($newThreadTitle) {
+                if((int) $thread['thread'] === (int) $_POST['thread']) {
+                    $thread['title'] = $newThreadTitle;
+                }
+                return $thread;
+            }, $tlist);
+            ftruncate($threadSubjectFileHandle, 0);
+            rewind($threadSubjectFileHandle);
+            fwrite($threadSubjectFileHandle, json_encode($tlist, JSON_UNESCAPED_UNICODE));
         }
-        return $thread;
-    }, $tlist);
-    file_put_contents($threadSubjectFile, json_encode($tlist, JSON_UNESCAPED_UNICODE), LOCK_EX);
+        fclose($threadSubjectFileHandle);
+    }
     // subject.jsonとsubject.txtへの反映はbbs-main.phpで行われる
     $subject = $newThreadTitle;
     // >>1更新フラグ
