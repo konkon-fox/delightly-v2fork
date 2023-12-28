@@ -1052,40 +1052,54 @@ if ($newthread) {
 
 // ローカルタイムライン (index.json)
 if (!$sage) {
- $LTL = json_decode(file_get_contents($LTLFILE), true);
- if (!is_file($LTLFILE)) $LTL = [];
- $count = 0;
- $post = ["name"=>$_POST['name'],
- 	  "mail"=>'No.'.$NOWTIME,
- 	  "date"=>$DATE,
- 	  "id"=>$ID,
- 	  "comment"=>$_POST['comment'],
- 	 ];
-if (!$tlonly) {
- 	  $post["title"] = $subject;
- 	  $post["thread"] = $_POST['thread'];
-}
- array_unshift($LTL, $post);
- // ファイル内の投稿数を $SETTING['LTL_LIMIT'] 個以内に調整して保存
- if ($SETTING['LTL_LIMIT'] < 50) $SETTING['LTL_LIMIT'] = 50;
- if (count($LTL) > $SETTING['LTL_LIMIT'] + 100) {
-  while (count($LTL) > $SETTING['LTL_LIMIT']) array_pop($LTL);
- }
- file_put_contents($LTLFILE, json_encode($LTL, JSON_UNESCAPED_UNICODE), LOCK_EX);
- $TTL = array_reverse($LTL);
- $headText = file_get_contents($PATH."head.txt");
- $headText = mb_convert_encoding($headText, 'UTF-8', 'SJIS-win');
- $headText = str_replace(array("\r\n","\r","\n"), '', $headText);
- $kokutiText = file_get_contents($PATH."kokuti.txt");
- $kokutiText = str_replace(array("\r\n","\r","\n"), '', $kokutiText);
- $fp = "ローカルルール<><>99/01/01 00:00:00 <>".$headText."<>TL\n";
- $fp .= "告知欄<><>99/01/01 00:00:00 <>".$kokutiText."<>\n";
- foreach ($TTL as $tmp) {
-  if (isset($tmp['thread'])) $tt = "<br><hr>".$tmp["title"]."<br>http://".$_SERVER['HTTP_HOST']."/test/read.cgi/".$_POST['board']."/".$tmp['thread']."/";
-  else $tt = "";
-  $fp .= $tmp['name']."<>".$tmp['mail']."<>".$tmp['date']." ".$tmp['id']."<>".$tmp['comment'].$tt."<>\n";
- }
- file_put_contents($PATH."dat/1000000000.dat", mb_convert_encoding($fp, "SJIS-win", "UTF-8"), LOCK_EX);
+    $post = [
+        "name"=>$_POST['name'],
+        "mail"=>'No.'.$NOWTIME,
+        "date"=>$DATE,
+        "id"=>$ID,
+        "comment"=>$_POST['comment'],
+    ];
+    if (!$tlonly) {
+        $post["title"] = $subject;
+        $post["thread"] = $_POST['thread'];
+    }
+    $LTLFILEHandle = fopen($LTLFILE, 'c+');
+    if(flock($LTLFILEHandle, LOCK_EX)){
+        if (is_file($LTLFILE)){
+            $LTL = json_decode(fread($LTLFILEHandle, filesize($LTLFILE)), true);            
+        }else{
+            $LTL = [];
+        }
+        array_unshift($LTL, $post);
+        // ファイル内の投稿数を $SETTING['LTL_LIMIT'] 個以内に調整して保存
+        if ($SETTING['LTL_LIMIT'] < 50) $SETTING['LTL_LIMIT'] = 50;
+        if (count($LTL) > $SETTING['LTL_LIMIT'] + 100) {
+            $LTL = array_slice($LTL, 0, (int) $SETTING['LTL_LIMIT']);
+        }
+        ftruncate($LTLFILEHandle, 0);
+        rewind($LTLFILEHandle);
+        fwrite($LTLFILEHandle, json_encode($LTL, JSON_UNESCAPED_UNICODE));
+    }
+    fclose($LTLFILEHandle);
+    // 専ブラ用タイムライン (1000000000.dat)
+    $TTL = array_reverse($LTL);
+    $headText = file_get_contents($PATH."head.txt");
+    $headText = mb_convert_encoding($headText, 'UTF-8', 'SJIS-win');
+    $headText = str_replace(array("\r\n","\r","\n"), '', $headText);
+    $kokutiText = file_get_contents($PATH."kokuti.txt");
+    $kokutiText = str_replace(array("\r\n","\r","\n"), '', $kokutiText);
+    $tlDatData= "ローカルルール<><>99/01/01 00:00:00 <>".$headText."<>TL\n";
+    $tlDatData .= "告知欄<><>99/01/01 00:00:00 <>".$kokutiText."<>\n";
+    foreach ($TTL as $tmp) {
+        if (isset($tmp['thread'])) $tt = "<br><hr>".$tmp["title"]."<br>http://".$_SERVER['HTTP_HOST']."/test/read.cgi/".$_POST['board']."/".$tmp['thread']."/";
+        else $tt = "";
+        $tlDatData .= $tmp['name']."<>".$tmp['mail']."<>".$tmp['date']." ".$tmp['id']."<>".$tmp['comment'].$tt."<>\n";
+    }
+    $tlDatHandle = fopen($PATH."dat/1000000000.dat", 'w');
+    if(flock($tlDatHandle, LOCK_EX)){
+        fwrite($tlDatHandle, mb_convert_encoding($tlDatData, "SJIS-win", "UTF-8"));
+    }
+    fclose($tlDatHandle);
 }
 
 // スレッド一覧 (subject.json)
