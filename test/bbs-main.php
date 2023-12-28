@@ -316,11 +316,23 @@ if ($newthread) {
  $supervisorID = substr(md5($_POST['thread'].$HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 8);
  }
 }elseif (!$tlonly) {
- // スレッドタイトルを取得
- $LOG = file($THREADFILE);
- list($n,$m,$d,$message,$subject) = explode("<>", $LOG[0]);
- if (strpos($m, substr(md5($_POST['thread'].$HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 8)) !== false) $supervisor = true;
- $subject = str_replace(array("\r\n","\r","\n"), "", $subject);
+    // スレッドタイトルを取得
+    $THREADFILEHANDLE = fopen($THREADFILE, 'r');
+    if(flock($THREADFILEHANDLE, LOCK_SH)){
+        rewind($THREADFILEHANDLE);
+        for($number = 0; $line = fgets($THREADFILEHANDLE); $number++){
+            if($number === 0){
+                $firstRes = $line;
+            }
+        }
+        fclose($THREADFILEHANDLE);
+        list($n,$m,$d,$message,$subject) = explode("<>", $firstRes);
+        if (strpos($m, substr(md5($_POST['thread'].$HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 8)) !== false) $supervisor = true;
+        $subject = str_replace(array("\r\n","\r","\n"), '', $subject);
+    }else{
+        fclose($THREADFILEHANDLE);
+        Error('投稿に失敗しました。');
+    }
 }
 
 // コマンド
@@ -359,18 +371,31 @@ if (!$newthread && !$tlonly) {
 @include './extend/extra-commands/dice.php';
 
 // >>1への変更を反映させる
+function updateFirstRes($datFile, $newFirstRes, $isShiftJis){
+    $datFileHandle = fopen($datFile, 'r+');
+    if(flock($datFileHandle, LOCK_EX)){
+        $datLines = explode("\n", fread($datFileHandle, filesize($datFile)));
+        $datLines[0] = $newFirstRes;
+        ftruncate($datFileHandle, 0);
+        rewind($datFileHandle);
+        if($isShiftJis){
+            fwrite($datFileHandle, mb_convert_encoding(implode("\n", $datLines), "SJIS-win", "UTF-8"));
+        }else{
+            fwrite($datFileHandle, implode("\n", $datLines));
+        }
+    }
+    fclose($datFileHandle);
+}
 if (!$newthread && !$tlonly && $reload) {
-  array_shift($LOG);
-  array_unshift($LOG, $n."<>".$m."<>".$d."<>".$message."<>".$subject."\n");
-  $fp = '';
-  foreach($LOG as $tmp) $fp .= $tmp;
-  file_put_contents($THREADFILE, $fp, LOCK_EX);
-  $shiftJisDat = mb_convert_encoding(implode('', $LOG), "SJIS-win", "UTF-8");
-  file_put_contents($DATFILE, $shiftJisDat, LOCK_EX);
+    $newFirstRes = $n."<>".$m."<>".$d."<>".$message."<>".$subject;
+    // $THREADFILE更新
+    updateFirstRes($THREADFILE, $newFirstRes, false);
+    // $DATFILE更新
+    updateFirstRes($DATFILE, $newFirstRes, true);
 }
 
 // レス番号を取得
- if (!$newthread && !$tlonly) $number = count($LOG) + 1;
+ if (!$newthread && !$tlonly) $number++;
  else $number = 1;
 
 // 上限超え
@@ -888,6 +913,18 @@ if ($M) $_POST['name'] .= $M;
 // 鍵漏れ等の対策としてメール欄の内容は削除
 $_POST['mail'] = '';
 
+// dat追記用関数
+function addNewResToDat($datFile, $newRes){
+    $datFileHandle = fopen($datFile, 'a+');
+    if(flock($datFileHandle, LOCK_SH)){
+        fwrite($datFileHandle, $newRes);
+        fclose($datFileHandle);
+    }else{
+        fclose($datFileHandle);
+        Error('投稿に失敗しました。');
+    }
+}
+
 // dat用にShift_JISに再変換
 if (!$tlonly) {
 $DATMAIL = $newthread ? $supervisorID : $_POST['mail'];
@@ -898,9 +935,8 @@ $directoryPath = $PATH . "dat/";
 if (!file_exists($directoryPath)) {
         mkdir($directoryPath, 0777, true);
 }
-$fp = fopen($DATFILE, "a"); #ログを開く
-fputs($fp, $outdat); #書き込み
-fclose($fp);
+// datに追記
+addNewResToDat($DATFILE, $outdat);
 }
 
 // レス情報を本文末尾に追加
@@ -991,9 +1027,8 @@ if (!$tlonly) {
 // ディレクトリチェック
 makeDir($PATH."thread/".substr($_POST['thread'], 0, 4)."/");
 // スレッドファイルに書き込み
-$fp = fopen($THREADFILE, "a"); #ログを開く
-fputs($fp, $_POST['name']."<>".$DATMAIL."<>".$DATE." ".$ID."<>".$_POST['comment']."<>".$_POST['title']."\n"); #書き込み
-fclose($fp);
+$newRes = $_POST['name']."<>".$DATMAIL."<>".$DATE." ".$ID."<>".$_POST['comment']."<>".$_POST['title']."\n";
+addNewResToDat($THREADFILE, $newRes);
 }
 
 // 新規スレッドの場合一覧に追加
