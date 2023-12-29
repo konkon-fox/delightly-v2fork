@@ -1039,17 +1039,28 @@ $newRes = $_POST['name']."<>".$DATMAIL."<>".$DATE." ".$ID."<>".$_POST['comment']
 addNewResToDat($THREADFILE, $newRes);
 }
 
-// 新規スレッドの場合一覧に追加
+// 新規スレッドの場合、過去ログ用スレッド一覧(subject.json)に追加
 if ($newthread) {
- if (!is_file($PATH."thread/".substr($_POST['thread'], 0, 4)."/subject.json")) $tlist = [];
- else $tlist = json_decode(file_get_contents($PATH."thread/".substr($_POST['thread'], 0, 4)."/subject.json"), true);
- $created = ["thread"=>$_POST['thread'],
-	  "title"=>$subject,
-	  "number"=>'archive',
-	  "date"=>'archive',
-	 ];
- array_push($tlist,$created);
- file_put_contents($PATH."thread/".substr($_POST['thread'], 0, 4)."/subject.json", json_encode($tlist, JSON_UNESCAPED_UNICODE), LOCK_EX);
+    $kakoSubjectFile = $PATH."thread/".substr($_POST['thread'], 0, 4)."/subject.json";
+    $kakoSubjectFileHandle = fopen($kakoSubjectFile, 'c+');
+    if(flock($kakoSubjectFileHandle, LOCK_EX)){
+        if(is_file($kakoSubjectFile)){
+            $tlist = json_decode(fread($kakoSubjectFileHandle, filesize($kakoSubjectFile)), true);
+        }else{
+            $tlist = [];
+        }
+        $created = [
+            "thread"=>$_POST['thread'],
+            "title"=>$subject,
+            "number"=>'archive',
+            "date"=>'archive',
+        ];
+        $tlist[] = $created;
+        ftruncate($kakoSubjectFileHandle, 0);
+        rewind($kakoSubjectFileHandle);
+        fwrite($kakoSubjectFileHandle, json_encode($tlist, JSON_UNESCAPED_UNICODE));
+    }
+    fclose($kakoSubjectFileHandle);
 }
 
 // ローカルタイムライン (index.json)
