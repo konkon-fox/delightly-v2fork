@@ -1116,7 +1116,7 @@ if (!$sage) {
 }
 
 // スレッド一覧 (subject.json)
-if ($newthread || (!$tlonly && !$sage)) {
+if (!$tlonly) {
     // 停止済のスレッド
     if ($stop) $subject = "[stop] ".$subject;
     // 投稿先スレッド
@@ -1135,11 +1135,18 @@ if ($newthread || (!$tlonly && !$sage)) {
             $Threads = [];
         }
         $PAGEFILE = [];
-        $PAGEFILE[] = $posted;
+        if (!$sage || $newthread) {
+            $PAGEFILE[] = $posted;
+        }
         // その他のスレッド
-        if ($Threads) {
-            foreach ($Threads as $thread) {
-                if ($thread['thread'] != $_POST['thread']) $PAGEFILE[] = $thread;
+        foreach ($Threads as $thread) {
+            if ((int) $thread['thread'] === (int) $_POST['thread']){
+                // sageの場合
+                if ($sage && !$newthread) {
+                    $PAGEFILE[] = $posted;
+                }
+            }else{
+                $PAGEFILE[] = $thread;
             }
         }
         // 過去ログ化チェック
