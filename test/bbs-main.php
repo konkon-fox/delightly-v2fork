@@ -1234,7 +1234,7 @@ fclose($logFileHandle);
 $HAP['last'] = $NOWTIME;
 $HAP['comment'] = $_POST['comment'];
 $hapfileHandle = fopen($hapfile, 'w');
-if(flock($hapfileHandle, LOCK_SH)){
+if(flock($hapfileHandle, LOCK_EX)){
     fwrite($hapfileHandle, json_encode($HAP, JSON_UNESCAPED_UNICODE));
 }
 fclose($hapfileHandle);
