@@ -1042,9 +1042,10 @@ addNewResToDat($THREADFILE, $newRes);
 // 新規スレッドの場合、過去ログ用スレッド一覧(subject.json)に追加
 if ($newthread) {
     $kakoSubjectFile = $PATH."thread/".substr($_POST['thread'], 0, 4)."/subject.json";
+    $fileExists = is_file($kakoSubjectFile);
     $kakoSubjectFileHandle = fopen($kakoSubjectFile, 'c+');
     if(flock($kakoSubjectFileHandle, LOCK_EX)){
-        if(is_file($kakoSubjectFile)){
+        if($fileExists){
             $tlist = json_decode(fread($kakoSubjectFileHandle, filesize($kakoSubjectFile)), true);
         }else{
             $tlist = [];
@@ -1076,9 +1077,10 @@ if (!$sage) {
         $post["title"] = $subject;
         $post["thread"] = $_POST['thread'];
     }
+    $fileExists = is_file($LTLFILE);
     $LTLFILEHandle = fopen($LTLFILE, 'c+');
     if(flock($LTLFILEHandle, LOCK_EX)){
-        if (is_file($LTLFILE)){
+        if ($fileExists){
             $LTL = json_decode(fread($LTLFILEHandle, filesize($LTLFILE)), true);            
         }else{
             $LTL = [];
@@ -1127,9 +1129,10 @@ if (!$tlonly) {
         "date"=>$NOWTIME,
     ];
     // subject.json更新
+    $fileExists = is_file($subjectfile);
     $subjectfileHandle = fopen($subjectfile, 'c+');
     if(flock($subjectfileHandle, LOCK_EX)){
-        if(is_file($subjectfile)){
+        if($fileExists){
             $Threads = json_decode(fread($subjectfileHandle, filesize($subjectfile)), true);
         }else{
             $Threads = [];
