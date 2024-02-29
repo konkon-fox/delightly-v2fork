@@ -220,7 +220,13 @@ if (!is_file($hapfile))$hapfile = $HAP_PATH.$_COOKIE['WrtAgreementKey'].'.cgi'; 
 if (!is_file($hapfile)) Error("鍵が失効しています:".$_COOKIE['WrtAgreementKey']);
 setcookie("WrtAgreementKey", $_COOKIE['WrtAgreementKey'], $NOWTIME+31536000, "/");
 // 記録されたデータを取得
-$HAP = json_decode(file_get_contents($hapfile), true);
+$hapfileHandle = fopen($hapfile, 'r');
+if(flock($hapfileHandle, LOCK_SH)){
+    $HAP = json_decode(fread($hapfileHandle, filesize($hapfile)), true);
+}else{
+    $HAP = [];
+}
+fclose($hapfileHandle);
 $WrtAgreementKey = substr(md5($HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 7);
 
  // 指定Lv以上で自動承認
@@ -316,11 +322,23 @@ if ($newthread) {
  $supervisorID = substr(md5($_POST['thread'].$HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 8);
  }
 }elseif (!$tlonly) {
- // スレッドタイトルを取得
- $LOG = file($THREADFILE);
- list($n,$m,$d,$message,$subject) = explode("<>", $LOG[0]);
- if (strpos($m, substr(md5($_POST['thread'].$HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 8)) !== false) $supervisor = true;
- $subject = str_replace(array("\r\n","\r","\n"), "", $subject);
+    // スレッドタイトルを取得
+    $THREADFILEHANDLE = fopen($THREADFILE, 'r');
+    if(flock($THREADFILEHANDLE, LOCK_SH)){
+        rewind($THREADFILEHANDLE);
+        for($number = 0; $line = fgets($THREADFILEHANDLE); $number++){
+            if($number === 0){
+                $firstRes = $line;
+            }
+        }
+        fclose($THREADFILEHANDLE);
+        list($n,$m,$d,$message,$subject) = explode("<>", $firstRes);
+        if (strpos($m, substr(md5($_POST['thread'].$HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 8)) !== false) $supervisor = true;
+        $subject = str_replace(array("\r\n","\r","\n"), '', $subject);
+    }else{
+        fclose($THREADFILEHANDLE);
+        Error('投稿に失敗しました。');
+    }
 }
 
 // コマンド
@@ -342,7 +360,9 @@ if (!$newthread && !$tlonly) {
 }
 
 // システムメッセージ用関数
-@include './extend/extra-commands/utilities/add-system-message.php';
+include './extend/extra-commands/utilities/add-system-message.php';
+// スレ状態ファイル読み込み用関数
+include './extend/extra-commands/utilities/get-threads-states.php';
 // !chttコマンド
 @include './extend/extra-commands/chtt.php';
 // !774設定
@@ -359,18 +379,31 @@ if (!$newthread && !$tlonly) {
 @include './extend/extra-commands/dice.php';
 
 // >>1への変更を反映させる
+function updateFirstRes($datFile, $newFirstRes, $isShiftJis){
+    $datFileHandle = fopen($datFile, 'r+');
+    if(flock($datFileHandle, LOCK_EX)){
+        $datLines = explode("\n", fread($datFileHandle, filesize($datFile)));
+        $datLines[0] = $newFirstRes;
+        ftruncate($datFileHandle, 0);
+        rewind($datFileHandle);
+        if($isShiftJis){
+            fwrite($datFileHandle, mb_convert_encoding(implode("\n", $datLines), "SJIS-win", "UTF-8"));
+        }else{
+            fwrite($datFileHandle, implode("\n", $datLines));
+        }
+    }
+    fclose($datFileHandle);
+}
 if (!$newthread && !$tlonly && $reload) {
-  array_shift($LOG);
-  array_unshift($LOG, $n."<>".$m."<>".$d."<>".$message."<>".$subject."\n");
-  $fp = '';
-  foreach($LOG as $tmp) $fp .= $tmp;
-  file_put_contents($THREADFILE, $fp, LOCK_EX);
-  $shiftJisDat = mb_convert_encoding(implode('', $LOG), "SJIS-win", "UTF-8");
-  file_put_contents($DATFILE, $shiftJisDat, LOCK_EX);
+    $newFirstRes = $n."<>".$m."<>".$d."<>".$message."<>".$subject;
+    // $THREADFILE更新
+    updateFirstRes($THREADFILE, $newFirstRes, false);
+    // $DATFILE更新
+    updateFirstRes($DATFILE, $newFirstRes, true);
 }
 
 // レス番号を取得
- if (!$newthread && !$tlonly) $number = count($LOG) + 1;
+ if (!$newthread && !$tlonly) $number++;
  else $number = 1;
 
 // 上限超え
@@ -888,6 +921,18 @@ if ($M) $_POST['name'] .= $M;
 // 鍵漏れ等の対策としてメール欄の内容は削除
 $_POST['mail'] = '';
 
+// dat追記用関数
+function addNewResToDat($datFile, $newRes){
+    $datFileHandle = fopen($datFile, 'a+');
+    if(flock($datFileHandle, LOCK_SH)){
+        fwrite($datFileHandle, $newRes);
+        fclose($datFileHandle);
+    }else{
+        fclose($datFileHandle);
+        Error('投稿に失敗しました。');
+    }
+}
+
 // dat用にShift_JISに再変換
 if (!$tlonly) {
 $DATMAIL = $newthread ? $supervisorID : $_POST['mail'];
@@ -898,9 +943,8 @@ $directoryPath = $PATH . "dat/";
 if (!file_exists($directoryPath)) {
         mkdir($directoryPath, 0777, true);
 }
-$fp = fopen($DATFILE, "a"); #ログを開く
-fputs($fp, $outdat); #書き込み
-fclose($fp);
+// datに追記
+addNewResToDat($DATFILE, $outdat);
 }
 
 // レス情報を本文末尾に追加
@@ -991,154 +1035,230 @@ if (!$tlonly) {
 // ディレクトリチェック
 makeDir($PATH."thread/".substr($_POST['thread'], 0, 4)."/");
 // スレッドファイルに書き込み
-$fp = fopen($THREADFILE, "a"); #ログを開く
-fputs($fp, $_POST['name']."<>".$DATMAIL."<>".$DATE." ".$ID."<>".$_POST['comment']."<>".$_POST['title']."\n"); #書き込み
-fclose($fp);
+$newRes = $_POST['name']."<>".$DATMAIL."<>".$DATE." ".$ID."<>".$_POST['comment']."<>".$_POST['title']."\n";
+addNewResToDat($THREADFILE, $newRes);
 }
 
-// 新規スレッドの場合一覧に追加
+// 新規スレッドの場合、過去ログ用スレッド一覧(subject.json)に追加
 if ($newthread) {
- if (!is_file($PATH."thread/".substr($_POST['thread'], 0, 4)."/subject.json")) $tlist = [];
- else $tlist = json_decode(file_get_contents($PATH."thread/".substr($_POST['thread'], 0, 4)."/subject.json"), true);
- $created = ["thread"=>$_POST['thread'],
-	  "title"=>$subject,
-	  "number"=>'archive',
-	  "date"=>'archive',
-	 ];
- array_push($tlist,$created);
- file_put_contents($PATH."thread/".substr($_POST['thread'], 0, 4)."/subject.json", json_encode($tlist, JSON_UNESCAPED_UNICODE), LOCK_EX);
+    $kakoSubjectFile = $PATH."thread/".substr($_POST['thread'], 0, 4)."/subject.json";
+    $fileExists = is_file($kakoSubjectFile);
+    $kakoSubjectFileHandle = fopen($kakoSubjectFile, 'c+');
+    if(flock($kakoSubjectFileHandle, LOCK_EX)){
+        if($fileExists){
+            $tlist = json_decode(fread($kakoSubjectFileHandle, filesize($kakoSubjectFile)), true);
+        }else{
+            $tlist = [];
+        }
+        $created = [
+            "thread"=>$_POST['thread'],
+            "title"=>$subject,
+            "number"=>'archive',
+            "date"=>'archive',
+        ];
+        $tlist[] = $created;
+        ftruncate($kakoSubjectFileHandle, 0);
+        rewind($kakoSubjectFileHandle);
+        fwrite($kakoSubjectFileHandle, json_encode($tlist, JSON_UNESCAPED_UNICODE));
+    }
+    fclose($kakoSubjectFileHandle);
 }
 
 // ローカルタイムライン (index.json)
 if (!$sage) {
- $LTL = json_decode(file_get_contents($LTLFILE), true);
- if (!is_file($LTLFILE)) $LTL = [];
- $count = 0;
- $post = ["name"=>$_POST['name'],
- 	  "mail"=>'No.'.$NOWTIME,
- 	  "date"=>$DATE,
- 	  "id"=>$ID,
- 	  "comment"=>$_POST['comment'],
- 	 ];
-if (!$tlonly) {
- 	  $post["title"] = $subject;
- 	  $post["thread"] = $_POST['thread'];
-}
- array_unshift($LTL, $post);
- // ファイル内の投稿数を $SETTING['LTL_LIMIT'] 個以内に調整して保存
- if ($SETTING['LTL_LIMIT'] < 50) $SETTING['LTL_LIMIT'] = 50;
- if (count($LTL) > $SETTING['LTL_LIMIT'] + 100) {
-  while (count($LTL) > $SETTING['LTL_LIMIT']) array_pop($LTL);
- }
- file_put_contents($LTLFILE, json_encode($LTL, JSON_UNESCAPED_UNICODE), LOCK_EX);
- $TTL = array_reverse($LTL);
- $headText = file_get_contents($PATH."head.txt");
- $headText = mb_convert_encoding($headText, 'UTF-8', 'SJIS-win');
- $headText = str_replace(array("\r\n","\r","\n"), '', $headText);
- $kokutiText = file_get_contents($PATH."kokuti.txt");
- $kokutiText = str_replace(array("\r\n","\r","\n"), '', $kokutiText);
- $fp = "ローカルルール<><>99/01/01 00:00:00 <>".$headText."<>TL\n";
- $fp .= "告知欄<><>99/01/01 00:00:00 <>".$kokutiText."<>\n";
- foreach ($TTL as $tmp) {
-  if (isset($tmp['thread'])) $tt = "<br><hr>".$tmp["title"]."<br>http://".$_SERVER['HTTP_HOST']."/test/read.cgi/".$_POST['board']."/".$tmp['thread']."/";
-  else $tt = "";
-  $fp .= $tmp['name']."<>".$tmp['mail']."<>".$tmp['date']." ".$tmp['id']."<>".$tmp['comment'].$tt."<>\n";
- }
- file_put_contents($PATH."dat/1000000000.dat", mb_convert_encoding($fp, "SJIS-win", "UTF-8"), LOCK_EX);
+    $post = [
+        "name"=>$_POST['name'],
+        "mail"=>'No.'.$NOWTIME,
+        "date"=>$DATE,
+        "id"=>$ID,
+        "comment"=>$_POST['comment'],
+    ];
+    if (!$tlonly) {
+        $post["title"] = $subject;
+        $post["thread"] = $_POST['thread'];
+    }
+    $fileExists = is_file($LTLFILE);
+    $LTLFILEHandle = fopen($LTLFILE, 'c+');
+    if(flock($LTLFILEHandle, LOCK_EX)){
+        if ($fileExists){
+            $LTL = json_decode(fread($LTLFILEHandle, filesize($LTLFILE)), true);            
+        }else{
+            $LTL = [];
+        }
+        array_unshift($LTL, $post);
+        // ファイル内の投稿数を $SETTING['LTL_LIMIT'] 個以内に調整して保存
+        if ($SETTING['LTL_LIMIT'] < 50) $SETTING['LTL_LIMIT'] = 50;
+        if (count($LTL) > $SETTING['LTL_LIMIT'] + 100) {
+            $LTL = array_slice($LTL, 0, (int) $SETTING['LTL_LIMIT']);
+        }
+        ftruncate($LTLFILEHandle, 0);
+        rewind($LTLFILEHandle);
+        fwrite($LTLFILEHandle, json_encode($LTL, JSON_UNESCAPED_UNICODE));
+    }
+    fclose($LTLFILEHandle);
+    // 専ブラ用タイムライン (1000000000.dat)
+    $TTL = array_reverse($LTL);
+    $headText = file_get_contents($PATH."head.txt");
+    $headText = mb_convert_encoding($headText, 'UTF-8', 'SJIS-win');
+    $headText = str_replace(array("\r\n","\r","\n"), '', $headText);
+    $kokutiText = file_get_contents($PATH."kokuti.txt");
+    $kokutiText = str_replace(array("\r\n","\r","\n"), '', $kokutiText);
+    $tlDatData= "ローカルルール<><>99/01/01 00:00:00 <>".$headText."<>TL\n";
+    $tlDatData .= "告知欄<><>99/01/01 00:00:00 <>".$kokutiText."<>\n";
+    foreach ($TTL as $tmp) {
+        if (isset($tmp['thread'])) $tt = "<br><hr>".$tmp["title"]."<br>http://".$_SERVER['HTTP_HOST']."/test/read.cgi/".$_POST['board']."/".$tmp['thread']."/";
+        else $tt = "";
+        $tlDatData .= $tmp['name']."<>".$tmp['mail']."<>".$tmp['date']." ".$tmp['id']."<>".$tmp['comment'].$tt."<>\n";
+    }
+    $tlDatHandle = fopen($PATH."dat/1000000000.dat", 'w');
+    if(flock($tlDatHandle, LOCK_EX)){
+        fwrite($tlDatHandle, mb_convert_encoding($tlDatData, "SJIS-win", "UTF-8"));
+    }
+    fclose($tlDatHandle);
 }
 
-if (!$tlonly) {
 // スレッド一覧 (subject.json)
-$keyfile = $_POST['thread'].".dat";
-$Threads = json_decode(file_get_contents($subjectfile), true);
-if (!is_file($subjectfile)) $Threads = [];
-$PAGEFILE = [];
-// スレッド数を取得
-$ThreadCount = count($Threads);
-// 新規スレッド作成の場合は1個追加
-if ($newthread) $ThreadCount++;
-// 停止済のスレッド
-if ($stop) $subject = "[stop] ".$subject;
-// 投稿先スレッド
-$posted = ["thread"=>$_POST['thread'],
-	  "title"=>$subject,
-	  "number"=>$number,
-	  "date"=>$NOWTIME,
-	 ];
-// sageでないか新規スレッドの場合投稿先スレッドを先頭にする
-if (!$sage || $newthread) array_push($PAGEFILE,$posted);
-// その他のスレッド
-if ($Threads) {
- foreach ($Threads as $thread) {
-  if ($thread['thread'] != $_POST['thread']) array_push($PAGEFILE,$thread);
-  elseif ($sage && !$newthread) array_push($PAGEFILE,$posted);
- }
-}
-// 上限以下のスレッドを過去ログ化
-if ($ThreadCount > $SETTING['BBS_THREADS_LIMIT']) {
- for ($start = $SETTING['BBS_THREADS_LIMIT']; $start < $ThreadCount; $start++) {
-  // datファイル削除
-  @unlink($PATH."dat/".$PAGEFILE[$start]['thread'].".dat");
-  // 過去ログを保持しない場合
-  if ($SETTING['disable_kakolog'] == "checked") {
-   @unlink($PATH."thread/".substr($PAGEFILE[$start]['thread'], 0, 4)."/".$PAGEFILE[$start]['thread'].".dat");
-  }
-  // datlog削除
-  $datlog = $PATH."dat/".$PAGEFILE[$start]['thread']."_kisei.cgi";
-  if (is_file($datlog)) @unlink($datlog);
- }
- $PAGEFILE = array_slice($PAGEFILE, 0, $SETTING['BBS_THREADS_LIMIT']);
-}
-// !poolコマンド
-@include './extend/extra-commands/pool.php';
-
-// 更新
-file_put_contents($subjectfile, json_encode($PAGEFILE, JSON_UNESCAPED_UNICODE), LOCK_EX);
-
- // subject.txt (専ブラ無効でない場合のみ)
- if ($SETTING['2ch_dedicate_browsers'] != "disable") {
- $fp = fopen($PATH."subject.txt", "w");
-  fputs($fp, mb_convert_encoding("1000000000.dat<>TL (1)\n", "SJIS-win", "UTF-8"));
- foreach ($PAGEFILE as $tmp) {
-  $t = $tmp['thread'].".dat<>".$tmp['title']." (".$tmp['number'].")\n";
-  fputs($fp, mb_convert_encoding($t, "SJIS-win", "UTF-8"));
- }
- fclose($fp);
- }
-
-// スレ状態ファイルから現存しないスレ番号キーを削除
-// 定期的に行う必要がある処理だが、各レスごとに行う必要はないため$threadsStatesReloadをフラグとする。
-if ($threadsStatesReload && is_file($THREADS_STATES_FILE)) {
-    $threadKeysList = array_map(function ($thread) {
-        return (int) $thread['thread'];
-    }, $PAGEFILE);
-    $threadsStates = $threadsStatesUpdater->get();
-    if($threadsStates){
-        foreach(array_keys($threadsStates) as $threadKey){
-            if(!in_array((int) $threadKey, $threadKeysList, true)){
-                unset($threadsStates[$threadKey]);
+if (!$tlonly) {
+    // 停止済のスレッド
+    if ($stop) $subject = "[stop] ".$subject;
+    // 投稿先スレッド
+    $posted = [
+        "thread"=>$_POST['thread'],
+        "title"=>$subject,
+        "number"=>$number,
+        "date"=>$NOWTIME,
+    ];
+    // subject.json更新
+    $fileExists = is_file($subjectfile);
+    $subjectfileHandle = fopen($subjectfile, 'c+');
+    if(flock($subjectfileHandle, LOCK_EX)){
+        if($fileExists){
+            $Threads = json_decode(fread($subjectfileHandle, filesize($subjectfile)), true);
+        }else{
+            $Threads = [];
+        }
+        $PAGEFILE = [];
+        if (!$sage || $newthread) {
+            $PAGEFILE[] = $posted;
+        }
+        // その他のスレッド
+        foreach ($Threads as $thread) {
+            if ((int) $thread['thread'] === (int) $_POST['thread']){
+                // sageの場合
+                if ($sage && !$newthread) {
+                    $PAGEFILE[] = $posted;
+                }
+            }else{
+                $PAGEFILE[] = $thread;
             }
         }
-        $threadsStatesUpdater->put($threadsStates);
+        // 過去ログ化チェック
+        if($newthread){
+            // スレッド数を取得
+            $ThreadCount = count($Threads) + 1;
+            // 上限以下のスレッドを過去ログ化
+            if ($ThreadCount > $SETTING['BBS_THREADS_LIMIT']) {
+                for ($start = $SETTING['BBS_THREADS_LIMIT']; $start < $ThreadCount; $start++) {
+                    // datファイル削除
+                    @unlink($PATH."dat/".$PAGEFILE[$start]['thread'].".dat");
+                    // 過去ログを保持しない場合
+                    if ($SETTING['disable_kakolog'] == "checked") {
+                        @unlink($PATH."thread/".substr($PAGEFILE[$start]['thread'], 0, 4)."/".$PAGEFILE[$start]['thread'].".dat");
+                    }
+                    // datlog削除
+                    $datlog = $PATH."dat/".$PAGEFILE[$start]['thread']."_kisei.cgi";
+                    if (is_file($datlog)) @unlink($datlog);
+                }
+                $PAGEFILE = array_slice($PAGEFILE, 0, $SETTING['BBS_THREADS_LIMIT']);
+            }
+        }
+        // !poolコマンド
+        @include './extend/extra-commands/pool.php';
+        // subject.jsonに書き込み
+        ftruncate($subjectfileHandle, 0);
+        rewind($subjectfileHandle);
+        fwrite($subjectfileHandle, json_encode($PAGEFILE, JSON_UNESCAPED_UNICODE));
     }
+    fclose($subjectfileHandle);
+     // subject.txt (専ブラ無効でない場合のみ)
+    if ($SETTING['2ch_dedicate_browsers'] != "disable") {
+        $subjectTxtLines = array_merge(
+            ["1000000000.dat<>TL (1)\n"], 
+            array_map(function($thread){
+                return $thread['thread'].".dat<>".$thread['title']." (".$thread['number'].")\n";
+            }, $PAGEFILE)
+        );
+        $subjectTxtData = mb_convert_encoding(implode('', $subjectTxtLines), "SJIS-win", "UTF-8");
+        $subjectTxtHandle = fopen($PATH.'subject.txt', 'w');
+        if(flock($subjectTxtHandle, LOCK_EX)){
+            fwrite($subjectTxtHandle, $subjectTxtData);
+        }
+        fclose($subjectTxtHandle);
+    }
+
 }
+if (!$tlonly) {
+    // スレ状態ファイルから現存しないスレ番号キーを削除
+    // 定期的に行う必要がある処理だが、各レスごとに行う必要はないため$threadsStatesReloadをフラグとする。
+    if ($threadsStatesReload && is_file($THREADS_STATES_FILE)) {
+        $threadKeysList = array_map(function ($thread) {
+            return (int) $thread['thread'];
+        }, $PAGEFILE);
+        $threadsStates = $threadsStatesUpdater->get();
+        if($threadsStates){
+            foreach(array_keys($threadsStates) as $threadKey){
+                if(!in_array((int) $threadKey, $threadKeysList, true)){
+                    unset($threadsStates[$threadKey]);
+                }
+            }
+            $threadsStatesUpdater->put($threadsStates);
+        }
+    }
 }
 
 // 投稿ログ
-if (is_file($LOGFILE)) $IP = file($LOGFILE);
-else $IP = [];
-array_unshift($IP, $_POST['name']."<>".$_POST['mail']."<>".$DATE." ".$ID."<>".$_POST['comment']."<>".$_POST['title']."<>".$_POST['thread']."<>".$number."<>".$HOST."<>".$_SERVER['REMOTE_ADDR']."<>".$_SERVER['HTTP_USER_AGENT']."<>".htmlspecialchars($CH_UA, ENT_NOQUOTES, "UTF-8")."<>".htmlspecialchars($ACCEPT, ENT_NOQUOTES, "UTF-8")."<>".$WrtAgreementKey."<>".$LV."<>".$info."\n");
-// ログファイル内の投稿数を LOG_LIMIT 個以内に調整して保存
-if ($SETTING['LOG_LIMIT'] && count($IP) > $SETTING['LOG_LIMIT'] + 100) {
- while (count($IP) > $SETTING['LOG_LIMIT']) array_pop($IP);
+$LOG_LIMIT = 100000;
+if ($SETTING['LOG_LIMIT'] !== '') {
+    $LOG_LIMIT = min((int) $SETTING['LOG_LIMIT'], $LOG_LIMIT);
+    if($LOG_LIMIT < 0) {
+        $LOG_LIMIT = 0;
+    }
 }
-$IP = array_unique($IP);
-file_put_contents($LOGFILE, $IP, LOCK_EX);
+$logFileHandle = fopen($LOGFILE, 'a+');
+if(flock($logFileHandle, LOCK_SH)) {
+    // 新規ログを追記
+    $newLog = $_POST['name']."<>".$_POST['mail']."<>".$DATE." ".$ID."<>".$_POST['comment']."<>".$_POST['title']."<>".$_POST['thread']."<>".$number."<>".$HOST."<>".$_SERVER['REMOTE_ADDR']."<>".$_SERVER['HTTP_USER_AGENT']."<>".htmlspecialchars($CH_UA, ENT_NOQUOTES, "UTF-8")."<>".htmlspecialchars($ACCEPT, ENT_NOQUOTES, "UTF-8")."<>".$WrtAgreementKey."<>".$LV."<>".$info."\n";
+    fwrite($logFileHandle, $newLog);
+    // ログの行数確認
+    rewind($logFileHandle);
+    for($lineCount = 0; fgets($logFileHandle); $lineCount++);
+    if ($lineCount > $LOG_LIMIT + 100) {
+        // ログ縮小処理用にファイルを開き直す
+        fclose($logFileHandle);
+        $logFileHandle = fopen($LOGFILE, 'c+');
+        // 古いログを削除
+        if(flock($logFileHandle, LOCK_EX)) {
+            $logLines = [];
+            while(($logLine = fgets($logFileHandle)) !== false) {
+                $logLines[] = $logLine;
+            }
+            $logLines = array_slice($logLines, $lineCount - $LOG_LIMIT);
+            ftruncate($logFileHandle, 0);
+            rewind($logFileHandle);
+            fwrite($logFileHandle, implode('', $logLines));
+        }
+    }
+}
+fclose($logFileHandle);
 
 // 記録
 $HAP['last'] = $NOWTIME;
 $HAP['comment'] = $_POST['comment'];
-file_put_contents($hapfile, json_encode($HAP, JSON_UNESCAPED_UNICODE), LOCK_EX);
+$hapfileHandle = fopen($hapfile, 'w');
+if(flock($hapfileHandle, LOCK_EX)){
+    fwrite($hapfileHandle, json_encode($HAP, JSON_UNESCAPED_UNICODE));
+}
+fclose($hapfileHandle);
 
 // 投稿完了画面
 finish();

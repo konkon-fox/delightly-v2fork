@@ -45,7 +45,6 @@
     }
    }
 if ($supervisor || $admin) {
-  if (strpos($_POST['comment'], "!") !== false) $reload = true;
   if (strpos($_POST['comment'], '!stop') !== false) $stop = true;
    // 追記
   if (preg_match("/\!add(.*)/", $_POST['comment'], $addMatches) && $number != 1) {
@@ -55,6 +54,7 @@ if ($supervisor || $admin) {
       if(strpos($_POST['comment'], '<hr>') === false) $_POST['comment'] .= '<hr>';
       $_POST['comment'] .= '★追記できる文字数を超えています。<br>';
     }else{
+      $reload = true;
       $messageParts = explode('<hr>', $message);
       $messageParts[0] .="<br><font class=\"add\" color=\"red\">※追記 {$DATE}</font>{$addComment}";
       $message = implode('<hr>', $messageParts);

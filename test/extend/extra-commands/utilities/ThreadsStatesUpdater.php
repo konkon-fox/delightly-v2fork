@@ -3,7 +3,7 @@
 /**
  * スレ情報ファイルthreads-states.cgiの更新を行うためのクラスです。
  * get()でファイルをロックしput()でロックを解除するので必ずセットで使ってください。※get()でfalseを返した場合put()は不要です。
- * 内容の取得のみを使いたい場合はこのクラスではなくfile_get_contentsを使用してください。
+ * 内容の取得のみを使いたい場合はこのクラスではなくgetThreadsStates関数を使用してください。
  */
 class ThreadsStatesUpdater
 {

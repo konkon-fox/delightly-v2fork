@@ -44,7 +44,10 @@ function showThreadsStates(
         array_push($commentParts, '');
     }
     $commentParts[2] = '';
-    $threadsStates = json_decode(file_get_contents($THREADS_STATES_FILE), true);
+    $threadsStates = getThreadsStates($THREADS_STATES_FILE);
+    if($threadsStates === false) {
+        return;
+    }
     // デフォ名無し情報追加
     if(isset($threadsStates[$_POST['thread']]['774'])) {
         $defaultName = $threadsStates[$_POST['thread']]['774'];
