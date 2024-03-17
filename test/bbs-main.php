@@ -383,14 +383,14 @@ function updateFirstRes($datFile, $newFirstRes, $isShiftJis){
     $datFileHandle = fopen($datFile, 'r+');
     if(flock($datFileHandle, LOCK_EX)){
         $datLines = explode("\n", fread($datFileHandle, filesize($datFile)));
-        $datLines[0] = $newFirstRes;
+        if($isShiftJis){
+            $datLines[0] = mb_convert_encoding($newFirstRes, "SJIS-win", "UTF-8");
+        }else{
+            $datLines[0] = $newFirstRes;
+        }
         ftruncate($datFileHandle, 0);
         rewind($datFileHandle);
-        if($isShiftJis){
-            fwrite($datFileHandle, mb_convert_encoding(implode("\n", $datLines), "SJIS-win", "UTF-8"));
-        }else{
-            fwrite($datFileHandle, implode("\n", $datLines));
-        }
+        fwrite($datFileHandle, implode("\n", $datLines));
     }
     fclose($datFileHandle);
 }
