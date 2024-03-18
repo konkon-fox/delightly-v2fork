@@ -238,7 +238,6 @@ if (!is_file($file)) {
 <META HTTP-EQUIV="pragma" CONTENT="no-cache">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>投稿前確認</title>
-<script src="/static/clientid.js"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback" defer></script>
 <script>
 function onSubmit(token) {
@@ -282,10 +281,13 @@ print_r($result);
 ?>
 </pre>
 <script>
-    const getclientid = clientid.load()
-    getclientid
-    .then(fp => fp.get())
-    .then(result => document.getElementById('ClientID').value = result.visitorId)
+    const fpPromise = import('/static/clientid.js')
+      .then(FingerprintJS => FingerprintJS.load())
+    fpPromise
+      .then(fp => fp.get())
+      .then(result => {
+        document.getElementById('ClientID').value = result.visitorId
+      });
 
     window.onloadTurnstileCallback = function () {
     turnstile.render('#example-container', {
