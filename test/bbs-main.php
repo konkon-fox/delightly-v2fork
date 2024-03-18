@@ -399,7 +399,9 @@ if (!$newthread && !$tlonly && $reload) {
     // $THREADFILE更新
     updateFirstRes($THREADFILE, $newFirstRes, false);
     // $DATFILE更新
-    updateFirstRes($DATFILE, $newFirstRes, true);
+    if(is_file($DATFILE)){
+        updateFirstRes($DATFILE, $newFirstRes, true);
+    }    
 }
 
 // レス番号を取得
@@ -1096,6 +1098,11 @@ if (!$sage) {
         fwrite($LTLFILEHandle, json_encode($LTL, JSON_UNESCAPED_UNICODE));
     }
     fclose($LTLFILEHandle);
+    // datディレクトリがあるかチェック
+    $directoryPath = $PATH . "dat/";
+    if (!file_exists($directoryPath)) {
+         mkdir($directoryPath, 0777, true);
+    }
     // 専ブラ用タイムライン (1000000000.dat)
     $TTL = array_reverse($LTL);
     $headText = file_get_contents($PATH."head.txt");
