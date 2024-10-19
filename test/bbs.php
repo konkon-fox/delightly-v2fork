@@ -34,6 +34,13 @@ if ($SETTING['2ch_dedicate_browsers'] != "enable") Error2("invalid:2ch dedicate 
 // 専ブラなのにtimeなし
 if (!$_POST['time']) Error2("invalid");
 
+// 一部の絵文字の後ろに?が付く不具合への対処
+// ?の元であるバイトシーケンス「fc」を異体字セレクタ(VS16)のHTMLエンティティに置換
+$vs16_regexp = '/((&#[0-9a-zA-Z]+?;)|[0-9♂♀*#])(\xFC)+/';
+$_POST['MESSAGE'] = preg_replace($vs16_regexp, '$1&#65039;', $_POST['MESSAGE']);
+$_POST['subject'] = preg_replace($vs16_regexp, '$1&#65039;', $_POST['subject']);
+$_POST['FROM'] = preg_replace($vs16_regexp, '$1&#65039;', $_POST['FROM']);
+
 // Shift_JISからUTF-8へ
 mb_convert_variables('UTF-8','SJIS-win',$_POST);
 
