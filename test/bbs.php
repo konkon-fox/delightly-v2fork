@@ -36,11 +36,19 @@ if (!$_POST['time']) Error2("invalid");
 
 // 一部の絵文字の後ろに?が付く不具合への対処
 // ?の元であるバイトシーケンス「fc」をゼロ幅接合子(ZWJ)あるいは異体字セレクタ(VS16)のHTMLエンティティに置換
-// fcだけを置換すると第二バイトがfcの文字にもマッチしてしまうので、fcが4連続と2連続の場合を決め打ちしている
+// 89 fc や 8a fc を含む文字列を除外するため、fcが4連続と2連続の場合を決め打ちしている
+// 0-9 00-09
+// * 2a
+// # 23
+// ♂ 81 89
+// ♀ 81 8a
 function emojiReplace(&$text){
-  $zwj_regexp = '/((&#[0-9a-zA-Z]+?;)|[0-9♂♀*#])(\xFC){4}/';
+  $html_entity = '&#[0-9a-zA-Z]+?;';
+  $emoji_base_chars = '(?:[0-9*#]|♂|♀)';
+  $byte_fc = '(?:\xFC)';
+  $zwj_regexp = "/({$html_entity}|{$emoji_base_chars}){$byte_fc}{4}/";
   $text = preg_replace($zwj_regexp, '$1&#65039;&#8205;', $text);
-  $vs16_regexp = '/((&#[0-9a-zA-Z]+?;)|[0-9♂♀*#])(\xFC){2}/';
+  $vs16_regexp = "/({$html_entity}|{$emoji_base_chars}){$byte_fc}{2}/";
   $text = preg_replace($vs16_regexp, '$1&#65039;', $text);
 }
 emojiReplace($_POST['MESSAGE']);
