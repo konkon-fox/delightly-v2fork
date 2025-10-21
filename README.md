@@ -1,6 +1,7 @@
 # このスクリプトについて
 このスクリプトはnore氏の作成した掲示板スクリプト「delight v2」から独自の改修を加えたものです。  
 https://git.3chan.cc/stat2/delightly-v2fork/ にて改修が行われていましたが、管理人と連絡が取れなくなったためリポジトリをgithubへ仮移行しました。
+当時のissuesは https://fox-tools.pages.dev/stat2-delightly-v2fork-issues/ にまとめてあります。
 
 ## 元仕様
 https://delight.rentalbbs.net/delight.html に記載されていた仕様情報です。  
