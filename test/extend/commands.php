@@ -2,12 +2,6 @@
  if ($SETTING['commands'] == "checked") {
    if (strpos($message, '!sage') !== false) $sage = true;
    if (strpos($message, '!nopic') !== false) $SETTING['NOPIC'] = "checked";
-   if (strpos($message, '!noid') !== false) {
-   $SETTING['id'] = "";
-   $SETTING['slip'] = "";
-   $SETTING['disp_slipname'] = "";
-   $SETTING['BBS_JP_CHECK'] = "";
-   }
    if (strpos($message, '!jien') !== false) {
    $SETTING['id'] = "checked";
    $SETTING['slip'] = "checked";
@@ -38,6 +32,12 @@
    if (strpos($message, '!AA') !== false) $SETTING['BBS_AA'] = "checked";
    if (strpos($message, '!ARR') !== false) $SETTING['NAME_ARR'] = "checked";
    if (strpos($message, '!stop') !== false && $number != 1) Error("このスレッドは停止しました");
+   if (strpos($message, '!noid') !== false) {
+   $SETTING['id'] = "";
+   $SETTING['slip'] = "";
+   $SETTING['disp_slipname'] = "";
+   $SETTING['BBS_JP_CHECK'] = "";
+   }
    // !SETTING
    if (preg_match_all("/!SETTING:(.*?):(.*?)(\s|　|<br>)/", $_POST['comment'], $SETS, PREG_SET_ORDER)) {
     foreach ($SETS as $SET) {
