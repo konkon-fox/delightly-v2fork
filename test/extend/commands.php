@@ -25,7 +25,13 @@
    if (strpos($message, '!host') !== false) $SETTING['fusianasan'] = "name";
    if (strpos($message, '!clientid') !== false) $SETTING['fusianasan'] = "id";
    if (strpos($message, '!nolink') !== false) $SETTING['DISABLE_LINK'] = "checked";
-   if (strpos($message, '!idchange') !== false) $SETTING['BBS_ID_CHANGE'] = "checked";
+   if (
+     strpos($message, '!idchange') !== false ||
+     strpos($message, '!changeid') !== false ||
+     strpos($message, '!chid') !== false
+   ) {
+     $SETTING['BBS_ID_CHANGE'] = "checked";
+   }
    if (strpos($message, '!cap') !== false) $SETTING['cap_only'] = "checked";
    if (strpos($message, '!auth') !== false) $SETTING['Authentication_required'] = "checked";
    if (strpos($message, '!NO') !== false) $SETTING['disable_supervisor'] = "checked";
@@ -67,7 +73,16 @@ if ($supervisor || $admin) {
     }
    }
   // idchange
-  if ($newthread && strpos($_POST['comment'], '!idchange') !== false) $SETTING['BBS_ID_CHANGE'] = "checked";
+  if (
+    $newthread && 
+    (
+      strpos($_POST['comment'], '!idchange') !== false||
+      strpos($_POST['comment'], '!changeid') !== false ||
+      strpos($_POST['comment'], '!chid') !== false
+      )
+    ){
+      $SETTING['BBS_ID_CHANGE'] = "checked";
+  }
   // noid
   if ($newthread && strpos($_POST['comment'], '!noid') !== false) {
     $SETTING['id'] = "";
