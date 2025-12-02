@@ -53,7 +53,7 @@
 if ($supervisor || $admin) {
   if (strpos($_POST['comment'], '!stop') !== false) $stop = true;
    // 追記
-  if (preg_match("/\!add(.*)/", $_POST['comment'], $addMatches) && $number != 1) {
+  if (preg_match("/\!add(.*)/", $_POST['comment'], $addMatches) && isset($number)) {
     $commentMax = $authorized ? $SETTING['BBS_MESSAGE_COUNT'] * 3 : $SETTING['BBS_MESSAGE_COUNT'];
     $addComment = $addMatches[1];
     if(mb_strlen($message, 'UTF-8') + mb_strlen($addComment, 'UTF-8')  > $commentMax){
