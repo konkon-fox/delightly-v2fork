@@ -37,7 +37,13 @@
    if (strpos($message, '!NO') !== false) $SETTING['disable_supervisor'] = "checked";
    if (strpos($message, '!AA') !== false) $SETTING['BBS_AA'] = "checked";
    if (strpos($message, '!ARR') !== false) $SETTING['NAME_ARR'] = "checked";
-   if (strpos($message, '!stop') !== false && $number != 1) Error("このスレッドは停止しました");
+   if (
+     strpos($message, '!stop') !== false && 
+     isset($number) &&
+     !$admin
+   ) {
+     Error("このスレッドは停止しました");
+   }
    if (strpos($message, '!noid') !== false) {
    $SETTING['id'] = "";
    $SETTING['slip'] = "";
