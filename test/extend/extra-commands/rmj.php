@@ -1,4 +1,5 @@
 <?php
+
 /**
  * !rmj構文を置換する関数。別箇所でも使用するので関数として独立させています。
  *
@@ -17,21 +18,59 @@ function replaceRmj($text)
     $rmjReplaceList = [];
     $replaceCount = 0;
     // !rmj構文を解釈
-    for($i = 0;$i < $MAX_NEST;$i++) {
-        $text = preg_replace_callback('/(\!rmj([0-9]*)):(((?!(\!rmj([0-9]*):(([^\/:])*\/)+([^\/:])*:|:)).)+):/', function ($matches) use (&$rmjReplaceList, &$replaceCount, $MAX_RMJ_NUMBER, $REPLACE_LIMIT) {
+    // 内側から解釈し入れ子最大数で終了
+    for ($i = 0;$i < $MAX_NEST;$i++) {
+        /*
+         * 正規表現について
+         * ※[G1]
+         * (
+         *   \!rmj
+         *   ※[G2]
+         *   (
+         *     [0-9]*
+         *   )
+         * )
+         * :
+         * ※[G3]
+         * (
+         *   (?:
+         *     (?!
+         *       (?:
+         *         \!rmj(?:[0-9]*)
+         *         :
+         *         (?:
+         *           (?:
+         *             (?!:e)
+         *             [^\/]
+         *           )*
+         *           \/
+         *         )+
+         *         (?:
+         *           (?!:e)
+         *           [^\/]
+         *         )*
+         *         :e
+         *       )
+         *     )
+         *     .
+         *   )+?
+         * )
+         * :e
+         */
+        $text = preg_replace_callback('/(\!rmj([0-9]*)):((?:(?!(?:\!rmj(?:[0-9]*):(?:(?:(?!:e)[^\/])*\/)+(?:(?!:e)[^\/])*:e)).)+?):e/', function ($matches) use (&$rmjReplaceList, &$replaceCount, $MAX_RMJ_NUMBER, $REPLACE_LIMIT) {
             // 例外処理
             $rmjNumber = $matches[2];
-            if(((int) $rmjNumber) > $MAX_RMJ_NUMBER) {
+            if (((int) $rmjNumber) > $MAX_RMJ_NUMBER) {
                 return $matches[0];
             }
             // 置換上限確認
             $replaceCount++;
-            if($replaceCount > $REPLACE_LIMIT) {
+            if ($replaceCount > $REPLACE_LIMIT) {
                 return $matches[0];
             }
             // 選択肢抽出
             $items = explode('/', $matches[3]);
-            if(count($items) < 2) {
+            if (count($items) < 2) {
                 return $matches[0];
             }
             // rmj置換準備
@@ -45,12 +84,12 @@ function replaceRmj($text)
     // 解釈した!rmjを置換
     $rmjReplaceList = array_reverse($rmjReplaceList);
     $replaceCount = 0;
-    foreach($rmjReplaceList as $replace) {
+    foreach ($rmjReplaceList as $replace) {
         $pattern = preg_quote($replace['rmj']);
         $text = preg_replace_callback("/{$pattern}(?![0-9])/", function ($matches) use ($replace, &$replaceCount, $REPLACE_LIMIT) {
             // 置換上限確認
             $replaceCount++;
-            if($replaceCount > $REPLACE_LIMIT) {
+            if ($replaceCount > $REPLACE_LIMIT) {
                 return $matches[0];
             }
             // 抽選処理
@@ -77,12 +116,12 @@ function applyRmjCommand($SETTING, $LV)
     if (strpos($_POST['name'], '!nocmd') !== false) {
         return;
     }
-    if(strpos($_POST['name'], '!rmj') === false && strpos($_POST['comment'], '!rmj') === false) {
+    if (strpos($_POST['name'], '!rmj') === false && strpos($_POST['comment'], '!rmj') === false) {
         return;
     }
     // レベル制限
     $MIN_LV = 1;
-    if($LV < $MIN_LV) {
+    if ($LV < $MIN_LV) {
         Error("レベルが{$MIN_LV}未満のユーザーは!rmjコマンドを使えません。");
     }
     // 名前欄置換
@@ -93,10 +132,10 @@ function applyRmjCommand($SETTING, $LV)
     if (strpos($_POST['comment'], '!rmj') !== false) {
         $commentParts = explode('<hr>', $_POST['comment']);
         $commentParts[0] = replaceRmj($commentParts[0]);
-        if($commentParts[0] === '') {
+        if ($commentParts[0] === '') {
             $commentParts[0] = '　';
         }
-        if(count($commentParts) >= 2) {
+        if (count($commentParts) >= 2) {
             $commentParts[1] = replaceRmj($commentParts[1]);
         }
         $_POST['comment'] = implode('<hr>', $commentParts);
