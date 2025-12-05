@@ -33,7 +33,11 @@ function applyGobiCommand(
     // 元本文のみ取得 ※<hr>以降はシステムメッセージなので対象外
     $commentParts = explode('<hr>', $_POST['comment']);
     // 語尾追加
-    $commentParts[0] .= $threadsStates[$_POST['thread']]['gobi'];
+    $gobi = $threadsStates[$_POST['thread']]['gobi'];
+    if(function_exists('replaceRmj')) {
+        $gobi = replaceRmj($gobi);
+    }
+    $commentParts[0] .= $gobi;
     // 本文変更
     $_POST['comment'] = implode('<hr>', $commentParts);
 }

@@ -363,12 +363,16 @@ if (!$newthread && !$tlonly) {
 include './extend/extra-commands/utilities/add-system-message.php';
 // スレ状態ファイル読み込み用関数
 include './extend/extra-commands/utilities/get-threads-states.php';
+// !ninkeyコマンド
+@include './extend/extra-commands/ninkey.php';
 // !chttコマンド
 @include './extend/extra-commands/chtt.php';
 // !774設定
 @include './extend/extra-commands/set-774.php';
 // !gobi設定
 @include './extend/extra-commands/set-gobi.php';
+// !rmjコマンド
+@include './extend/extra-commands/rmj.php';
 // !774適用
 @include './extend/extra-commands/apply-774.php';
 // !gobi適用
