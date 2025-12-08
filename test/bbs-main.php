@@ -1271,6 +1271,9 @@ if(flock($hapfileHandle, LOCK_EX)){
 }
 fclose($hapfileHandle);
 
+// ヘッダー送信
+header('X-Resnum: '.$number);
+
 // 投稿完了画面
 finish();
 
