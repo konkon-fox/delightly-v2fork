@@ -6,11 +6,12 @@
 
  * 専ブラではbbs.php,webブラウザ板ではpost-v2.phpにpostされる。Error関数もそれぞれ違うので処理を分岐させる。
  * 専ブラではhtmlを返し、表示させる。
- * webブラウザでは未定…かなり面倒そう。
+ * webブラウザではCookieに保存し、クライアントサイドのalertで表示させる。
  *
  * @param array $SETTING
+ * @param array $NOWTIME
  */
-function applyMykeyCommand($SETTING)
+function applyMykeyCommand($SETTING, $NOWTIME)
 {
     if ($SETTING['commands'] !== 'checked') {
         return;
@@ -21,15 +22,15 @@ function applyMykeyCommand($SETTING)
     if (strpos($_POST['comment'], '!ninkey') === false) {
         return;
     }
-    if (empty($_COOKIE['WrtAgreementKey'])) {
-        $message = '<br><br><font color=#FF0000>ERROR:</font> Cookieに同意鍵情報が存在しません。';
-    } else {
-        $message = "<br><br>あなたの同意鍵は<br><b><font color=#FF0000><code>#{$_COOKIE['WrtAgreementKey']}</font></b><br>です。";
-    }
     $backtrace = debug_backtrace();
     $backtrace_file = end($backtrace)['file'];
     // 専ブラの場合
     if (preg_match('/bbs\.php$/', $backtrace_file)) {
+        if (empty($_COOKIE['WrtAgreementKey'])) {
+            $message = '<br><br><font color=#FF0000>ERROR:</font> Cookieに同意鍵情報が存在しません。';
+        } else {
+            $message = "<br><br>あなたの同意鍵は<br><b><font color=#FF0000><code>#{$_COOKIE['WrtAgreementKey']}</font></b><br>です。";
+        }
         $html = "<html>
         <head>
         <title>同意鍵情報</title>
@@ -42,8 +43,14 @@ function applyMykeyCommand($SETTING)
     }
     // 通常webブラウザの場合
     if (preg_match('/post-v2\.php$/', $backtrace_file)) {
-        addSystemMessage('★現在通常ブラウザからの!ninkeyは実装されていません。');
+        if (empty($_COOKIE['WrtAgreementKey'])) {
+            $message = 'ERROR_No_ninkey_in_cookie';
+        } else {
+            $message = "Your_ninkey_is_{$_COOKIE['WrtAgreementKey']}";
+        }
+        setcookie("ninkey", urlencode($message), $NOWTIME + 5, "/");
+        exit;
     }
 }
 
-applyMykeyCommand($SETTING);
+applyMykeyCommand($SETTING, $NOWTIME);

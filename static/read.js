@@ -258,6 +258,9 @@ function Post() {
 }
 
 function Getresponse() {
+	if(getCookie('ninkey')){
+		window.alert(decodeURIComponent(getCookie('ninkey')));
+	}
  if (getCookie("response")) {
 	if (decodeURI(getCookie("response")) != "success") {
 		document.getElementById('ntxt').innerHTML = decodeURI(getCookie("response"));
