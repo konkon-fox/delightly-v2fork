@@ -539,6 +539,11 @@ if ($HAP['slip'] != '0') {
 // IDの種類
 $rawID = $SLIP_IP.$SLIP_ID.$SLIP_AC.$SLIP_TE;
 $rawID = str_replace(array('.', '/', '+'), '0', $rawID);
+// chidにプレフィックス
+if ($SETTING['BBS_ID_CHANGE'] === "checked") {
+    $rawID = 'ch-'.$rawID;
+}
+
 if ($CAPID){  // キャップID
   $rawID = $CAPID;
   $ID = "ID:".$CAPID;
