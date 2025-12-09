@@ -31,7 +31,10 @@ $subjectfile = $PATH."subject.json";	//スレッド一覧
 $LTLFILE = $PATH."index.json";	//ローカルタイムライン
 $LOGFILE = $PATH."LOG.cgi";	//投稿ログ・検索用
 $THREADFILE = $PATH."thread/".substr($_POST['thread'], 0, 4)."/".$_POST['thread'].".dat";	//UTF-8 read.html用
-$DATFILE = $PATH."dat/".$_POST['thread'].".dat";	//Shift_JIS 専ブラ用 ※過去ログでは消去
+$DATFILE = $PATH."dat/".$_POST['thread'].".dat";	//Shift_JIS 専ブラ用 ※過去ログ用に保持
+$KAKOLOGLIST = $PATH.'kakolog-subject.txt';  // 過去ログ一覧
+$KAKOLOGLISTINDEX = $PATH.'kakolog-subject.idx';  // 過去ログ一覧のインデックスファイル
+$THREADS_STATES_PATH = $PATH.'threads-states';  // スレ状態ファイル用のフォルダ 現行スレ判定にも使用
 # 記録ファイルが設置された場所。
 $HAP_PATH = './HAP/';
 mb_substitute_character('entity');
@@ -353,8 +356,8 @@ if ($SETTING['timeinterval'] && !$tlonly && !$newthread) {
 if (!$newthread && !$tlonly) {
  // スレッドファイルが無い
  if (!is_file($THREADFILE)) Error("該当するスレッドがありません");
- // DATファイルが無い(=過去ログ)
- if (!is_file($DATFILE)) Error("このスレッドは過去ログのため投稿できません");
+ // 過去ログ
+ if (!is_file($THREADS_STATES_PATH."/{$_POST['thread']}.json")) Error("このスレッドは過去ログのため投稿できません");
  // 強制sage
  if ($SETTING['BBS_FORCE_SAGE'] && $_POST['thread'] + $SETTING['BBS_FORCE_SAGE'] < $NOWTIME) $sage = true;
 }
@@ -876,6 +879,8 @@ if (!$_POST['name']) {
  else $_POST['name'] = $SETTING['BBS_NONAME_NAME'];
 }
 
+// 規制終了
+
 // 名前欄転載禁止表示
 if ($SETTING['NAME_ARR'] == "checked") $_POST['name'] .= "@転載禁止";
 
@@ -931,6 +936,16 @@ if ($M) $_POST['name'] .= $M;
 // $_POST['mail'] = 'No.'.$NOWTIME;
 // 鍵漏れ等の対策としてメール欄の内容は削除
 $_POST['mail'] = '';
+
+// 現行スレリストへ番号追加
+if($newthread){
+    if (!is_dir($THREADS_STATES_PATH)) {
+        makeDir($THREADS_STATES_PATH, 0700, true);
+    }
+    if (!touch($THREADS_STATES_PATH."/{$_POST['thread']}.json")) {
+        Error('投稿に失敗しました。');
+    }
+}
 
 // dat追記用関数
 function addNewResToDat($datFile, $newRes){
@@ -1175,11 +1190,28 @@ if (!$tlonly) {
             // 上限以下のスレッドを過去ログ化
             if ($ThreadCount > $SETTING['BBS_THREADS_LIMIT']) {
                 for ($start = $SETTING['BBS_THREADS_LIMIT']; $start < $ThreadCount; $start++) {
-                    // datファイル削除
-                    @unlink($PATH."dat/".$PAGEFILE[$start]['thread'].".dat");
+                    // 現行スレッドから削除
+                    @unlink($THREADS_STATES_PATH."/{$PAGEFILE[$start]['thread']}.json");
                     // 過去ログを保持しない場合
                     if ($SETTING['disable_kakolog'] == "checked") {
                         @unlink($PATH."thread/".substr($PAGEFILE[$start]['thread'], 0, 4)."/".$PAGEFILE[$start]['thread'].".dat");
+                        @unlink($PATH."dat/".$PAGEFILE[$start]['thread'].".dat");
+                    }else{
+                        // 過去ログリストへ追記
+                        $kakologListHandle = fopen($KAKOLOGLIST, 'a+');
+                        if (flock($kakologListHandle, LOCK_EX)) {
+                            // 末尾位置取得
+                            fseek($kakologListHandle, 0, SEEK_END);
+                            $endOffset = ftell($kakologListHandle);
+                            // 追記
+                            $kakologLine = $PAGEFILE[$start]['thread'].".dat<>".$PAGEFILE[$start]['title']." (".$PAGEFILE[$start]['number'].")\n";
+                            fwrite($kakologListHandle, mb_convert_encoding($kakologLine, "SJIS-win", "UTF-8"));
+                        }
+                        fclose($kakologListHandle);
+                        // 過去ログインデックスへ追記
+                        if(isset($endOffset)){
+                            file_put_contents($KAKOLOGLISTINDEX, $endOffset."\n", FILE_APPEND | LOCK_EX);
+                        }
                     }
                     // datlog削除
                     $datlog = $PATH."dat/".$PAGEFILE[$start]['thread']."_kisei.cgi";
