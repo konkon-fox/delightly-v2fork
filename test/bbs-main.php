@@ -40,18 +40,6 @@ $HAP_PATH = './HAP/';
 mb_substitute_character('entity');
 $M =  $ken = $ncolor = $Cookmail = $LV = $CAPID = $accountid = $supervisorID = '';
 $stop = $admin = $sage = $supervisor = $authorized = $PROXY = $threadsStatesReload = false;
-/** 
- * スレ状態を管理するファイルです。
- * ファイルは各板直下に生成されます。
- * $threadsStatesは各コマンドファイルにおいてjson_decode(file_get_contents($THREADS_STATES_FILE), true)で取得される連想配列です。
- * $threadsStatesのキーはスレッド番号となります。
- * 
- * @var string $THREADS_STATES_FILE
- * @var array<string, array{'774':string, 'gobi': string}> $threadsStates
- */
-$THREADS_STATES_FILE = $PATH.'threads-states.cgi';
-include './extend/extra-commands/utilities/ThreadsStatesUpdater.php';
-$threadsStatesUpdater = new ThreadsStatesUpdater($THREADS_STATES_FILE);
 
 // GETメソッド
 if ($_SERVER['REQUEST_METHOD'] != 'POST') Error2("invalid:GET");
@@ -353,11 +341,24 @@ if ($SETTING['timeinterval'] && !$tlonly && !$newthread) {
  if ($NOWTIME < filemtime($THREADFILE) + $SETTING['timeinterval']) Error("このスレッドでは直前の投稿から".$SETTING['timeinterval']."秒経たなければ投稿することができません");
 }
 
+/** 
+ * スレ状態を管理するファイルです。
+ * 現行スレ判定にも使用されます。
+ * ファイルは`/{$bbs}/threads-steates/`以下に生成されます。
+ * 
+ * @var string $THREADS_STATES_FILE
+ * @var array{'774':string, 'gobi': string} $threadsStates
+ */
+// $THREADS_STATES_FILE = $PATH.'threads-states.cgi'; 廃止
+$THREADS_STATES_FILE = "{$THREADS_STATES_PATH}/{$_POST['thread']}.json";
+include './extend/extra-commands/utilities/ThreadsStatesUpdater.php';
+$threadsStatesUpdater = new ThreadsStatesUpdater($THREADS_STATES_FILE);
+
 if (!$newthread && !$tlonly) {
  // スレッドファイルが無い
  if (!is_file($THREADFILE)) Error("該当するスレッドがありません");
  // 過去ログ
- if (!is_file($THREADS_STATES_PATH."/{$_POST['thread']}.json")) Error("このスレッドは過去ログのため投稿できません");
+ if (!is_file($THREADS_STATES_FILE)) Error("このスレッドは過去ログのため投稿できません");
  // 強制sage
  if ($SETTING['BBS_FORCE_SAGE'] && $_POST['thread'] + $SETTING['BBS_FORCE_SAGE'] < $NOWTIME) $sage = true;
 }
@@ -937,12 +938,12 @@ if ($M) $_POST['name'] .= $M;
 // 鍵漏れ等の対策としてメール欄の内容は削除
 $_POST['mail'] = '';
 
-// 現行スレリストへ番号追加
+// 現行スレフォルダへファイル追加
 if($newthread){
     if (!is_dir($THREADS_STATES_PATH)) {
         makeDir($THREADS_STATES_PATH, 0700, true);
     }
-    if (!touch($THREADS_STATES_PATH."/{$_POST['thread']}.json")) {
+    if (!touch($THREADS_STATES_FILE)) {
         Error('投稿に失敗しました。');
     }
 }
@@ -1244,24 +1245,6 @@ if (!$tlonly) {
         fclose($subjectTxtHandle);
     }
 
-}
-if (!$tlonly) {
-    // スレ状態ファイルから現存しないスレ番号キーを削除
-    // 定期的に行う必要がある処理だが、各レスごとに行う必要はないため$threadsStatesReloadをフラグとする。
-    if ($threadsStatesReload && is_file($THREADS_STATES_FILE)) {
-        $threadKeysList = array_map(function ($thread) {
-            return (int) $thread['thread'];
-        }, $PAGEFILE);
-        $threadsStates = $threadsStatesUpdater->get();
-        if($threadsStates){
-            foreach(array_keys($threadsStates) as $threadKey){
-                if(!in_array((int) $threadKey, $threadKeysList, true)){
-                    unset($threadsStates[$threadKey]);
-                }
-            }
-            $threadsStatesUpdater->put($threadsStates);
-        }
-    }
 }
 
 // 投稿ログ

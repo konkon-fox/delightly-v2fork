@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 設定された!774コマンドに応じて本文に語尾を追加する処理
  *
@@ -15,34 +16,31 @@ function apply774Command(
     $CAPID,
     $THREADS_STATES_FILE
 ) {
-    if($SETTING['commands'] !== 'checked') {
+    if ($SETTING['commands'] !== 'checked') {
         return;
     }
     if ($SETTING['DISABLE_NAME'] === 'checked') {
         return;
     }
-    if($tlonly) {
+    if ($tlonly) {
         return;
     }
-    if($admin || $CAPID) {
+    if ($admin || $CAPID) {
         return;
     }
     if ($_POST['name'] !== '') {
         return;
     }
-    if (!is_file($THREADS_STATES_FILE)) {
-        return;
-    }
     $threadsStates = getThreadsStates($THREADS_STATES_FILE);
-    if($threadsStates === false) {
+    if ($threadsStates === false) {
         return;
     }
-    if(!isset($threadsStates[$_POST['thread']]['774'])) {
+    if (!isset($threadsStates['774'])) {
         return;
     }
     // 名前変更
-    $defalutName = $threadsStates[$_POST['thread']]['774'];
-    if(function_exists('replaceRmj')) {
+    $defalutName = $threadsStates['774'];
+    if (function_exists('replaceRmj')) {
         $defalutName = replaceRmj($defalutName);
     }
     $_POST['name'] = $defalutName;

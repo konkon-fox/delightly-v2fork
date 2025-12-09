@@ -1,19 +1,24 @@
 <?php
+
 /**
- * スレ情報ファイルthreads-states.cgiの内容を取得するための関数です。
+ * スレ状態ファイル`/{$bbs}/threads-states/{スレ番号}.json`の内容を取得するための関数です。
  * 内容の更新を行いたいときにはThreadsStatesUpdaterクラスを使用してください。
  *
- * @param string $path threads-states.cgiへのパス
+ * @param string $path `/{$bbs}/threads-states/{スレ番号}.json`へのパス
  * @return array|false スレ状態の連想配列あるいはfalse
  */
 function getThreadsStates($path)
 {
-    $threadsStatesHandle = fopen($path, 'r');
-    if(!flock($threadsStatesHandle, LOCK_SH)) {
+    $threadsStatesHandle = fopen($path, 'c+');
+    if (!flock($threadsStatesHandle, LOCK_SH)) {
         return false;
     }
     clearstatcache();
-    $resource = fread($threadsStatesHandle, filesize($path));
+    $resource = stream_get_contents($threadsStatesHandle);
     fclose($threadsStatesHandle);
-    return json_decode($resource, true);
+    $data = json_decode($resource, true);
+    if ($data === null) {
+        return [];
+    }
+    return $data;
 }

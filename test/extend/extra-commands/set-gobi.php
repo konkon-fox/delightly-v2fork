@@ -1,4 +1,5 @@
 <?php
+
 /**
  * !gobiコマンドを設定する際の処理
  *
@@ -19,23 +20,23 @@ function setGobiCommand(
     $threadsStatesUpdater,
     &$threadsStatesReload
 ) {
-    if($SETTING['commands'] !== 'checked') {
+    if ($SETTING['commands'] !== 'checked') {
         return;
     }
-    if($tlonly) {
+    if ($tlonly) {
         return;
     }
-    if(!($supervisor || $admin)) {
+    if (!($supervisor || $admin)) {
         return;
     }
     if (strpos($_POST['name'], '!nocmd') !== false) {
         return;
     }
-    if(strpos($_POST['comment'], '!gobi:') === false) {
+    if (strpos($_POST['comment'], '!gobi:') === false) {
         return;
     }
     $commentParts = explode('<hr>', $_POST['comment']);
-    if(!preg_match('/\!gobi:(.*):/', $commentParts[0], $commandMatches)) {
+    if (!preg_match('/\!gobi:(.*):/', $commentParts[0], $commandMatches)) {
         return;
     }
     // 語尾の最大文字数
@@ -44,29 +45,25 @@ function setGobiCommand(
     $MAX_GOBI_LENGTH = min($MAX_GOBI_LENGTH, floor($SETTING['BBS_MESSAGE_COUNT'] / 2));
     $gobi = trim($commandMatches[1]);
     // 例外処理
-    if(mb_strlen($gobi, 'UTF-8') > $MAX_GOBI_LENGTH) {
+    if (mb_strlen($gobi, 'UTF-8') > $MAX_GOBI_LENGTH) {
         addSystemMessage("★語尾の最大文字数は{$MAX_GOBI_LENGTH}です。<br>");
         return;
     }
     // スレッド情報ファイルに書き込み
     $threadsStates = $threadsStatesUpdater->get();
-    if($threadsStates === false) {
+    if ($threadsStates === false) {
         addSystemMessage("★!gobiコマンドの発動に失敗しました。<br>");
         return;
     }
-    if(isset($threadsStates[$_POST['thread']])) {
-        $threadsStates[$_POST['thread']]['gobi'] = $gobi;
-    } else {
-        $threadsStates[$_POST['thread']] = ['gobi' => $gobi];
-    }
+    $threadsStates['gobi'] = $gobi;
     $systemMessage = "★語尾を「{$gobi}」に設定しました。<br>";
-    if($gobi === '') {
-        unset($threadsStates[$_POST['thread']]['gobi']);
+    if ($gobi === '') {
+        unset($threadsStates['gobi']);
         $systemMessage = "★語尾を取り消しました。<br>";
     }
     $threadsStatesUpdater->put($threadsStates);
     // 成功メッセージ出力(本文)
-    if(!$newthread) {
+    if (!$newthread) {
         addSystemMessage($systemMessage);
     }
     // >>1更新判定

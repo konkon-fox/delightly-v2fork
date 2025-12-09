@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 設定された!gobiコマンドに応じて本文に語尾を追加する処理
  *
@@ -11,30 +12,27 @@ function applyGobiCommand(
     $tlonly,
     $THREADS_STATES_FILE
 ) {
-    if($SETTING['commands'] !== 'checked') {
+    if ($SETTING['commands'] !== 'checked') {
         return;
     }
-    if($tlonly) {
+    if ($tlonly) {
         return;
     }
     if (strpos($_POST['name'], '!nocmd') !== false) {
         return;
     }
-    if (!is_file($THREADS_STATES_FILE)) {
-        return;
-    }
     $threadsStates = getThreadsStates($THREADS_STATES_FILE);
-    if($threadsStates === false) {
+    if ($threadsStates === false) {
         return;
     }
-    if(!isset($threadsStates[$_POST['thread']]['gobi'])) {
+    if (!isset($threadsStates['gobi'])) {
         return;
     }
     // 元本文のみ取得 ※<hr>以降はシステムメッセージなので対象外
     $commentParts = explode('<hr>', $_POST['comment']);
     // 語尾追加
-    $gobi = $threadsStates[$_POST['thread']]['gobi'];
-    if(function_exists('replaceRmj')) {
+    $gobi = $threadsStates['gobi'];
+    if (function_exists('replaceRmj')) {
         $gobi = replaceRmj($gobi);
     }
     $commentParts[0] .= $gobi;

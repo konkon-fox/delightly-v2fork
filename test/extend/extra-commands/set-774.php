@@ -1,4 +1,5 @@
 <?php
+
 /**
  * !774コマンドを設定する際の処理
  *
@@ -19,26 +20,26 @@ function set774Command(
     $threadsStatesUpdater,
     &$threadsStatesReload
 ) {
-    if($SETTING['commands'] !== 'checked') {
+    if ($SETTING['commands'] !== 'checked') {
         return;
     }
     if ($SETTING['DISABLE_NAME'] === 'checked') {
         return;
     }
-    if($tlonly) {
+    if ($tlonly) {
         return;
     }
-    if(!($supervisor || $admin)) {
+    if (!($supervisor || $admin)) {
         return;
     }
     if (strpos($_POST['name'], '!nocmd') !== false) {
         return;
     }
-    if(strpos($_POST['comment'], '!774:') === false) {
+    if (strpos($_POST['comment'], '!774:') === false) {
         return;
     }
     $commentParts = explode('<hr>', $_POST['comment']);
-    if(!preg_match('/\!774:(.*?)((?=\<br\>)|$)/', $commentParts[0], $commandMatches)) {
+    if (!preg_match('/\!774:(.*?)((?=\<br\>)|$)/', $commentParts[0], $commandMatches)) {
         return;
     }
     // デフォ名無しの最大文字数
@@ -46,7 +47,7 @@ function set774Command(
 
     $name = trim($commandMatches[1]);
     // 例外処理
-    if(mb_strlen($name, 'UTF-8') > $MAX_774_LENGTH) {
+    if (mb_strlen($name, 'UTF-8') > $MAX_774_LENGTH) {
         addSystemMessage("★デフォ名無しの最大文字数は{$MAX_774_LENGTH}です。<br>");
         return;
     }
@@ -67,23 +68,19 @@ function set774Command(
     /* --置換処理ここまで-- */
     // スレッド情報ファイルに書き込み
     $threadsStates = $threadsStatesUpdater->get();
-    if($threadsStates === false) {
+    if ($threadsStates === false) {
         addSystemMessage("★!774コマンドの発動に失敗しました。<br>");
         return;
     }
-    if(isset($threadsStates[$_POST['thread']])) {
-        $threadsStates[$_POST['thread']]['774'] = $name;
-    } else {
-        $threadsStates[$_POST['thread']] = ['774' => $name];
-    }
+    $threadsStates['774'] = $name;
     $systemMessage = "★デフォ名無しを「{$name}」に設定しました。<br>";
-    if($name === '') {
-        unset($threadsStates[$_POST['thread']]['774']);
+    if ($name === '') {
+        unset($threadsStates['774']);
         $systemMessage = "★デフォ名無しを取り消しました。<br>";
     }
     $threadsStatesUpdater->put($threadsStates);
     // 成功メッセージ出力(本文)
-    if(!$newthread) {
+    if (!$newthread) {
         addSystemMessage($systemMessage);
     }
     // >>1更新判定
