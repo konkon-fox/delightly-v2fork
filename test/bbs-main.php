@@ -354,6 +354,13 @@ $THREADS_STATES_FILE = "{$THREADS_STATES_PATH}/{$_POST['thread']}.json";
 include './extend/extra-commands/utilities/ThreadsStatesUpdater.php';
 $threadsStatesUpdater = new ThreadsStatesUpdater($THREADS_STATES_FILE);
 
+// 現行スレフォルダ追加
+if($newthread){
+    if (!is_dir($THREADS_STATES_PATH)) {
+        makeDir($THREADS_STATES_PATH, 0700, true);
+    }
+}
+
 if (!$newthread && !$tlonly) {
  // スレッドファイルが無い
  if (!is_file($THREADFILE)) Error("該当するスレッドがありません");
@@ -940,9 +947,6 @@ $_POST['mail'] = '';
 
 // 現行スレフォルダへファイル追加
 if($newthread){
-    if (!is_dir($THREADS_STATES_PATH)) {
-        makeDir($THREADS_STATES_PATH, 0700, true);
-    }
     if (!touch($THREADS_STATES_FILE)) {
         Error('投稿に失敗しました。');
     }
