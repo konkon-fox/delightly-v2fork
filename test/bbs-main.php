@@ -931,7 +931,10 @@ if($newthread){
 }
 
 // スレ状態ファイルを更新
-$threadStatesUpdater->put($threadStates);
+if ($threadStatesReload) {
+    $threadStatesUpdater->put($threadStates);
+}
+
 // >>1への変更を反映させる
 function updateFirstRes($datFile, $newFirstRes, $isShiftJis){
     $datFileHandle = fopen($datFile, 'r+');
