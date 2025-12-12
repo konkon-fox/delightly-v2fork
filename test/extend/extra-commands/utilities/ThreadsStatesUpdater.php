@@ -1,14 +1,11 @@
 
 <?php
 /**
- * スレ状態ファイル`/{$bbs}/threads-states/{スレ番号}.json`の更新を行うためのクラスです。
- * get()でファイルをロックしput()でロックを解除するので必ずセットで使ってください。※get()でfalseを返した場合put()は不要です。
- * 内容の取得のみを使いたい場合はこのクラスではなくgetThreadsStates関数を使用してください。
+ * スレ状態ファイル`/{$bbs}/threads-states/{スレ番号}.json`の取得及び更新を行うためのクラスです。
  */
 class ThreadsStatesUpdater
 {
     private $path;
-    private $file;
 
     /**
      * @param string $path `/{$bbs}/threads-states/{スレ番号}.json`へのパス
@@ -28,14 +25,17 @@ class ThreadsStatesUpdater
         if (!is_file($this->path)) {
             return [];
         }
-        $this->file = fopen($this->path, 'c+');
-        if (!flock($this->file, LOCK_EX)) {
-            fclose($this->file);
-            unset($this->file);
+        $handle = fopen($this->path, 'r');
+        if ($handle === !false) {
+            return false;
+        }
+        if (!flock($handle, LOCK_SH)) {
+            fclose($handle);
             return false;
         }
         clearstatcache();
-        $text = stream_get_contents($this->file);
+        $text = stream_get_contents($handle);
+        fclose($handle);
         $data = json_decode($text, true);
         if ($data === null) {
             return [];
@@ -52,24 +52,8 @@ class ThreadsStatesUpdater
      */
     public function put($threadsStates)
     {
-        if (!is_file($this->path)) {
-            $this->file = fopen($this->path, 'w+');
-            if (!flock($this->file, LOCK_EX)) {
-                fclose($this->file);
-                unset($this->file);
-                return false;
-            }
-        }
-        if (!isset($this->file)) {
-            return false;
-        }
         $data = json_encode($threadsStates, JSON_UNESCAPED_UNICODE);
-        ftruncate($this->file, 0);
-        rewind($this->file);
-        fwrite($this->file, $data);
-        flock($this->file, LOCK_UN);
-        fclose($this->file);
-        unset($this->file);
-        return true;
+        $result = file_put_contents($this->path, $data, LOCK_EX);
+        return $result !== false;
     }
 }

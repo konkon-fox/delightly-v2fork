@@ -7,14 +7,14 @@
  * @param boolean $tlonly TL判定
  * @param boolean $admin 管理者判定(管理人or常時コマンド権限を持つCAP)
  * @param string $CAPID 投稿者がCAPの場合のID
- * @param string $THREADS_STATES_FILE スレ状態ファイルへのパス
+ * @param ThreadsStatesUpdater $threadsStatesUpdater スレ状態ファイルを取得・更新するオブジェクト
  */
 function apply774Command(
     $SETTING,
     $tlonly,
     $admin,
     $CAPID,
-    $THREADS_STATES_FILE
+    $threadsStatesUpdater,
 ) {
     if ($SETTING['commands'] !== 'checked') {
         return;
@@ -31,8 +31,8 @@ function apply774Command(
     if ($_POST['name'] !== '') {
         return;
     }
-    $threadsStates = getThreadsStates($THREADS_STATES_FILE);
-    if ($threadsStates === false) {
+    $threadsStates = $threadsStatesUpdater->get();
+    if ($threadsStates === false || empty($threadsStates)) {
         return;
     }
     if (!isset($threadsStates['774'])) {
@@ -51,5 +51,5 @@ apply774Command(
     $tlonly,
     $admin,
     $CAPID,
-    $THREADS_STATES_FILE
+    $threadsStatesUpdater,
 );

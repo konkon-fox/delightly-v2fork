@@ -7,7 +7,7 @@
  * @param boolean $newthread スレ立て時判定
  * @param boolean $tlonly TL判定
  * @param boolean $threadsStatesReload スレ状態の変化を>>1に反映するか判定
- * @param string $THREADS_STATES_FILE スレ状態ファイルへのパス
+ * @param ThreadsStatesUpdater $threadsStatesUpdater スレ状態ファイルを取得・更新するオブジェクト
  * @param string &$message >>1の本文
  * @param boolean &$reload >>1更新フラグ
  * @return void
@@ -17,7 +17,7 @@ function showThreadsStates(
     $newthread,
     $tlonly,
     $threadsStatesReload,
-    $THREADS_STATES_FILE,
+    $threadsStatesUpdater,
     &$message,
     &$reload
 ) {
@@ -30,7 +30,9 @@ function showThreadsStates(
     if (!$threadsStatesReload) {
         return;
     }
-    if (!is_file($THREADS_STATES_FILE)) {
+    // スレ状態取得
+    $threadsStates = $threadsStatesUpdater->get();
+    if ($threadsStates === false || empty($threadsStates)) {
         return;
     }
     // >>1の本文取得
@@ -45,10 +47,6 @@ function showThreadsStates(
         array_push($commentParts, '');
     }
     $commentParts[2] = '';
-    $threadsStates = getThreadsStates($THREADS_STATES_FILE);
-    if ($threadsStates === false) {
-        return;
-    }
     // デフォ名無し情報追加
     if (isset($threadsStates['774'])) {
         $defaultName = $threadsStates['774'];
@@ -84,7 +82,7 @@ showThreadsStates(
     $newthread,
     $tlonly,
     $threadsStatesReload,
-    $THREADS_STATES_FILE,
+    $threadsStatesUpdater,
     $message,
-    $reload
+    $reload,
 );

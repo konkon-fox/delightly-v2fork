@@ -372,8 +372,8 @@ if (!$newthread && !$tlonly) {
 
 // システムメッセージ用関数
 include './extend/extra-commands/utilities/add-system-message.php';
-// スレ状態ファイル読み込み用関数
-include './extend/extra-commands/utilities/get-threads-states.php';
+// スレ状態ファイル読み込み用関数 => $threadsStatesUpdater に統合
+// include './extend/extra-commands/utilities/get-threads-states.php';
 // !ninkeyコマンド
 @include './extend/extra-commands/ninkey.php';
 // !chttコマンド
