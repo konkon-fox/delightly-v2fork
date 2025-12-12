@@ -6,18 +6,18 @@
  * @param array $SETTING 板の設定
  * @param boolean $newthread スレ立て時判定
  * @param boolean $tlonly TL判定
- * @param boolean $threadsStatesReload スレ状態の変化を>>1に反映するか判定
- * @param ThreadsStatesUpdater $threadsStatesUpdater スレ状態ファイルを取得・更新するオブジェクト
+ * @param boolean $threadStatesReload スレ状態の変化を>>1に反映するか判定
+ * @param array $threadState スレ状態
  * @param string &$message >>1の本文
  * @param boolean &$reload >>1更新フラグ
  * @return void
  */
-function showThreadsStates(
+function showThreadStates(
     $SETTING,
     $newthread,
     $tlonly,
-    $threadsStatesReload,
-    $threadsStatesUpdater,
+    $threadStatesReload,
+    $threadStates,
     &$message,
     &$reload
 ) {
@@ -27,12 +27,7 @@ function showThreadsStates(
     if ($tlonly) {
         return;
     }
-    if (!$threadsStatesReload) {
-        return;
-    }
-    // スレ状態取得
-    $threadsStates = $threadsStatesUpdater->get();
-    if ($threadsStates === false || empty($threadsStates)) {
+    if (!$threadStatesReload) {
         return;
     }
     // >>1の本文取得
@@ -48,8 +43,8 @@ function showThreadsStates(
     }
     $commentParts[2] = '';
     // デフォ名無し情報追加
-    if (isset($threadsStates['774'])) {
-        $defaultName = $threadsStates['774'];
+    if (isset($threadStates['774'])) {
+        $defaultName = $threadStates['774'];
         if (function_exists('replaceRmj')) {
             $defaultName = replaceRmj($defaultName);
         }
@@ -57,8 +52,8 @@ function showThreadsStates(
         $commentParts[2] .= "<font color=\"red\">※デフォ名無し=</font>{$defaultName}<br>";
     }
     // 語尾情報追加
-    if (isset($threadsStates['gobi'])) {
-        $gobi = $threadsStates['gobi'];
+    if (isset($threadStates['gobi'])) {
+        $gobi = $threadStates['gobi'];
         if (function_exists('replaceRmj')) {
             $gobi = replaceRmj($gobi);
         }
@@ -77,12 +72,12 @@ function showThreadsStates(
     }
 }
 
-showThreadsStates(
+showThreadStates(
     $SETTING,
     $newthread,
     $tlonly,
-    $threadsStatesReload,
-    $threadsStatesUpdater,
+    $threadStatesReload,
+    $threadStates,
     $message,
     $reload,
 );

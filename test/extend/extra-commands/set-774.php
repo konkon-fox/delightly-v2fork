@@ -8,8 +8,8 @@
  * @param boolean $admin 管理者判定(管理人or常時コマンド権限を持つCAP)
  * @param boolean $newthread スレ立て時判定
  * @param boolean $tlonly TL判定
- * @param ThreadsStatesUpdater $threadsStatesUpdater スレ状態ファイルを更新するオブジェクト
- * @param boolean $threadsStatesReload スレ状態の変化を>>1に反映するか判定
+ * @param array $threadState スレ状態
+ * @param boolean $threadStatesReload スレ状態の変化を>>1に反映するか判定
  */
 function set774Command(
     $SETTING,
@@ -17,8 +17,8 @@ function set774Command(
     $admin,
     $newthread,
     $tlonly,
-    $threadsStatesUpdater,
-    &$threadsStatesReload
+    &$threadStates,
+    &$threadStatesReload
 ) {
     if ($SETTING['commands'] !== 'checked') {
         return;
@@ -66,25 +66,19 @@ function set774Command(
     $name = preg_replace("/&#0*9670([^0-9]|$)/", "◇", $name);
     $name = preg_replace("/&#[xX]0*25[cC]6([^a-zA-Z0-9]|$)/", "◇", $name);
     /* --置換処理ここまで-- */
-    // スレッド情報ファイルに書き込み
-    $threadsStates = $threadsStatesUpdater->get();
-    if ($threadsStates === false) {
-        addSystemMessage("★!774コマンドの発動に失敗しました。<br>");
-        return;
-    }
-    $threadsStates['774'] = $name;
+    // スレッド状態を更新
+    $threadStates['774'] = $name;
     $systemMessage = "★デフォ名無しを「{$name}」に設定しました。<br>";
     if ($name === '') {
-        unset($threadsStates['774']);
+        unset($threadStates['774']);
         $systemMessage = "★デフォ名無しを取り消しました。<br>";
     }
-    $threadsStatesUpdater->put($threadsStates);
     // 成功メッセージ出力(本文)
     if (!$newthread) {
         addSystemMessage($systemMessage);
     }
     // >>1更新判定
-    $threadsStatesReload = true;
+    $threadStatesReload = true;
 }
 set774Command(
     $SETTING,
@@ -92,6 +86,6 @@ set774Command(
     $admin,
     $newthread,
     $tlonly,
-    $threadsStatesUpdater,
-    $threadsStatesReload
+    $threadStates,
+    $threadStatesReload
 );

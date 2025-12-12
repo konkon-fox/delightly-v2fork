@@ -5,12 +5,12 @@
  *
  * @param array $SETTING 板の設定
  * @param boolean $tlonly TL判定
- * @param ThreadsStatesUpdater $threadsStatesUpdater スレ状態ファイルを取得・更新するオブジェクト
+ * @param array $threadState スレ状態
  */
 function applyGobiCommand(
     $SETTING,
     $tlonly,
-    $threadsStatesUpdater,
+    $threadStates,
 ) {
     if ($SETTING['commands'] !== 'checked') {
         return;
@@ -21,17 +21,16 @@ function applyGobiCommand(
     if (strpos($_POST['name'], '!nocmd') !== false) {
         return;
     }
-    $threadsStates = $threadsStatesUpdater->get();
-    if ($threadsStates === false || empty($threadsStates)) {
+    if (empty($threadStates)) {
         return;
     }
-    if (!isset($threadsStates['gobi'])) {
+    if (!isset($threadStates['gobi'])) {
         return;
     }
     // 元本文のみ取得 ※<hr>以降はシステムメッセージなので対象外
     $commentParts = explode('<hr>', $_POST['comment']);
     // 語尾追加
-    $gobi = $threadsStates['gobi'];
+    $gobi = $threadStates['gobi'];
     if (function_exists('replaceRmj')) {
         $gobi = replaceRmj($gobi);
     }
@@ -43,5 +42,5 @@ function applyGobiCommand(
 applyGobiCommand(
     $SETTING,
     $tlonly,
-    $threadsStatesUpdater,
+    $threadStates,
 );

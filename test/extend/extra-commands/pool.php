@@ -10,7 +10,7 @@
  * @param string $THREADFILE 通常ブラウザ用datファイルへのパス
  * @param string $DATILE 専ブラ用datファイルへのパス
  * @param array $PAGEFILE subject.json用の連想配列
- * @param string $THREADS_STATES_FILE スレ状態ファイルへのパス
+ * @param string $THREAD_STATES_FILE スレ状態ファイルへのパス
  * @param string $KAKOLOGLIST 過去ログリストへのパス
  * @param string $KAKOLOGLISTINDEX 過去ログリストインデックスへのパス
  * @param string $subject スレタイ
@@ -26,7 +26,7 @@ function applyPoolCommand(
     $THREADFILE,
     $DATFILE,
     &$PAGEFILE,
-    $THREADS_STATES_FILE,
+    $THREAD_STATES_FILE,
     $KAKOLOGLIST,
     $KAKOLOGLISTINDEX,
     $subject,
@@ -48,7 +48,7 @@ function applyPoolCommand(
         return;
     }
     // 現行スレッドから削除
-    @unlink($THREADS_STATES_FILE);
+    @unlink($THREAD_STATES_FILE);
     // 過去ログを保持しない場合
     if ($SETTING['disable_kakolog'] === 'checked') {
         @unlink($DATFILE);
@@ -91,7 +91,7 @@ applyPoolCommand(
     $THREADFILE,
     $DATFILE,
     $PAGEFILE,
-    $THREADS_STATES_FILE,
+    $THREAD_STATES_FILE,
     $KAKOLOGLIST,
     $KAKOLOGLISTINDEX,
     $subject,

@@ -8,8 +8,8 @@
  * @param boolean $admin 管理者判定(管理人or常時コマンド権限を持つCAP)
  * @param boolean $newthread スレ立て時判定
  * @param boolean $tlonly TL判定
- * @param ThreadsStatesUpdater $threadsStatesUpdater スレ状態ファイルを更新するオブジェクト
- * @param boolean $threadsStatesReload スレ状態の変化を>>1に反映するか判定
+ * @param array $threadState スレ状態
+ * @param boolean $threadStatesReload スレ状態の変化を>>1に反映するか判定
  */
 function setGobiCommand(
     $SETTING,
@@ -17,8 +17,8 @@ function setGobiCommand(
     $admin,
     $newthread,
     $tlonly,
-    $threadsStatesUpdater,
-    &$threadsStatesReload
+    &$threadStates,
+    &$threadStatesReload
 ) {
     if ($SETTING['commands'] !== 'checked') {
         return;
@@ -49,25 +49,19 @@ function setGobiCommand(
         addSystemMessage("★語尾の最大文字数は{$MAX_GOBI_LENGTH}です。<br>");
         return;
     }
-    // スレッド情報ファイルに書き込み
-    $threadsStates = $threadsStatesUpdater->get();
-    if ($threadsStates === false) {
-        addSystemMessage("★!gobiコマンドの発動に失敗しました。<br>");
-        return;
-    }
-    $threadsStates['gobi'] = $gobi;
+    // スレッド状態を更新
+    $threadStates['gobi'] = $gobi;
     $systemMessage = "★語尾を「{$gobi}」に設定しました。<br>";
     if ($gobi === '') {
-        unset($threadsStates['gobi']);
+        unset($threadStates['gobi']);
         $systemMessage = "★語尾を取り消しました。<br>";
     }
-    $threadsStatesUpdater->put($threadsStates);
     // 成功メッセージ出力(本文)
     if (!$newthread) {
         addSystemMessage($systemMessage);
     }
     // >>1更新判定
-    $threadsStatesReload = true;
+    $threadStatesReload = true;
 }
 setGobiCommand(
     $SETTING,
@@ -75,6 +69,6 @@ setGobiCommand(
     $admin,
     $newthread,
     $tlonly,
-    $threadsStatesUpdater,
-    $threadsStatesReload
+    $threadStates,
+    $threadStatesReload
 );

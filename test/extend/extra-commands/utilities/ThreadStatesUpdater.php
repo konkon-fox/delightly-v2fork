@@ -3,7 +3,7 @@
 /**
  * スレ状態ファイル`/{$bbs}/threads-states/{スレ番号}.json`の取得及び更新を行うためのクラスです。
  */
-class ThreadsStatesUpdater
+class ThreadStatesUpdater
 {
     private $path;
 
@@ -46,13 +46,13 @@ class ThreadsStatesUpdater
     /**
      * `/{$bbs}/threads-states/{スレ番号}.json`に新しい内容を書き込むメソッド
      *
-     * @param array $threadsStates スレ状態
+     * @param array $threadStates スレ状態
      *
      * @return boolean 成功判定
      */
-    public function put($threadsStates)
+    public function put($threadStates)
     {
-        $data = json_encode($threadsStates, JSON_UNESCAPED_UNICODE);
+        $data = json_encode($threadStates, JSON_UNESCAPED_UNICODE);
         $result = file_put_contents($this->path, $data, LOCK_EX);
         return $result !== false;
     }

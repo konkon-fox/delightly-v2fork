@@ -7,14 +7,14 @@
  * @param boolean $tlonly TL判定
  * @param boolean $admin 管理者判定(管理人or常時コマンド権限を持つCAP)
  * @param string $CAPID 投稿者がCAPの場合のID
- * @param ThreadsStatesUpdater $threadsStatesUpdater スレ状態ファイルを取得・更新するオブジェクト
+ * @param array $threadState スレ状態
  */
 function apply774Command(
     $SETTING,
     $tlonly,
     $admin,
     $CAPID,
-    $threadsStatesUpdater,
+    $threadStates,
 ) {
     if ($SETTING['commands'] !== 'checked') {
         return;
@@ -31,15 +31,14 @@ function apply774Command(
     if ($_POST['name'] !== '') {
         return;
     }
-    $threadsStates = $threadsStatesUpdater->get();
-    if ($threadsStates === false || empty($threadsStates)) {
+    if (empty($threadStates)) {
         return;
     }
-    if (!isset($threadsStates['774'])) {
+    if (!isset($threadStates['774'])) {
         return;
     }
     // 名前変更
-    $defalutName = $threadsStates['774'];
+    $defalutName = $threadStates['774'];
     if (function_exists('replaceRmj')) {
         $defalutName = replaceRmj($defalutName);
     }
@@ -51,5 +50,5 @@ apply774Command(
     $tlonly,
     $admin,
     $CAPID,
-    $threadsStatesUpdater,
+    $threadStates,
 );
