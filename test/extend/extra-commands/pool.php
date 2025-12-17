@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @param array $SETTING 板の設定
  * @param boolean $supervisor スレ主判定
@@ -9,6 +10,11 @@
  * @param string $THREADFILE 通常ブラウザ用datファイルへのパス
  * @param string $DATILE 専ブラ用datファイルへのパス
  * @param array $PAGEFILE subject.json用の連想配列
+ * @param string $THREAD_STATES_FILE スレ状態ファイルへのパス
+ * @param string $KAKOLOGLIST 過去ログリストへのパス
+ * @param string $KAKOLOGLISTINDEX 過去ログリストインデックスへのパス
+ * @param string $subject スレタイ
+ * @param int $number レス数
  */
 function applyPoolCommand(
     $SETTING,
@@ -19,28 +25,50 @@ function applyPoolCommand(
     $datlog,
     $THREADFILE,
     $DATFILE,
-    &$PAGEFILE
+    &$PAGEFILE,
+    $THREAD_STATES_FILE,
+    $KAKOLOGLIST,
+    $KAKOLOGLISTINDEX,
+    $subject,
+    $number,
 ) {
-    if($SETTING['commands'] !== 'checked') {
+    if ($SETTING['commands'] !== 'checked') {
         return;
     }
-    if($newthread || $tlonly) {
+    if ($newthread || $tlonly) {
         return;
     }
-    if(!($supervisor || $admin)) {
+    if (!($supervisor || $admin)) {
         return;
     }
     if (strpos($_POST['name'], '!nocmd') !== false) {
         return;
     }
-    if(strpos($_POST['comment'], '!pool') === false) {
+    if (strpos($_POST['comment'], '!pool') === false) {
         return;
     }
-    // datファイル削除
-    @unlink($DATFILE);
+    // 現行スレッドから削除
+    @unlink($THREAD_STATES_FILE);
     // 過去ログを保持しない場合
     if ($SETTING['disable_kakolog'] === 'checked') {
+        @unlink($DATFILE);
         @unlink($THREADFILE);
+    } else {
+        // 過去ログリストへ追記
+        $kakologListHandle = fopen($KAKOLOGLIST, 'a');
+        if (flock($kakologListHandle, LOCK_SH)) {
+            // 末尾位置取得
+            fseek($kakologListHandle, 0, SEEK_END);
+            $endOffset = ftell($kakologListHandle);
+            // 追記
+            $kakologLine = $_POST['thread'].".dat<>".$subject." (".$number.")\n";
+            fwrite($kakologListHandle, mb_convert_encoding($kakologLine, "SJIS-win", "UTF-8"));
+        }
+        fclose($kakologListHandle);
+        // 過去ログインデックスへ追記
+        if (isset($endOffset)) {
+            file_put_contents($KAKOLOGLISTINDEX, $endOffset."\n", FILE_APPEND | LOCK_EX);
+        }
     }
     // datlog削除
     if (is_file($datlog)) {
@@ -62,5 +90,10 @@ applyPoolCommand(
     $PATH."dat/".$_POST['thread']."_kisei.cgi", // $datlog
     $THREADFILE,
     $DATFILE,
-    $PAGEFILE
+    $PAGEFILE,
+    $THREAD_STATES_FILE,
+    $KAKOLOGLIST,
+    $KAKOLOGLISTINDEX,
+    $subject,
+    $number,
 );

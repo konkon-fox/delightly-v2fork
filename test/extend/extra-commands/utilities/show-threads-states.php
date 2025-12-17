@@ -1,66 +1,60 @@
 <?php
+
 /**
  * コマンドによって変更されたスレ状態を>>1に反映する処理
  *
  * @param array $SETTING 板の設定
  * @param boolean $newthread スレ立て時判定
  * @param boolean $tlonly TL判定
- * @param boolean $threadsStatesReload スレ状態の変化を>>1に反映するか判定
- * @param string $THREADS_STATES_FILE スレ状態ファイルへのパス
+ * @param boolean $threadStatesReload スレ状態の変化を>>1に反映するか判定
+ * @param array $threadState スレ状態
  * @param string &$message >>1の本文
  * @param boolean &$reload >>1更新フラグ
  * @return void
  */
-function showThreadsStates(
+function showThreadStates(
     $SETTING,
     $newthread,
     $tlonly,
-    $threadsStatesReload,
-    $THREADS_STATES_FILE,
+    $threadStatesReload,
+    $threadStates,
     &$message,
     &$reload
 ) {
-    if($SETTING['commands'] !== 'checked') {
+    if ($SETTING['commands'] !== 'checked') {
         return;
     }
-    if($tlonly) {
+    if ($tlonly) {
         return;
     }
-    if(!$threadsStatesReload) {
-        return;
-    }
-    if(!is_file($THREADS_STATES_FILE)) {
+    if (!$threadStatesReload) {
         return;
     }
     // >>1の本文取得
-    if($newthread) {
+    if ($newthread) {
         $comment = $_POST['comment'];
     } else {
         $comment = $message;
     }
     // >>1の本文を3分割
     $commentParts = explode('<hr>', $comment);
-    for($i = count($commentParts);$i <= 3;$i++) {
+    for ($i = count($commentParts);$i <= 3;$i++) {
         array_push($commentParts, '');
     }
     $commentParts[2] = '';
-    $threadsStates = getThreadsStates($THREADS_STATES_FILE);
-    if($threadsStates === false) {
-        return;
-    }
     // デフォ名無し情報追加
-    if(isset($threadsStates[$_POST['thread']]['774'])) {
-        $defaultName = $threadsStates[$_POST['thread']]['774'];
-        if(function_exists('replaceRmj')) {
+    if (isset($threadStates['774'])) {
+        $defaultName = $threadStates['774'];
+        if (function_exists('replaceRmj')) {
             $defaultName = replaceRmj($defaultName);
         }
         $defaultName = preg_replace('/\!(?=[a-zA-Z0-9])/', '&#33;', $defaultName);
         $commentParts[2] .= "<font color=\"red\">※デフォ名無し=</font>{$defaultName}<br>";
     }
     // 語尾情報追加
-    if(isset($threadsStates[$_POST['thread']]['gobi'])) {
-        $gobi = $threadsStates[$_POST['thread']]['gobi'];
-        if(function_exists('replaceRmj')) {
+    if (isset($threadStates['gobi'])) {
+        $gobi = $threadStates['gobi'];
+        if (function_exists('replaceRmj')) {
             $gobi = replaceRmj($gobi);
         }
         $gobi = preg_replace('/\!(?=[a-zA-Z0-9])/', '&#33;', $gobi);
@@ -70,7 +64,7 @@ function showThreadsStates(
     $comment = implode('<hr>', $commentParts);
     $comment = preg_replace('/(<hr>)+$/', '', $comment);
     // 元本文に反映
-    if($newthread) {
+    if ($newthread) {
         $_POST['comment'] = $comment;
     } else {
         $message = $comment;
@@ -78,12 +72,12 @@ function showThreadsStates(
     }
 }
 
-showThreadsStates(
+showThreadStates(
     $SETTING,
     $newthread,
     $tlonly,
-    $threadsStatesReload,
-    $THREADS_STATES_FILE,
+    $threadStatesReload,
+    $threadStates,
     $message,
-    $reload
+    $reload,
 );

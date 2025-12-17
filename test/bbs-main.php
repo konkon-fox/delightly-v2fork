@@ -31,24 +31,15 @@ $subjectfile = $PATH."subject.json";	//スレッド一覧
 $LTLFILE = $PATH."index.json";	//ローカルタイムライン
 $LOGFILE = $PATH."LOG.cgi";	//投稿ログ・検索用
 $THREADFILE = $PATH."thread/".substr($_POST['thread'], 0, 4)."/".$_POST['thread'].".dat";	//UTF-8 read.html用
-$DATFILE = $PATH."dat/".$_POST['thread'].".dat";	//Shift_JIS 専ブラ用 ※過去ログでは消去
+$DATFILE = $PATH."dat/".$_POST['thread'].".dat";	//Shift_JIS 専ブラ用 ※過去ログ用に保持
+$KAKOLOGLIST = $PATH.'kakolog-subject.txt';  // 過去ログ一覧
+$KAKOLOGLISTINDEX = $PATH.'kakolog-subject.idx';  // 過去ログ一覧のインデックスファイル
+$THREAD_STATES_PATH = $PATH.'threads-states';  // スレ状態ファイル用のフォルダ 現行スレ判定にも使用
 # 記録ファイルが設置された場所。
 $HAP_PATH = './HAP/';
 mb_substitute_character('entity');
 $M =  $ken = $ncolor = $Cookmail = $LV = $CAPID = $accountid = $supervisorID = '';
-$stop = $admin = $sage = $supervisor = $authorized = $PROXY = $threadsStatesReload = false;
-/** 
- * スレ状態を管理するファイルです。
- * ファイルは各板直下に生成されます。
- * $threadsStatesは各コマンドファイルにおいてjson_decode(file_get_contents($THREADS_STATES_FILE), true)で取得される連想配列です。
- * $threadsStatesのキーはスレッド番号となります。
- * 
- * @var string $THREADS_STATES_FILE
- * @var array<string, array{'774':string, 'gobi': string}> $threadsStates
- */
-$THREADS_STATES_FILE = $PATH.'threads-states.cgi';
-include './extend/extra-commands/utilities/ThreadsStatesUpdater.php';
-$threadsStatesUpdater = new ThreadsStatesUpdater($THREADS_STATES_FILE);
+$stop = $admin = $sage = $supervisor = $authorized = $PROXY = $threadStatesReload = false;
 
 // GETメソッド
 if ($_SERVER['REQUEST_METHOD'] != 'POST') Error2("invalid:GET");
@@ -332,8 +323,8 @@ if ($newthread) {
             }
         }
         fclose($THREADFILEHANDLE);
-        list($n,$m,$d,$message,$subject) = explode("<>", $firstRes);
-        if (strpos($m, substr(md5($_POST['thread'].$HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 8)) !== false) $supervisor = true;
+        list($firstResName,$firstResMail,$firstResDateId,$message,$subject) = explode("<>", $firstRes);
+        if (strpos($firstResMail, substr(md5($_POST['thread'].$HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 8)) !== false) $supervisor = true;
         $subject = str_replace(array("\r\n","\r","\n"), '', $subject);
     }else{
         fclose($THREADFILEHANDLE);
@@ -350,19 +341,43 @@ if ($SETTING['timeinterval'] && !$tlonly && !$newthread) {
  if ($NOWTIME < filemtime($THREADFILE) + $SETTING['timeinterval']) Error("このスレッドでは直前の投稿から".$SETTING['timeinterval']."秒経たなければ投稿することができません");
 }
 
+/** 
+ * スレ状態を管理するファイルです。
+ * 現行スレ判定にも使用されます。
+ * ファイルは`/{$bbs}/threads-steates/`以下に生成されます。
+ * 
+ * @var string $THREAD_STATES_FILE
+ * @var array{'774':string, 'gobi': string} $threadStates
+ */
+// $THREAD_STATES_FILE = $PATH.'threads-states.cgi'; 廃止
+$THREAD_STATES_FILE = "{$THREAD_STATES_PATH}/{$_POST['thread']}.json";
+include './extend/extra-commands/utilities/ThreadStatesUpdater.php';
+$threadStatesUpdater = new ThreadStatesUpdater($THREAD_STATES_FILE);
+$threadStates = $threadStatesUpdater->get();
+if ($threadStates === false) {
+    $threadStates = [];
+}
+
+// 現行スレフォルダ追加
+if($newthread){
+    if (!is_dir($THREAD_STATES_PATH)) {
+        makeDir($THREAD_STATES_PATH, 0700, true);
+    }
+}
+
 if (!$newthread && !$tlonly) {
  // スレッドファイルが無い
  if (!is_file($THREADFILE)) Error("該当するスレッドがありません");
- // DATファイルが無い(=過去ログ)
- if (!is_file($DATFILE)) Error("このスレッドは過去ログのため投稿できません");
+ // 過去ログ
+ if (!is_file($THREAD_STATES_FILE)) Error("このスレッドは過去ログのため投稿できません");
  // 強制sage
  if ($SETTING['BBS_FORCE_SAGE'] && $_POST['thread'] + $SETTING['BBS_FORCE_SAGE'] < $NOWTIME) $sage = true;
 }
 
 // システムメッセージ用関数
 include './extend/extra-commands/utilities/add-system-message.php';
-// スレ状態ファイル読み込み用関数
-include './extend/extra-commands/utilities/get-threads-states.php';
+// スレ状態ファイル読み込み用関数 => $threadStatesUpdater に統合
+// include './extend/extra-commands/utilities/get-threads-states.php';
 // !ninkeyコマンド
 @include './extend/extra-commands/ninkey.php';
 // !chttコマンド
@@ -381,32 +396,6 @@ include './extend/extra-commands/utilities/get-threads-states.php';
 @include './extend/extra-commands/utilities/show-threads-states.php';
 // !xDy(dice)コマンド
 @include './extend/extra-commands/dice.php';
-
-// >>1への変更を反映させる
-function updateFirstRes($datFile, $newFirstRes, $isShiftJis){
-    $datFileHandle = fopen($datFile, 'r+');
-    if(flock($datFileHandle, LOCK_EX)){
-        $datLines = explode("\n", fread($datFileHandle, filesize($datFile)));
-        if($isShiftJis){
-            $datLines[0] = mb_convert_encoding($newFirstRes, "SJIS-win", "UTF-8");
-        }else{
-            $datLines[0] = $newFirstRes;
-        }
-        ftruncate($datFileHandle, 0);
-        rewind($datFileHandle);
-        fwrite($datFileHandle, implode("\n", $datLines));
-    }
-    fclose($datFileHandle);
-}
-if (!$newthread && !$tlonly && $reload) {
-    $newFirstRes = $n."<>".$m."<>".$d."<>".$message."<>".$subject;
-    // $THREADFILE更新
-    updateFirstRes($THREADFILE, $newFirstRes, false);
-    // $DATFILE更新
-    if(is_file($DATFILE)){
-        updateFirstRes($DATFILE, $newFirstRes, true);
-    }    
-}
 
 // レス番号を取得
  if (!$newthread && !$tlonly) $number++;
@@ -531,9 +520,9 @@ $SLIP_TE = substr(crypt(md5($HAP['ACCEPT'].$SLIP_SERV), md5($HAP['ACCEPT'].$SLIP
 
 // モバイル等
 if ($HAP['slip'] != '0') {
- $m = substr($SLIP_ID, 0, 1);
+ $temp = substr($SLIP_ID, 0, 1);
  $SLIP_ID = $SLIP_IP;
- $SLIP_IP = $HAP['slip'].$m;
+ $SLIP_IP = $HAP['slip'].$temp;
 }
 
 // IDの種類
@@ -876,6 +865,8 @@ if (!$_POST['name']) {
  else $_POST['name'] = $SETTING['BBS_NONAME_NAME'];
 }
 
+// 規制終了
+
 // 名前欄転載禁止表示
 if ($SETTING['NAME_ARR'] == "checked") $_POST['name'] .= "@転載禁止";
 
@@ -931,6 +922,44 @@ if ($M) $_POST['name'] .= $M;
 // $_POST['mail'] = 'No.'.$NOWTIME;
 // 鍵漏れ等の対策としてメール欄の内容は削除
 $_POST['mail'] = '';
+
+// 現行スレフォルダへファイル追加
+if($newthread){
+    if (!touch($THREAD_STATES_FILE)) {
+        Error('投稿に失敗しました。');
+    }
+}
+
+// スレ状態ファイルを更新
+if ($threadStatesReload) {
+    $threadStatesUpdater->put($threadStates);
+}
+
+// >>1への変更を反映させる
+function updateFirstRes($datFile, $newFirstRes, $isShiftJis){
+    $datFileHandle = fopen($datFile, 'r+');
+    if(flock($datFileHandle, LOCK_EX)){
+        $datLines = explode("\n", fread($datFileHandle, filesize($datFile)));
+        if($isShiftJis){
+            $datLines[0] = mb_convert_encoding($newFirstRes, "SJIS-win", "UTF-8");
+        }else{
+            $datLines[0] = $newFirstRes;
+        }
+        ftruncate($datFileHandle, 0);
+        rewind($datFileHandle);
+        fwrite($datFileHandle, implode("\n", $datLines));
+    }
+    fclose($datFileHandle);
+}
+if (!$newthread && !$tlonly && $reload) {
+    $newFirstRes = $firstResName."<>".$firstResMail."<>".$firstResDateId."<>".$message."<>".$subject;
+    // $THREADFILE更新
+    updateFirstRes($THREADFILE, $newFirstRes, false);
+    // $DATFILE更新
+    if(is_file($DATFILE)){
+        updateFirstRes($DATFILE, $newFirstRes, true);
+    }    
+}
 
 // dat追記用関数
 function addNewResToDat($datFile, $newRes){
@@ -1175,11 +1204,28 @@ if (!$tlonly) {
             // 上限以下のスレッドを過去ログ化
             if ($ThreadCount > $SETTING['BBS_THREADS_LIMIT']) {
                 for ($start = $SETTING['BBS_THREADS_LIMIT']; $start < $ThreadCount; $start++) {
-                    // datファイル削除
-                    @unlink($PATH."dat/".$PAGEFILE[$start]['thread'].".dat");
+                    // 現行スレッドから削除
+                    @unlink($THREAD_STATES_PATH."/{$PAGEFILE[$start]['thread']}.json");
                     // 過去ログを保持しない場合
                     if ($SETTING['disable_kakolog'] == "checked") {
                         @unlink($PATH."thread/".substr($PAGEFILE[$start]['thread'], 0, 4)."/".$PAGEFILE[$start]['thread'].".dat");
+                        @unlink($PATH."dat/".$PAGEFILE[$start]['thread'].".dat");
+                    }else{
+                        // 過去ログリストへ追記
+                        $kakologListHandle = fopen($KAKOLOGLIST, 'a+');
+                        if (flock($kakologListHandle, LOCK_EX)) {
+                            // 末尾位置取得
+                            fseek($kakologListHandle, 0, SEEK_END);
+                            $endOffset = ftell($kakologListHandle);
+                            // 追記
+                            $kakologLine = $PAGEFILE[$start]['thread'].".dat<>".$PAGEFILE[$start]['title']." (".$PAGEFILE[$start]['number'].")\n";
+                            fwrite($kakologListHandle, mb_convert_encoding($kakologLine, "SJIS-win", "UTF-8"));
+                        }
+                        fclose($kakologListHandle);
+                        // 過去ログインデックスへ追記
+                        if(isset($endOffset)){
+                            file_put_contents($KAKOLOGLISTINDEX, $endOffset."\n", FILE_APPEND | LOCK_EX);
+                        }
                     }
                     // datlog削除
                     $datlog = $PATH."dat/".$PAGEFILE[$start]['thread']."_kisei.cgi";
@@ -1212,24 +1258,6 @@ if (!$tlonly) {
         fclose($subjectTxtHandle);
     }
 
-}
-if (!$tlonly) {
-    // スレ状態ファイルから現存しないスレ番号キーを削除
-    // 定期的に行う必要がある処理だが、各レスごとに行う必要はないため$threadsStatesReloadをフラグとする。
-    if ($threadsStatesReload && is_file($THREADS_STATES_FILE)) {
-        $threadKeysList = array_map(function ($thread) {
-            return (int) $thread['thread'];
-        }, $PAGEFILE);
-        $threadsStates = $threadsStatesUpdater->get();
-        if($threadsStates){
-            foreach(array_keys($threadsStates) as $threadKey){
-                if(!in_array((int) $threadKey, $threadKeysList, true)){
-                    unset($threadsStates[$threadKey]);
-                }
-            }
-            $threadsStatesUpdater->put($threadsStates);
-        }
-    }
 }
 
 // 投稿ログ
