@@ -23,14 +23,21 @@ function applyGobiCommand(
     if (!is_file($THREADS_STATES_FILE)) {
         return;
     }
-    $threadsStates = json_decode(file_get_contents($THREADS_STATES_FILE), true);
+    $threadsStates = getThreadsStates($THREADS_STATES_FILE);
+    if($threadsStates === false) {
+        return;
+    }
     if(!isset($threadsStates[$_POST['thread']]['gobi'])) {
         return;
     }
     // 元本文のみ取得 ※<hr>以降はシステムメッセージなので対象外
     $commentParts = explode('<hr>', $_POST['comment']);
     // 語尾追加
-    $commentParts[0] .= $threadsStates[$_POST['thread']]['gobi'];
+    $gobi = $threadsStates[$_POST['thread']]['gobi'];
+    if(function_exists('replaceRmj')) {
+        $gobi = replaceRmj($gobi);
+    }
+    $commentParts[0] .= $gobi;
     // 本文変更
     $_POST['comment'] = implode('<hr>', $commentParts);
 }

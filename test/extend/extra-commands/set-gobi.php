@@ -35,7 +35,7 @@ function setGobiCommand(
         return;
     }
     $commentParts = explode('<hr>', $_POST['comment']);
-    if(!preg_match('/\!gobi:(.*?):/', $commentParts[0], $commandMatches)) {
+    if(!preg_match('/\!gobi:(.*):/', $commentParts[0], $commandMatches)) {
         return;
     }
     // 語尾の最大文字数

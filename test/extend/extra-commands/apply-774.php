@@ -33,12 +33,19 @@ function apply774Command(
     if (!is_file($THREADS_STATES_FILE)) {
         return;
     }
-    $threadsStates = json_decode(file_get_contents($THREADS_STATES_FILE), true);
+    $threadsStates = getThreadsStates($THREADS_STATES_FILE);
+    if($threadsStates === false) {
+        return;
+    }
     if(!isset($threadsStates[$_POST['thread']]['774'])) {
         return;
     }
     // 名前変更
-    $_POST['name'] = $threadsStates[$_POST['thread']]['774'];
+    $defalutName = $threadsStates[$_POST['thread']]['774'];
+    if(function_exists('replaceRmj')) {
+        $defalutName = replaceRmj($defalutName);
+    }
+    $_POST['name'] = $defalutName;
 }
 
 apply774Command(

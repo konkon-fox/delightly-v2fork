@@ -44,16 +44,25 @@ function showThreadsStates(
         array_push($commentParts, '');
     }
     $commentParts[2] = '';
-    $threadsStates = json_decode(file_get_contents($THREADS_STATES_FILE), true);
+    $threadsStates = getThreadsStates($THREADS_STATES_FILE);
+    if($threadsStates === false) {
+        return;
+    }
     // デフォ名無し情報追加
     if(isset($threadsStates[$_POST['thread']]['774'])) {
         $defaultName = $threadsStates[$_POST['thread']]['774'];
+        if(function_exists('replaceRmj')) {
+            $defaultName = replaceRmj($defaultName);
+        }
         $defaultName = preg_replace('/\!(?=[a-zA-Z0-9])/', '&#33;', $defaultName);
         $commentParts[2] .= "<font color=\"red\">※デフォ名無し=</font>{$defaultName}<br>";
     }
     // 語尾情報追加
     if(isset($threadsStates[$_POST['thread']]['gobi'])) {
         $gobi = $threadsStates[$_POST['thread']]['gobi'];
+        if(function_exists('replaceRmj')) {
+            $gobi = replaceRmj($gobi);
+        }
         $gobi = preg_replace('/\!(?=[a-zA-Z0-9])/', '&#33;', $gobi);
         $commentParts[2] .= "<font color=\"red\">※GOBI=</font>{$gobi}<br>";
     }
