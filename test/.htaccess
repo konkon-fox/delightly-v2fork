@@ -2,6 +2,6 @@
   deny from all
 </Files>
 RewriteEngine on
-RewriteRule read.cgi read.php
+RewriteRule ^read\.cgi/([^/]+)/([0-9]+)/$ /#$1/$2/ [R=301,L,NE]
 RewriteRule bbs.cgi bbs.php
 SetEnvIf Request_URI "bbs.php$" CONTENT_TYPE=application/x-www-form-urlencoded
