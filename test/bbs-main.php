@@ -19,9 +19,11 @@ if(isset($SETTING['date_comma_digit']) && $SETTING['date_comma_digit'] !== '0'){
   $commaDigit = (int) $SETTING['date_comma_digit'];
   $commaTime = floor($microTime * pow(10, $commaDigit));
   $commaTime = sprintf('%0'.$commaDigit.'d', $commaTime);
-  $DATE = date("Y/m/d H:i:s", $NOWMICROTIME).'.'.$commaTime;
+  $DATE = date("Y/m/d", $NOWMICROTIME);
+  $TIME = date("H:i:s", $NOWMICROTIME).'.'.$commaTime;
 }else{
-  $DATE = date("Y/m/d H:i:s", $NOWTIME);
+  $DATE = date("Y/m/d", $NOWTIME);
+  $TIME = date("H:i:s", $NOWMICROTIME);
 }
 if (file_exists(__DIR__ . '/.use_cloudflare') && isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
   $_SERVER['REMOTE_ADDR'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
@@ -396,6 +398,11 @@ include './extend/extra-commands/utilities/add-system-message.php';
 @include './extend/extra-commands/utilities/show-threads-states.php';
 // !xDy(dice)コマンド
 @include './extend/extra-commands/dice.php';
+
+// 曜日表示
+$daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
+$dayOfWeek = $daysOfWeek[date('w')];
+$DATE .= " ({$dayOfWeek}) {$TIME}";
 
 // レス番号を取得
  if (!$newthread && !$tlonly) $number++;
