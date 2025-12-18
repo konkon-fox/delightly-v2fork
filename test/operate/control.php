@@ -24,22 +24,29 @@ if (!$_REQUEST['key']) {
 			</form>
 			<h3>スレッド一覧から探す</h3>
 			<div id="threadlist" class="contents"><?php 
-			$Threads = json_decode(file_get_contents("../".$_REQUEST['bbs']."/subject.json"), true);
-			$PAGEFILE = array();
-			if ($Threads) {
-				foreach ($Threads as $thread) {
-				?><div><form class="form-basic" method="POST" accept-charset="UTF-8" action="?bbs=<?=$_REQUEST['bbs']?>&mode=control">
-				<div>スレッド番号:<a href="/#<?=$_REQUEST['bbs']?>/<?=$thread['thread']?>/"><?=$thread['thread']?></a></div>
-				<div>タイトル:<?=$thread['title']?></div>
-				<div>レス数:<?=$thread['number']?></div>
-				<div>作成時刻:<?php echo date("Y-m-d H:i:s", $thread['thread']); ?></div>
-				<div>最終更新時刻:<?php echo date("Y-m-d H:i:s", $thread['date']); ?></div>
-				<button type="submit" class="btn btn-primary btn-block">管理</button>
-				<input type="hidden" name="key" value="<?=$thread['thread']?>">
-				<input type="hidden" name="password" value="<?=$_REQUEST['password']?>">
-				</form></div><hr>
-				<?php
-				}
+			$subjectHandle = fopen("../".$_REQUEST['bbs']."/subject.json", 'r');
+			if($subjectHandle!==false){
+					if(flock($subjectHandle, LOCK_SH)){
+							$Threads = json_decode(stream_get_contents($subjectHandle), true);
+							flock($subjectHandle, LOCK_UN);
+							$PAGEFILE = array();
+							if ($Threads) {
+								foreach ($Threads as $thread) {
+								?><div><form class="form-basic" method="POST" accept-charset="UTF-8" action="?bbs=<?=$_REQUEST['bbs']?>&mode=control">
+								<div>スレッド番号:<a href="/#<?=$_REQUEST['bbs']?>/<?=$thread['thread']?>/"><?=$thread['thread']?></a></div>
+								<div>タイトル:<?=$thread['title']?></div>
+								<div>レス数:<?=$thread['number']?></div>
+								<div>作成時刻:<?php echo date("Y-m-d H:i:s", $thread['thread']); ?></div>
+								<div>最終更新時刻:<?php echo date("Y-m-d H:i:s", $thread['date']); ?></div>
+								<button type="submit" class="btn btn-primary btn-block">管理</button>
+								<input type="hidden" name="key" value="<?=$thread['thread']?>">
+								<input type="hidden" name="password" value="<?=$_REQUEST['password']?>">
+								</form></div><hr>
+								<?php
+								}
+							}
+					}
+					fclose($subjectHandle);
 			}
 			?></div>
 		</section></div>
@@ -47,6 +54,58 @@ if (!$_REQUEST['key']) {
 		</html><?php
 	exit;
 }
+
+/**
+ * 現行スレッド(subject.json)から該当スレッドを取り除く関数
+ *
+ * @param string $subjectfile subject.jsonへのパス
+ * 
+ * @return array|false 成功時は取り除いたスレの情報配列、失敗時はfalse
+ */
+function removeFromCurrentSubjects($subjectfile){
+	  // 該当スレッドを取り除く
+		$fp = fopen($subjectfile, 'r+');
+		if($fp===false) return false;
+		if(!flock($fp, LOCK_EX)){
+			flock($fp, LOCK_UN);
+			fclose($fp);
+			return false;
+		}
+		$content = stream_get_contents($fp);
+		if($content===false){
+			flock($fp, LOCK_UN);
+			fclose($fp);
+			return false;
+		}
+		$Threads = json_decode($content, true);
+		$PAGEFILE = [];
+		$targetThread = false;
+		if ($Threads) {
+			foreach ($Threads as $thread) {
+				if ((int)$thread['thread'] === (int)$_REQUEST['key']){
+					$targetThread = $thread;
+				}else{
+					array_push($PAGEFILE,$thread);
+				}
+			}
+		}
+		// 更新
+		ftruncate($fp, 0);
+		rewind($fp);
+		fwrite($fp, json_encode($PAGEFILE, JSON_UNESCAPED_UNICODE));
+		fflush($fp);
+		flock($fp, LOCK_UN);
+		fclose($fp);
+
+		return $targetThread;
+}
+//
+include './extend/get-json-file.php';
+$PATH = "../".$_REQUEST['bbs']."/";
+$KAKOLOGLIST = $PATH.'kakolog-subject.txt';
+$KAKOLOGLISTINDEX = $PATH.'kakolog-subject.idx';
+$THREAD_STATES_PATH = $PATH.'threads-states';
+$threadStatesFile = $THREAD_STATES_PATH.'/'.$_REQUEST['key'].'.json';
 // dat
 $THREADFILE = "../".$_REQUEST['bbs']."/thread/".substr($_REQUEST['key'], 0, 4)."/".$_REQUEST['key'].".dat";
 $DATFILE = "../".$_REQUEST['bbs']."/dat/".$_REQUEST['key'].".dat";
@@ -55,7 +114,21 @@ $subjectfile = "../".$_REQUEST['bbs']."/subject.json";
 // スレッドが存在しない場合
 if (!is_file($THREADFILE)) Finish('<b>該当するスレッドがありません</b>');
 // スレッド取得
-$LOG = file($THREADFILE, FILE_IGNORE_NEW_LINES);
+$threadFileHandle = fopen($THREADFILE, 'r');
+if($threadFileHandle===false) Finish('<b>スレッドファイルを開けませんでした。</b>');
+if(!flock($threadFileHandle, LOCK_SH)){
+		flock($threadFileHandle, LOCK_UN);
+		fclose($threadFileHandle);
+		Finish('<b>スレッドファイルのロックに失敗しました。</b>');
+}
+$logContent = stream_get_contents($threadFileHandle);
+if($logContent===false){
+		flock($threadFileHandle, LOCK_UN);
+		fclose($threadFileHandle);
+		Finish('<b>レスの取得に失敗しました。</b>');
+}
+$LOG = explode("\n", $logContent);
+fclose($threadFileHandle);
 if ($_POST['del']) {
 	if (!$_POST['kakunin']) {
 		// スレッド削除
@@ -64,38 +137,41 @@ if ($_POST['del']) {
 			if (is_file($DATFILE)) unlink($DATFILE);
 			if (is_file($KFILE)) unlink($KFILE);
 			//スレッド一覧から取り除く
-			$Threads = json_decode(file_get_contents($subjectfile), true);
-			$PAGEFILE = array();
-			if ($Threads) {
-				foreach ($Threads as $thread) {
-					if ($thread['thread'] != $_REQUEST['key']) array_push($PAGEFILE,$thread);
-				}
-			}
-			// 更新
-			file_put_contents($subjectfile, json_encode($PAGEFILE, JSON_UNESCAPED_UNICODE), LOCK_EX);
-			Finish('<b>スレッドを削除しました。</b>');
+			removeFromCurrentSubjects($subjectfile);
+
+			$result = 'スレの削除を実行しました';
 		}else {
-			// レス削除・過去ログ化
+			// 過去ログ化
 			if ($_POST['kako'] == "checked") {
-				if (is_file($DATFILE)) unlink($DATFILE);
 				//スレッド一覧から取り除く
-				$Threads = json_decode(file_get_contents($subjectfile), true);
-				$PAGEFILE = array();
-				if ($Threads) {
-					foreach ($Threads as $thread) {
-						if ($thread['thread'] != $_REQUEST['key']) array_push($PAGEFILE,$thread);
-					}
-				}
-				// 更新
-				file_put_contents($subjectfile, json_encode($PAGEFILE, JSON_UNESCAPED_UNICODE), LOCK_EX);
+				$targetThread = removeFromCurrentSubjects($subjectfile);
+				if($targetThread===false){
+					Finish('<b>過去ログ化に失敗しました。</b>');
+				} 
+				// 過去ログ送り用関数
+				include './extend/archive-thread.php';
+				archiveThread(
+						$SETTING,
+						$KAKOLOGLIST,
+						$KAKOLOGLISTINDEX,
+						$threadStatesFile,
+						$THREADFILE,
+						$DATFILE,
+						$targetThread['thread'],
+						$targetThread['title'],
+						$targetThread['number'],
+						$KFILE,
+				);
 			}
+
+			// 以降レス削除
 
 			// >>1保存
 			$AUTHOR = $LOG[0];
 			// 削除後の文字列
 			$REPLACE_TEXT = '</b>'.$SETTING['DELETED_TEXT'].'<b><>'.str_repeat($SETTING['DELETED_TEXT'].'<>', 3);
 			
-			for ($i = 0, $LOG_COUNT = count($LOG); $i < $LOG_COUNT; ++$i) {
+			for ($i = 0, $LOG_COUNT = count($LOG) - 1; $i < $LOG_COUNT; ++$i) {
 				if ($_POST[$i] === 'checked' // レス個別
 				|| ($i + 1 >= $_POST['from'] && $i + 1 <= $_POST['to']) // レス範囲
 				|| ($_POST['itti'] && strpos($LOG[$i],$_POST['itti']) !== false)) { // レス条件一致
@@ -107,13 +183,12 @@ if ($_POST['del']) {
 				$LOG[0] .= explode("<>", $AUTHOR)[4];
 			}
 
-			$fp = '';
-			foreach($LOG as $tmp) $fp .= $tmp."\n";
-			file_put_contents($THREADFILE, $fp, LOCK_EX);
+			$newLogContent = implode("\n", $LOG);
+			file_put_contents($THREADFILE, $newLogContent, LOCK_EX);
 
 			$prevChar = mb_substitute_character();
 			mb_substitute_character('entity');
-			if (is_file($DATFILE)) file_put_contents($DATFILE, mb_convert_encoding($fp, 'SJIS-win', 'UTF-8'), LOCK_EX);
+			if (is_file($DATFILE)) file_put_contents($DATFILE, mb_convert_encoding($newLogContent, 'SJIS-win', 'UTF-8'), LOCK_EX);
 			mb_substitute_character($prevChar);
 
 			$result = '実行しました';
@@ -138,18 +213,47 @@ if ($_POST['del']) {
 </head>
 <body>
 <b><?=$result?></b>
-<div class="back"><a href='https://<?=$_SERVER['HTTP_HOST']?>/#<?=$_REQUEST['bbs']?>/<?=$_REQUEST['key']?>/'>スレッドを開く</a></div>
-<form class="form-basic" method="POST" accept-charset="UTF-8" action=""><input type="hidden" name="password" value="<?=$_REQUEST['password']?>"><input type="hidden" name="bbs" value="<?=$_REQUEST['bbs']?>"><input type="hidden" name="key" value="<?=$_REQUEST['key']?>"><input type="hidden" name="del" value="true"><div class="contents"><button type="submit" class="btn btn-primary btn-block">実行</button></div>
 <?php
-$n = $i = 0;
-echo "このスレッドを削除<input type=\"checkbox\" name=\"saku\" value=\"checked\"";
-if ($_POST['kakunin'] && $_POST['saku'] == "checked") echo ' checked><br>';
-else echo "><br>";
+if(!is_file($THREADFILE)){
+	exit('<p>スレッドが存在しません。</p>');
+}
+?><div class="back"><a href='https://<?=$_SERVER['HTTP_HOST']?>/#<?=$_REQUEST['bbs']?>/<?=$_REQUEST['key']?>/'>スレッドを開く</a></div>
+<form class="form-basic" method="POST" accept-charset="UTF-8" action=""><input type="hidden" name="password" value="<?=$_REQUEST['password']?>"><input type="hidden" name="bbs" value="<?=$_REQUEST['bbs']?>"><input type="hidden" name="key" value="<?=$_REQUEST['key']?>"><input type="hidden" name="del" value="true"><div class="contents"><button type="submit" class="btn btn-primary btn-block">実行</button></div>
+このスレッドを削除
+<input
+  type="checkbox"
+	name="saku"
+	value="checked"
+	id="delete-thread-checkbox"
+<?php
+if ($_POST['kakunin'] && $_POST['saku'] == "checked") echo ' checked';
+?>
+>
+<script>
+	document.getElementById('delete-thread-checkbox').addEventListener('click',confirmCheckbox);
+	function confirmCheckbox(e){
+		const isChecked = !e.target.checked;
+		if(isChecked){
+			return;
+		}
+		const confirmed = window.confirm('本当に「このスレッドを削除」にチェックを入れますか？');
+		if(confirmed){
+			return;
+		}
+		e.preventDefault();
+	}
+</script>
+<br>
+<?php
 echo "このスレッドを強制過去ログ化<input type=\"checkbox\" name=\"kako\" value=\"checked\"";
 if ($_POST['kakunin'] && $_POST['kako'] == "checked") echo ' checked>';
 else echo ">";
 echo '<div>レス一括削除(範囲指定)：<input type="text" name="from">-<input type="text" name="to"></div><div>レス一括削除(条件一致)：<input type="text" name="itti"></div>';
+$n = $i = 0;
 foreach($LOG as $tmp) {
+	if($tmp === ''){
+		continue;
+	}
 	$n++;
 	if ($_POST['kakunin'] && $_POST[$i] == "checked") $d = ' checked';
 	else $d = '';
