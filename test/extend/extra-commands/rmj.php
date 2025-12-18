@@ -94,8 +94,7 @@ function replaceRmj($text)
             }
             // 抽選処理
             $key = array_rand($replace['items'], 1);
-            $value = $replace['items'][$key];
-            return "<b>{$value}</b>";
+            return $replace['items'][$key];
         }, $text);
     }
     return $text;
