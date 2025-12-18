@@ -1,0 +1,73 @@
+server {
+    listen 80;
+    listen [::]:80;
+    
+    # 運用環境に合わせて変更してください
+    server_name localhost; 
+
+    root /var/www/html;
+    index index.php index.html;
+
+    location / {
+        allow all;
+    }
+
+    # rootの.htaccessに相当
+    location ~* \.html$ {
+        charset UTF-8;
+    }
+    location ~* \.js$ {
+        charset UTF-8;
+    }
+    location ~ ^/[^/]+/threads-states/ {
+        deny all;
+    }
+
+    # /test/.htaccessに相当
+    location ~ ^/test/(bbs-main\.php|createcode\.cgi)$ {
+        deny all;
+    }
+
+    rewrite ^/test/read\.cgi$ /test/read.php last;
+    rewrite ^/test/bbs\.cgi$ /test/bbs.php last;
+
+    location ~ /test/bbs\.php$ {
+        # 標準的なFastCGI設定（パラメータ群）を読み込み
+        include fastcgi_params;
+        # 専ブラの投稿エラーを防ぐため、Content-Typeを強制的に上書き
+        fastcgi_param CONTENT_TYPE "application/x-www-form-urlencoded";
+        # 実行するPHPファイルのフルパスをPHP側に通知
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        # PHP実行ユニット(phpサービス)の9000番ポートへリクエストを転送
+        fastcgi_pass php:9000;
+    }
+
+    # /test/board/.htaccessに相当
+    location ^~ /test/board/ {
+        deny all;
+    }
+
+    # /test/extend/.htaccessに相当
+    location ^~ /test/extend/ {
+        deny all;
+    }
+
+    # /test/operate/.htaccessに相当
+    location ^~ /test/operate/ {
+        deny all;
+    }
+
+    # /{$bbs}/thread/.htaccessに相当
+    location ~ ^/[^/]+/thread/.*\.dat$ {
+        charset utf-8;
+        default_type text/plain;
+    }
+
+    # php基本
+    location ~ \.php$ {
+        fastcgi_pass php:9000;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+}
