@@ -47,33 +47,19 @@ function applyPoolCommand(
     if (strpos($_POST['comment'], '!pool') === false) {
         return;
     }
-    // 現行スレッドから削除
-    @unlink($THREAD_STATES_FILE);
-    // 過去ログを保持しない場合
-    if ($SETTING['disable_kakolog'] === 'checked') {
-        @unlink($DATFILE);
-        @unlink($THREADFILE);
-    } else {
-        // 過去ログリストへ追記
-        $kakologListHandle = fopen($KAKOLOGLIST, 'a');
-        if (flock($kakologListHandle, LOCK_SH)) {
-            // 末尾位置取得
-            fseek($kakologListHandle, 0, SEEK_END);
-            $endOffset = ftell($kakologListHandle);
-            // 追記
-            $kakologLine = $_POST['thread'].".dat<>".$subject." (".$number.")\n";
-            fwrite($kakologListHandle, mb_convert_encoding($kakologLine, "SJIS-win", "UTF-8"));
-        }
-        fclose($kakologListHandle);
-        // 過去ログインデックスへ追記
-        if (isset($endOffset)) {
-            file_put_contents($KAKOLOGLISTINDEX, $endOffset."\n", FILE_APPEND | LOCK_EX);
-        }
-    }
-    // datlog削除
-    if (is_file($datlog)) {
-        @unlink($datlog);
-    }
+    // 過去ログへ送る
+    archiveThread(
+        $SETTING,
+        $KAKOLOGLIST,
+        $KAKOLOGLISTINDEX,
+        $THREAD_STATES_FILE,
+        $THREADFILE,
+        $DATFILE,
+        $_POST['thread'],
+        $subject,
+        $number,
+        $datlog
+    );
     // subject.json用のデータ更新
     $PAGEFILE = array_filter($PAGEFILE, function ($thread) {
         return (int) $thread['thread'] !== (int) $_POST['thread'];

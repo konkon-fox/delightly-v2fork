@@ -1162,6 +1162,8 @@ if (!$sage) {
     fclose($tlDatHandle);
 }
 
+include './extend/archive-thread.php';
+
 // スレッド一覧 (subject.json)
 if (!$tlonly) {
     // 停止済のスレッド
@@ -1204,32 +1206,19 @@ if (!$tlonly) {
             // 上限以下のスレッドを過去ログ化
             if ($ThreadCount > $SETTING['BBS_THREADS_LIMIT']) {
                 for ($start = $SETTING['BBS_THREADS_LIMIT']; $start < $ThreadCount; $start++) {
-                    // 現行スレッドから削除
-                    @unlink($THREAD_STATES_PATH."/{$PAGEFILE[$start]['thread']}.json");
-                    // 過去ログを保持しない場合
-                    if ($SETTING['disable_kakolog'] == "checked") {
-                        @unlink($PATH."thread/".substr($PAGEFILE[$start]['thread'], 0, 4)."/".$PAGEFILE[$start]['thread'].".dat");
-                        @unlink($PATH."dat/".$PAGEFILE[$start]['thread'].".dat");
-                    }else{
-                        // 過去ログリストへ追記
-                        $kakologListHandle = fopen($KAKOLOGLIST, 'a+');
-                        if (flock($kakologListHandle, LOCK_EX)) {
-                            // 末尾位置取得
-                            fseek($kakologListHandle, 0, SEEK_END);
-                            $endOffset = ftell($kakologListHandle);
-                            // 追記
-                            $kakologLine = $PAGEFILE[$start]['thread'].".dat<>".$PAGEFILE[$start]['title']." (".$PAGEFILE[$start]['number'].")\n";
-                            fwrite($kakologListHandle, mb_convert_encoding($kakologLine, "SJIS-win", "UTF-8"));
-                        }
-                        fclose($kakologListHandle);
-                        // 過去ログインデックスへ追記
-                        if(isset($endOffset)){
-                            file_put_contents($KAKOLOGLISTINDEX, $endOffset."\n", FILE_APPEND | LOCK_EX);
-                        }
-                    }
-                    // datlog削除
-                    $datlog = $PATH."dat/".$PAGEFILE[$start]['thread']."_kisei.cgi";
-                    if (is_file($datlog)) @unlink($datlog);
+                    // 過去ログへ送る
+                    archiveThread(
+                        $SETTING,
+                        $KAKOLOGLIST,
+                        $KAKOLOGLISTINDEX,
+                        $THREAD_STATES_PATH."/{$PAGEFILE[$start]['thread']}.json",
+                        $PATH."thread/".substr($PAGEFILE[$start]['thread'], 0, 4)."/".$PAGEFILE[$start]['thread'].".dat",
+                        $PATH."dat/".$PAGEFILE[$start]['thread'].".dat",
+                        $PAGEFILE[$start]['thread'],
+                        $PAGEFILE[$start]['title'],
+                        $PAGEFILE[$start]['number'],
+                        $PATH."dat/".$PAGEFILE[$start]['thread']."_kisei.cgi",
+                    );
                 }
                 $PAGEFILE = array_slice($PAGEFILE, 0, $SETTING['BBS_THREADS_LIMIT']);
             }
