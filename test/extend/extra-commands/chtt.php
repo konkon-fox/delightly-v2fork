@@ -6,7 +6,7 @@
  * @param boolean $newthread スレ立て時判定
  * @param boolean $tlonly TL判定
  * @param string $threadSubjectFile 過去ログ用subject.jsonへのパス
- * @param string $d datファイル1行目の日付ID
+ * @param string $firstResDateId datファイル1行目の日付ID
  * @param string $message datファイル1行目の本文
  * @param string $subject datファイル1行目のスレタイ
  * @param boolean $reload bbs-main.phpでの>>1更新フラグ
@@ -18,7 +18,7 @@ function applyChttCommand(
     $newthread,
     $tlonly,
     $threadSubjectFile,
-    $d,
+    $firstResDateId,
     &$message,
     &$subject,
     &$reload
@@ -55,7 +55,7 @@ function applyChttCommand(
         return;
     }
     // スレタイにIDが存在するかを判定
-    preg_match('/ID:(.+)$/', $d, $IDMatches);
+    preg_match('/ID:(.+)$/', $firstResDateId, $IDMatches);
     $titleHasId = $SETTING['createid'] === 'checked' && $IDMatches;
     // 成功メッセージ出力(本文)
     $oldThreadTitle = $titleHasId ? preg_replace('/\s\[[^\[]+?★\]$/', '', $subject) : $subject;
@@ -102,7 +102,7 @@ applyChttCommand(
     $newthread,
     $tlonly,
     $PATH."thread/".substr($_POST['thread'], 0, 4)."/subject.json",
-    $d,
+    $firstResDateId,
     $message,
     $subject,
     $reload
