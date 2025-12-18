@@ -4,3 +4,7 @@ Header set Content-Type 'text/html; charset=UTF-8'
 <FilesMatch "\.js$">
 Header set Content-Type 'application/javascript; charset=UTF-8'
 </FilesMatch>
+
+# 特定フォルダへのアクセス拒否
+RewriteEngine On
+RewriteRule threads-states/ - [F,L]
