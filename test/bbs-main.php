@@ -72,6 +72,10 @@ mb_substitute_character('entity');
 $M = $ken = $ncolor = $Cookmail = $LV = $CAPID = $accountid = $supervisorID = '';
 $stop = $admin = $sage = $supervisor = $authorized = $PROXY = $threadStatesReload = false;
 
+include './utils/safe-file-get-contents.php';
+include './utils/safe-file.php';
+include './utils/get-json-file.php';
+
 // GETメソッド
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     Error2('invalid:GET');
@@ -305,13 +309,10 @@ if (!is_file($hapfile)) {
 }
 setcookie('WrtAgreementKey', $_COOKIE['WrtAgreementKey'], $NOWTIME + 31536000, '/');
 // 記録されたデータを取得
-$hapfileHandle = fopen($hapfile, 'r');
-if (flock($hapfileHandle, LOCK_SH)) {
-    $HAP = json_decode(fread($hapfileHandle, filesize($hapfile)), true);
-} else {
-    $HAP = [];
+$HAP = getJsonFile($hapfile);
+if ($HAP === false) {
+    Error('ユーザーデータの取得に失敗しました。');
 }
-fclose($hapfileHandle);
 $WrtAgreementKey = substr(md5($HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 7);
 
 // 指定Lv以上で自動承認
@@ -335,7 +336,7 @@ if ($SETTING['auto_authorize_lv'] !== '' && $LV >= $SETTING['auto_authorize_lv']
 
 // 手動承認リスト
 if (is_file($PATH.'authorize.cgi')) {
-    $auth_str = file($PATH.'authorize.cgi');
+    $auth_str = safe_file($PATH.'authorize.cgi');
     foreach ($auth_str as $tmp) {
         $tmp = trim($tmp);
         if (!$tmp || strpos(substr($tmp, 0, 1), '#') !== false) {
@@ -350,7 +351,10 @@ if (is_file($PATH.'authorize.cgi')) {
 
 // 掲示板のパスワード
 if (preg_match("/([^\#]*)\#(.+)/", $_POST['mail'], $ca)) {
-    $pass1 = file_get_contents($PATH.'passfile.cgi');
+    $pass1 = safe_file_get_contents($PATH.'passfile.cgi');
+    if ($pass1 === false) {
+        Error('パスワードファイルの取得に失敗しました。');
+    }
     if (password_verify($ca[2], $pass1)) {
         if ($_POST['name']) {
             $_POST['name'] .= '＠管理人 ★';
@@ -366,7 +370,10 @@ if (preg_match("/([^\#]*)\#(.+)/", $_POST['mail'], $ca)) {
 // キャップパスワード
 if (preg_match("/([^\#]*)\#(.+)/", $_POST['mail'], $ca)) {
     if (is_file($PATH.'cap.cgi')) {
-        $cap_str = file($PATH.'cap.cgi');
+        $cap_str = safe_file($PATH.'cap.cgi');
+        if ($cap_str === false) {
+            Error('CAPファイルの取得に失敗しました。');
+        }
         foreach ($cap_str as $tmp) {
             $tmp = trim($tmp);
             if (!$tmp || strpos(substr($tmp, 0, 1), '#') !== false || strpos($tmp, '<>') === false) {
@@ -839,7 +846,10 @@ $info = $_SERVER['REMOTE_PORT'].'<>'.htmlspecialchars($_SERVER['HTTP_CF_IPCOUNTR
 if (!$admin) {
     if ($SETTING['authorized_denypass'] !== 'checked' || !$authorized) {
         if (is_file($PATH.'deny_host.cgi')) {
-            $denys = file($PATH.'deny_host.cgi');
+            $denys = safe_file($PATH.'deny_host.cgi');
+            if ($denys === false) {
+                Error('規制ファイルの取得に失敗しました。');
+            }
             foreach ($denys as $deny) {
                 $deny = trim($deny);
                 if (!$deny || strpos(substr($deny, 0, 1), '#') !== false) {
@@ -864,7 +874,10 @@ if (!$admin) {
         }
 
         if (is_file($PATH.'deny_ip.cgi')) {
-            $denys = file($PATH.'deny_ip.cgi');
+            $denys = safe_file($PATH.'deny_ip.cgi');
+            if ($denys === false) {
+                Error('規制ファイルの取得に失敗しました。');
+            }
             foreach ($denys as $deny) {
                 $deny = trim($deny);
                 if (!$deny || strpos(substr($deny, 0, 1), '#') !== false) {
@@ -889,7 +902,10 @@ if (!$admin) {
         }
 
         if (is_file($PATH.'deny_ua.cgi')) {
-            $denys = file($PATH.'deny_ua.cgi');
+            $denys = safe_file($PATH.'deny_ua.cgi');
+            if ($denys === false) {
+                Error('規制ファイルの取得に失敗しました。');
+            }
             foreach ($denys as $deny) {
                 $deny = trim($deny);
                 if (!$deny || strpos(substr($deny, 0, 1), '#') !== false) {
@@ -914,7 +930,10 @@ if (!$admin) {
         }
 
         if (is_file($PATH.'deny_area.cgi')) {
-            $denys = file($PATH.'deny_area.cgi');
+            $denys = safe_file($PATH.'deny_area.cgi');
+            if ($denys === false) {
+                Error('規制ファイルの取得に失敗しました。');
+            }
             foreach ($denys as $deny) {
                 $deny = trim($deny);
                 if (!$deny || strpos(substr($deny, 0, 1), '#') !== false) {
@@ -941,7 +960,10 @@ if (!$admin) {
     }
 
     if (is_file($PATH.'deny_account.cgi')) {
-        $denys = file($PATH.'deny_account.cgi');
+        $denys = safe_file($PATH.'deny_account.cgi');
+        if ($denys === false) {
+            Error('規制ファイルの取得に失敗しました。');
+        }
         foreach ($denys as $deny) {
             $deny = trim($deny);
             if (!$deny || strpos(substr($deny, 0, 1), '#') !== false) {
@@ -984,7 +1006,10 @@ if (!$tlonly && $SETTING['threadcheck'] === 'checked') {
     $IP = [];
     $count = 0;
     if (is_file($PATH.'dat/'.$_POST['thread'].'_kisei.cgi')) {
-        $IP = file($PATH.'dat/'.$_POST['thread'].'_kisei.cgi');
+        $IP = safe_file($PATH.'dat/'.$_POST['thread'].'_kisei.cgi');
+        if ($IP === false) {
+            Error('規制ファイルの取得に失敗しました。');
+        }
         foreach ($IP as $tmp) {
             $tmp = trim($tmp);
             list($time1, $addr1, $c1) = explode('<>', $tmp);
@@ -996,7 +1021,7 @@ if (!$tlonly && $SETTING['threadcheck'] === 'checked') {
     if ($count >= $SETTING['timecover']) {
         Error('このスレッド内で一定時間内に投稿可能な上限に達しました');
     }
-    array_unshift($IP, $NOWTIME.'<>'.$IP_ADDR.'<>'.$WrtAgreementKey."\n");
+    array_unshift($IP, $NOWTIME.'<>'.$IP_ADDR.'<>'.$WrtAgreementKey);
     while (count($IP) > $SETTING['threadcount']) {
         array_pop($IP);
     }
@@ -1005,11 +1030,16 @@ if (!$tlonly && $SETTING['threadcheck'] === 'checked') {
     if (!file_exists($directoryPath)) {
         mkdir($directoryPath, 0777, true);
     }
-    $fp = @fopen($PATH.'dat/'.$_POST['thread'].'_kisei.cgi', 'w');
-    foreach ($IP as $tmp) {
-        fputs($fp, $tmp);
+    $fp = fopen($PATH.'dat/'.$_POST['thread'].'_kisei.cgi', 'w');
+    if ($fp !== false) {
+        if (flock($fp, LOCK_EX)) {
+            foreach ($IP as $tmp) {
+                fwrite($fp, $tmp."\n");
+            }
+            flock($fp, LOCK_UN);
+        }
+        fclose($fp);
     }
-    fclose($fp);
 }
 
 // 板毎連続投稿制限
@@ -1020,7 +1050,10 @@ if ($SETTING['timecheck'] === 'checked') {
     $IP = [];
     $count = $time1 = $addr1 = $tmp = 0;
     if (is_file($PATH.'timecheck.cgi')) {
-        $IP = file($PATH.'timecheck.cgi');
+        $IP = safe_file($PATH.'timecheck.cgi');
+        if ($IP === false) {
+            Error('規制ファイルの取得に失敗しました。');
+        }
         foreach ($IP as $tmp) {
             $tmp = trim($tmp);
             list($time1, $addr1, $c1) = explode('<>', $tmp);
@@ -1032,22 +1065,30 @@ if ($SETTING['timecheck'] === 'checked') {
     if ($count >= $SETTING['timeclose']) {
         Error('一定時間内に投稿可能な上限に達しました');
     }
-    array_unshift($IP, $NOWTIME.'<>'.$IP_ADDR.'<>'.$WrtAgreementKey."\n");
+    array_unshift($IP, $NOWTIME.'<>'.$IP_ADDR.'<>'.$WrtAgreementKey);
     while (count($IP) > $SETTING['timecount']) {
         array_pop($IP);
     }
-    $fp = @fopen($PATH.'timecheck.cgi', 'w');
-    foreach ($IP as $tmp) {
-        fputs($fp, $tmp);
+    $fp = fopen($PATH.'timecheck.cgi', 'w');
+    if ($fp !== false) {
+        if (flock($fp, LOCK_EX)) {
+            foreach ($IP as $tmp) {
+                fwrite($fp, $tmp."\n");
+            }
+            flock($fp, LOCK_UN);
+        }
+        fclose($fp);
     }
-    fclose($fp);
 }
 
 // スレッド作成規制
 if ($newthread && !$admin) {
     if ($SETTING['authorized_makedenypass'] !== 'checked' || !$authorized) {
         if (is_file($PATH.'makedeny_host.cgi')) {
-            $denys = file($PATH.'makedeny_host.cgi');
+            $denys = safe_file($PATH.'makedeny_host.cgi');
+            if ($denys === false) {
+                Error('規制ファイルの取得に失敗しました。');
+            }
             foreach ($denys as $deny) {
                 $deny = trim($deny);
                 if (!$deny || strpos(substr($deny, 0, 1), '#') !== false) {
@@ -1072,7 +1113,10 @@ if ($newthread && !$admin) {
         }
 
         if (is_file($PATH.'makedeny_ip.cgi')) {
-            $denys = file($PATH.'makedeny_ip.cgi');
+            $denys = safe_file($PATH.'makedeny_ip.cgi');
+            if ($denys === false) {
+                Error('規制ファイルの取得に失敗しました。');
+            }
             foreach ($denys as $deny) {
                 $deny = trim($deny);
                 if (!$deny || strpos(substr($deny, 0, 1), '#') !== false) {
@@ -1097,7 +1141,10 @@ if ($newthread && !$admin) {
         }
 
         if (is_file($PATH.'makedeny_ua.cgi')) {
-            $denys = file($PATH.'makedeny_ua.cgi');
+            $denys = safe_file($PATH.'makedeny_ua.cgi');
+            if ($denys === false) {
+                Error('規制ファイルの取得に失敗しました。');
+            }
             foreach ($denys as $deny) {
                 $deny = trim($deny);
                 if (!$deny || strpos(substr($deny, 0, 1), '#') !== false) {
@@ -1122,7 +1169,10 @@ if ($newthread && !$admin) {
         }
 
         if (is_file($PATH.'makedeny_area.cgi')) {
-            $denys = file($PATH.'makedeny_area.cgi');
+            $denys = safe_file($PATH.'makedeny_area.cgi');
+            if ($denys === false) {
+                Error('規制ファイルの取得に失敗しました。');
+            }
             foreach ($denys as $deny) {
                 $deny = trim($deny);
                 if (!$deny || strpos(substr($deny, 0, 1), '#') !== false) {
@@ -1149,7 +1199,10 @@ if ($newthread && !$admin) {
     }
 
     if (is_file($PATH.'makedeny_account.cgi')) {
-        $denys = file($PATH.'makedeny_account.cgi');
+        $denys = safe_file($PATH.'makedeny_account.cgi');
+        if ($denys === false) {
+            Error('規制ファイルの取得に失敗しました。');
+        }
         foreach ($denys as $deny) {
             $deny = trim($deny);
             if (!$deny || strpos(substr($deny, 0, 1), '#') !== false) {
@@ -1186,7 +1239,10 @@ if ($newthread) {
             if ($NOWTIME < filemtime($PATH.'newthread.cgi') + $SETTING['THREAD_INTERVAL']) {
                 Error('直前のスレッド作成から'.$SETTING['THREAD_INTERVAL'].'秒経たなければスレッドを作成することができません');
             }
-            $IP = file($PATH.'newthread.cgi');
+            $IP = safe_file($PATH.'newthread.cgi');
+            if ($IP === false) {
+                Error('規制ファイルの取得に失敗しました。');
+            }
             foreach ($IP as $tmp) {
                 $tmp = trim($tmp);
                 list($t1, $p1, $c1) = explode('<>', $tmp);
@@ -1195,15 +1251,20 @@ if ($newthread) {
                 }
             }
         }
-        array_unshift($IP, $NOWTIME.'<>'.$IP_ADDR.'<>'.$WrtAgreementKey."\n");
+        array_unshift($IP, $NOWTIME.'<>'.$IP_ADDR.'<>'.$WrtAgreementKey);
         while (count($IP) > $SETTING['THREAD_JUNBAN']) {
             array_pop($IP);
         }
-        $fp = @fopen($PATH.'newthread.cgi', 'w');
-        foreach ($IP as $tmp) {
-            fputs($fp, $tmp);
+        $fp = fopen($PATH.'newthread.cgi', 'w');
+        if ($fp !== false) {
+            if (flock($fp, LOCK_EX)) {
+                foreach ($IP as $tmp) {
+                    fwrite($fp, $tmp."\n");
+                }
+                flock($fp, LOCK_UN);
+            }
+            fclose($fp);
         }
-        fclose($fp);
     } elseif ($SETTING['THREAD_INTERVAL']) {
         $file = $PATH.'newthread.cgi';
         if (is_file($file) and $NOWTIME < filemtime($file) + $SETTING['THREAD_INTERVAL']) {
@@ -1344,6 +1405,7 @@ function updateFirstRes($datFile, $newFirstRes, $isShiftJis)
         ftruncate($datFileHandle, 0);
         rewind($datFileHandle);
         fwrite($datFileHandle, implode("\n", $datLines));
+        flock($datFileHandle, LOCK_UN);
     }
     fclose($datFileHandle);
 }
@@ -1361,8 +1423,9 @@ if (!$newthread && !$tlonly && $reload) {
 function addNewResToDat($datFile, $newRes)
 {
     $datFileHandle = fopen($datFile, 'a+');
-    if (flock($datFileHandle, LOCK_SH)) {
+    if (flock($datFileHandle, LOCK_EX)) {
         fwrite($datFileHandle, $newRes);
+        flock($datFileHandle, LOCK_UN);
         fclose($datFileHandle);
     } else {
         fclose($datFileHandle);
@@ -1508,6 +1571,7 @@ if ($newthread) {
         ftruncate($kakoSubjectFileHandle, 0);
         rewind($kakoSubjectFileHandle);
         fwrite($kakoSubjectFileHandle, json_encode($tlist, JSON_UNESCAPED_UNICODE));
+        flock($kakoSubjectFileHandle, LOCK_UN);
     }
     fclose($kakoSubjectFileHandle);
 }
@@ -1544,6 +1608,7 @@ if (!$sage) {
         ftruncate($LTLFILEHandle, 0);
         rewind($LTLFILEHandle);
         fwrite($LTLFILEHandle, json_encode($LTL, JSON_UNESCAPED_UNICODE));
+        flock($LTLFILEHandle, LOCK_UN);
     }
     fclose($LTLFILEHandle);
     // datディレクトリがあるかチェック
@@ -1553,10 +1618,16 @@ if (!$sage) {
     }
     // 専ブラ用タイムライン (1000000000.dat)
     $TTL = array_reverse($LTL);
-    $headText = file_get_contents($PATH.'head.txt');
+    $headText = safe_file_get_contents($PATH.'head.txt');
+    if ($headText === false) {
+        Error('heat.txtの取得に失敗しました。');
+    }
     $headText = mb_convert_encoding($headText, 'UTF-8', 'SJIS-win');
     $headText = str_replace(["\r\n","\r","\n"], '', $headText);
-    $kokutiText = file_get_contents($PATH.'kokuti.txt');
+    $kokutiText = safe_file_get_contents($PATH.'kokuti.txt');
+    if ($kokutiText === false) {
+        Error('kokuti.txtの取得に失敗しました。');
+    }
     $kokutiText = str_replace(["\r\n","\r","\n"], '', $kokutiText);
     $tlDatData = 'ローカルルール<><>99/01/01 00:00:00 <>'.$headText."<>TL\n";
     $tlDatData .= '告知欄<><>99/01/01 00:00:00 <>'.$kokutiText."<>\n";
@@ -1571,6 +1642,7 @@ if (!$sage) {
     $tlDatHandle = fopen($PATH.'dat/1000000000.dat', 'w');
     if (flock($tlDatHandle, LOCK_EX)) {
         fwrite($tlDatHandle, mb_convert_encoding($tlDatData, 'SJIS-win', 'UTF-8'));
+        flock($tlDatHandle, LOCK_UN);
     }
     fclose($tlDatHandle);
 }
@@ -1644,6 +1716,7 @@ if (!$tlonly) {
         ftruncate($subjectfileHandle, 0);
         rewind($subjectfileHandle);
         fwrite($subjectfileHandle, json_encode($PAGEFILE, JSON_UNESCAPED_UNICODE));
+        flock($subjectfileHandle, LOCK_UN);
     }
     fclose($subjectfileHandle);
     // subject.txt (専ブラ無効でない場合のみ)
@@ -1658,6 +1731,7 @@ if (!$tlonly) {
         $subjectTxtHandle = fopen($PATH.'subject.txt', 'w');
         if (flock($subjectTxtHandle, LOCK_EX)) {
             fwrite($subjectTxtHandle, $subjectTxtData);
+            flock($subjectTxtHandle, LOCK_UN);
         }
         fclose($subjectTxtHandle);
     }
@@ -1673,7 +1747,7 @@ if ($SETTING['LOG_LIMIT'] !== '') {
     }
 }
 $logFileHandle = fopen($LOGFILE, 'a+');
-if (flock($logFileHandle, LOCK_SH)) {
+if (flock($logFileHandle, LOCK_EX)) {
     // 新規ログを追記
     $newLog = $_POST['name'].'<>'.$_POST['mail'].'<>'.$DATE.' '.$ID.'<>'.$_POST['comment'].'<>'.$_POST['title'].'<>'.$_POST['thread'].'<>'.$number.'<>'.$HOST.'<>'.$_SERVER['REMOTE_ADDR'].'<>'.$_SERVER['HTTP_USER_AGENT'].'<>'.htmlspecialchars($CH_UA, ENT_NOQUOTES, 'UTF-8').'<>'.htmlspecialchars($ACCEPT, ENT_NOQUOTES, 'UTF-8').'<>'.$WrtAgreementKey.'<>'.$LV.'<>'.$info."\n";
     fwrite($logFileHandle, $newLog);
@@ -1682,6 +1756,7 @@ if (flock($logFileHandle, LOCK_SH)) {
     for ($lineCount = 0; fgets($logFileHandle); $lineCount++);
     if ($lineCount > $LOG_LIMIT + 100) {
         // ログ縮小処理用にファイルを開き直す
+        flock($logFileHandle, LOCK_UN);
         fclose($logFileHandle);
         $logFileHandle = fopen($LOGFILE, 'c+');
         // 古いログを削除
@@ -1697,16 +1772,13 @@ if (flock($logFileHandle, LOCK_SH)) {
         }
     }
 }
+flock($logFileHandle, LOCK_UN);
 fclose($logFileHandle);
 
 // 記録
 $HAP['last'] = $NOWTIME;
 $HAP['comment'] = $_POST['comment'];
-$hapfileHandle = fopen($hapfile, 'w');
-if (flock($hapfileHandle, LOCK_EX)) {
-    fwrite($hapfileHandle, json_encode($HAP, JSON_UNESCAPED_UNICODE));
-}
-fclose($hapfileHandle);
+file_put_contents($hapfile, json_encode($HAP, JSON_UNESCAPED_UNICODE), LOCK_EX);
 
 // ヘッダー送信
 header('X-Resnum: '.$number);
@@ -1742,8 +1814,8 @@ function nametrip($tripkey)
     } else { // 10 digits
         $salt = substr($tripkey.'H.', 1, 2);
         $salt = preg_replace("/[^\.-z]/", '.', $salt);
-        $salt = strtr($salt,':;<=>?@[\\]^_`','ABCDEFGabcdef');
-        $trip = substr(crypt($tripkey, $salt),-10);
+        $salt = strtr($salt, ':;<=>?@[\\]^_`', 'ABCDEFGabcdef');
+        $trip = substr(crypt($tripkey, $salt), -10);
     }
     $trip = '◆'.$trip;
     return $trip;
