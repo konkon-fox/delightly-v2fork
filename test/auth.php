@@ -6,24 +6,40 @@ $SECRET_KEY = '1x0000000000000000000000000000000AA';
 
 $FORCESSL = true; #https未対応の場合はfalseにすること
 if (getenv('SKIP_VERIFICATION')) {
-  // 開発環境ではhttp可
-  $FORCESSL = false;
+    // 開発環境ではhttp可
+    $FORCESSL = false;
 }
 $NOWTIME = time();
-if (file_exists(__DIR__ . '/.use_cloudflare') && isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
-  $_SERVER['REMOTE_ADDR'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
+if (file_exists(__DIR__ . '/.use_cloudflare') && isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+    $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_CF_CONNECTING_IP'];
 }
 $HOST = gethostbyaddr($_SERVER['REMOTE_ADDR']);
 $area = [];
-$area["district"] = $area['proxy'] = $area['hosting'] = $area['regionName'] = $area['city'] = $area['countryCode'] = $area['mobile'] = $area["asname"] = '';
-if (!isset($_SERVER['HTTP_SEC_CH_UA'])) $_SERVER['HTTP_SEC_CH_UA'] = '';
-if (!isset($_SERVER['HTTP_SEC_CH_UA_PLATFORM'])) $_SERVER['HTTP_SEC_CH_UA_PLATFORM'] = '';
-if (!isset($_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION'])) $_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION'] = '';
-if (!isset($_SERVER['HTTP_SEC_CH_UA_BITNESS'])) $_SERVER['HTTP_SEC_CH_UA_BITNESS'] = '';
-if (!isset($_SERVER['HTTP_SEC_CH_UA_ARCH'])) $_SERVER['HTTP_SEC_CH_UA_ARCH'] = '';
-if (!isset($_SERVER['HTTP_SEC_CH_UA_MODEL'])) $_SERVER['HTTP_SEC_CH_UA_MODEL'] = '';
-if (!isset($_SERVER['HTTP_SEC_CH_UA_MOBILE'])) $_SERVER['HTTP_SEC_CH_UA_MOBILE'] = '';
-if (!isset($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'])) $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'] = '';
+$area['district'] = $area['proxy'] = $area['hosting'] = $area['regionName'] = $area['city'] = $area['countryCode'] = $area['mobile'] = $area['asname'] = '';
+if (!isset($_SERVER['HTTP_SEC_CH_UA'])) {
+    $_SERVER['HTTP_SEC_CH_UA'] = '';
+}
+if (!isset($_SERVER['HTTP_SEC_CH_UA_PLATFORM'])) {
+    $_SERVER['HTTP_SEC_CH_UA_PLATFORM'] = '';
+}
+if (!isset($_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION'])) {
+    $_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION'] = '';
+}
+if (!isset($_SERVER['HTTP_SEC_CH_UA_BITNESS'])) {
+    $_SERVER['HTTP_SEC_CH_UA_BITNESS'] = '';
+}
+if (!isset($_SERVER['HTTP_SEC_CH_UA_ARCH'])) {
+    $_SERVER['HTTP_SEC_CH_UA_ARCH'] = '';
+}
+if (!isset($_SERVER['HTTP_SEC_CH_UA_MODEL'])) {
+    $_SERVER['HTTP_SEC_CH_UA_MODEL'] = '';
+}
+if (!isset($_SERVER['HTTP_SEC_CH_UA_MOBILE'])) {
+    $_SERVER['HTTP_SEC_CH_UA_MOBILE'] = '';
+}
+if (!isset($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'])) {
+    $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'] = '';
+}
 
 // POSTデータを取得
 $token = isset($_POST['cf-turnstile-response']) ? $_POST['cf-turnstile-response'] : '';
@@ -32,25 +48,28 @@ $HOST = gethostbyaddr($_SERVER['REMOTE_ADDR']);
 // IPv6に対応したサーバ用
 $count_semi = substr_count($_SERVER['REMOTE_ADDR'], ':');
 $count_dot = substr_count($_SERVER['REMOTE_ADDR'], '.');
-if ($count_semi > 0 && $count_dot == 0) $ipv6 = $_SERVER['REMOTE_ADDR'];
-else $ipv6 = '';
+if ($count_semi > 0 && $count_dot === 0) {
+    $ipv6 = $_SERVER['REMOTE_ADDR'];
+} else {
+    $ipv6 = '';
+}
 // IPアドレス範囲
 if ($ipv6) {
- $d = explode(":", $_SERVER['REMOTE_ADDR']);
- // IPv6では後半を切り捨て
- $IP_ADDR = $d[0].":".$d[1].":".$d[2].":".$d[3];
- $range = $d[0].":".$d[1].":".substr($d[2], 0, 2);
-}else {
- $IP_ADDR = $_SERVER['REMOTE_ADDR'];
- $d = explode(".", $_SERVER['REMOTE_ADDR']);
- // IPアドレスの先端一部を取り出す
- $range = $d[0];
+    $d = explode(':', $_SERVER['REMOTE_ADDR']);
+    // IPv6では後半を切り捨て
+    $IP_ADDR = $d[0].':'.$d[1].':'.$d[2].':'.$d[3];
+    $range = $d[0].':'.$d[1].':'.substr($d[2], 0, 2);
+} else {
+    $IP_ADDR = $_SERVER['REMOTE_ADDR'];
+    $d = explode('.', $_SERVER['REMOTE_ADDR']);
+    // IPアドレスの先端一部を取り出す
+    $range = $d[0];
 }
-$target  = array(':', '.');
+$target = [':', '.'];
 $fileipaddr = str_replace($target, '', $IP_ADDR);
 
-if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === "https") {
-	$_SERVER['HTTPS'] = 'on';
+if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+    $_SERVER['HTTPS'] = 'on';
 }
 
 if ($FORCESSL && empty($_SERVER['HTTPS'])) {
@@ -58,177 +77,227 @@ if ($FORCESSL && empty($_SERVER['HTTPS'])) {
     exit;
 }
 
-header("Accept-CH: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version");
-header("Content-type: text/html; charset=UTF-8");
+header('Accept-CH: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version');
+header('Content-type: text/html; charset=UTF-8');
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-# UAチェック
-if (strlen($_SERVER['HTTP_USER_AGENT']) != mb_strlen($_SERVER['HTTP_USER_AGENT'],"UTF-8") || strlen($_SERVER['HTTP_USER_AGENT']) < 7 || strlen($_SERVER['HTTP_USER_AGENT']) > 384 || preg_match("/[^a-zA-Z0-9\-\/\.\(\):;,_\s]/", $_SERVER['HTTP_USER_AGENT'])) exit('認証エラー');
-
-if (strpos($_SERVER['HTTP_USER_AGENT'], 'Mozilla/5.0') === false) exit('専ブラからは認証できません。Webブラウザを使用してください');
-
-// refererが無い
-// 開発環境ではスキップ
-if (!getenv('SKIP_VERIFICATION')) {
-    if (empty($_SERVER['HTTP_REFERER'])) exit('認証エラー');
-    else {
-        if (!stristr($_SERVER['HTTP_REFERER'], $_SERVER['HTTP_HOST'])) exit('認証エラー');
-        if ($_SERVER['HTTP_HOST'] != $_SERVER['SERVER_NAME']) exit('認証エラー');
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    # UAチェック
+    if (strlen($_SERVER['HTTP_USER_AGENT']) !== mb_strlen($_SERVER['HTTP_USER_AGENT'], 'UTF-8') || strlen($_SERVER['HTTP_USER_AGENT']) < 7 || strlen($_SERVER['HTTP_USER_AGENT']) > 384 || preg_match("/[^a-zA-Z0-9\-\/\.\(\):;,_\s]/", $_SERVER['HTTP_USER_AGENT'])) {
+        exit('認証エラー');
     }
-}
 
-// 簡易PROXYチェック
-$PROXY = false;
-if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['REMOTE_ADDR'] != $_SERVER['HTTP_X_FORWARDED_FOR']) $PROXY = true;
-if (isset($_SERVER['HTTP_VIA'])) $PROXY = true;
-if (isset($_SERVER['HTTP_FORWARDED'])) $PROXY = true;
-if (isset($_SERVER['HTTP_CACHE_INFO'])) $PROXY = true;
-if (isset($_SERVER['HTTP_CLIENT_IP'])) $PROXY = true;
-if (isset($_SERVER['HTTP_PROXY_CONNECTION'])) $PROXY = true;
-if (isset($_SERVER['HTTP_SP_HOST'])) $PROXY = true;
-if (isset($_SERVER['HTTP_X_LOCKING'])) $PROXY = true;
-#if ($PROXY) exit('認証エラー'); // 環境によっては誤判定が起きるので使わない
-
-if (isset($_POST['cf-turnstile-response'])) {
-    // フォームデータを準備
-    $post_data = array(
-        'secret' => $SECRET_KEY,
-        'response' => $token,
-        'remoteip' => $IP_ADDR,
-    );
-    // cURLセッション初期化
-    $ch = curl_init();
-    // cURLのオプションを設定
-    curl_setopt($ch, CURLOPT_URL, 'https://challenges.cloudflare.com/turnstile/v0/siteverify');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post_data));
-    // リクエストを実行し、レスポンスを取得
-    $response = curl_exec($ch);
-    // エラーがある場合はエラー情報を取得
-    if(curl_errno($ch)){
-        echo 'Curl error: ' . curl_error($ch);
+    if (strpos($_SERVER['HTTP_USER_AGENT'], 'Mozilla/5.0') === false) {
+        exit('専ブラからは認証できません。Webブラウザを使用してください');
     }
-    // cURLセッションを閉じる
-    curl_close($ch);
 
-    // レスポンス
-    $result = json_decode($response, true);
-    $success = $result["success"];
-    $error = $result["error-codes"];
+    // refererが無い
+    // 開発環境ではスキップ
+    if (!getenv('SKIP_VERIFICATION')) {
+        if (empty($_SERVER['HTTP_REFERER'])) {
+            exit('認証エラー');
+        } else {
+            if (!stristr($_SERVER['HTTP_REFERER'], $_SERVER['HTTP_HOST'])) {
+                exit('認証エラー');
+            }
+            if ($_SERVER['HTTP_HOST'] !== $_SERVER['SERVER_NAME']) {
+                exit('認証エラー');
+            }
+        }
+    }
 
-    if (strlen($_POST['ClientID']) != 32 || $success == false) {
-        print_r($success);
-        exit("認証に失敗しました。再度やりなおしてください");
+    // 簡易PROXYチェック
+    $PROXY = false;
+    if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['REMOTE_ADDR'] !== $_SERVER['HTTP_X_FORWARDED_FOR']) {
+        $PROXY = true;
+    }
+    if (isset($_SERVER['HTTP_VIA'])) {
+        $PROXY = true;
+    }
+    if (isset($_SERVER['HTTP_FORWARDED'])) {
+        $PROXY = true;
+    }
+    if (isset($_SERVER['HTTP_CACHE_INFO'])) {
+        $PROXY = true;
+    }
+    if (isset($_SERVER['HTTP_CLIENT_IP'])) {
+        $PROXY = true;
+    }
+    if (isset($_SERVER['HTTP_PROXY_CONNECTION'])) {
+        $PROXY = true;
+    }
+    if (isset($_SERVER['HTTP_SP_HOST'])) {
+        $PROXY = true;
+    }
+    if (isset($_SERVER['HTTP_X_LOCKING'])) {
+        $PROXY = true;
+    }
+    #if ($PROXY) exit('認証エラー'); // 環境によっては誤判定が起きるので使わない
+
+    if (isset($_POST['cf-turnstile-response'])) {
+        // フォームデータを準備
+        $post_data = [
+            'secret' => $SECRET_KEY,
+            'response' => $token,
+            'remoteip' => $IP_ADDR,
+        ];
+        // cURLセッション初期化
+        $ch = curl_init();
+        // cURLのオプションを設定
+        curl_setopt($ch, CURLOPT_URL, 'https://challenges.cloudflare.com/turnstile/v0/siteverify');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post_data));
+        // リクエストを実行し、レスポンスを取得
+        $response = curl_exec($ch);
+        // エラーがある場合はエラー情報を取得
+        if (curl_errno($ch)) {
+            echo 'Curl error: ' . curl_error($ch);
+        }
+        // cURLセッションを閉じる
+        curl_close($ch);
+
+        // レスポンス
+        $result = json_decode($response, true);
+        $success = $result['success'];
+        $error = $result['error-codes'];
+
+        if (strlen($_POST['ClientID']) !== 32 || $success === false) {
+            print_r($success);
+            exit('認証に失敗しました。再度やりなおしてください');
         }
 
-// smart phone marks
-$admin = false;
-$SLIP_NAME = 'JP';
-$slip = "0";
-$SLIP_SP = $MM = $WF = false;
-@include './extend/smartphonemarks.php';
+        // smart phone marks
+        $admin = false;
+        $SLIP_NAME = 'JP';
+        $slip = '0';
+        $SLIP_SP = $MM = $WF = false;
+        @include './extend/smartphonemarks.php';
 
-$options =array(
-        'http' =>array(
-                'method' => "GET",
-                )
-        );
- $url = "http://ip-api.com/json/".$_SERVER['REMOTE_ADDR']."?fields=countryCode,regionName,city,asname,mobile,proxy,hosting&lang=ja";
- $cp = curl_init();
- /*オプション:リダイレクトされたらリダイレクト先のページを取得する*/
- curl_setopt($cp, CURLOPT_RETURNTRANSFER, 1);
- /*オプション:URLを指定する*/
- curl_setopt($cp, CURLOPT_URL, $url);
- /*オプション:タイムアウト時間を指定する*/
- curl_setopt($cp, CURLOPT_TIMEOUT, 2000);
- /*オプション:ユーザーエージェントを指定する*/
-curl_setopt($cp, CURLOPT_USERAGENT, "Mozilla/5.0 P2/2.5 (iPad; CPU OS 13_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/87.0.4280.77 Mobile/15E148 Safari/604.1");
- curl_setopt($cp, CURLOPT_HEADER, true);
- $source = curl_exec($cp);
- $curlInfo = curl_getinfo($cp);
-   // ヘッダを一緒に出力したときは分割させる
-   $headerSize = false;
-   if ( isset($curlInfo["header_size"]) && $curlInfo["header_size"]!="" ) {
-      $headerSize = $curlInfo["header_size"];
-   }
-   $head = substr($source, 0, $headerSize); // ヘッダ部
- $head = str_replace(["\r\n", "\r", "\n"], "\n", $head);
- $header = explode("\n", $head);
- foreach ($header as $tmp) {
- list($key, $value) = explode(": ", $tmp);
- $HTTP[$key] = $value;
- }
-   $data = substr($source, $headerSize);    // ボディ部
- curl_close($cp);
- $area = json_decode($data, true);
- // 国名取得(CFを通さないサーバの場合)
- if (empty($_SERVER['HTTP_CF_IPCOUNTRY'])) {
-  if ($area["countryCode"]) $_SERVER['HTTP_CF_IPCOUNTRY'] = $area["countryCode"];
-  else $_SERVER['HTTP_CF_IPCOUNTRY'] = "JP";
- }
- // モバイルを検出
- if ($area['mobile'] == true && $slip == "0" && strpos($HOST, 'bbtec.net') === false && strpos($HOST, 'ocn.ne.jp') === false && strpos($HOST, 'dion.ne.jp') === false) {
-  $slip = "S";
-  $SLIP_SP = true;
-  $SLIP_NAME = $area["asname"];
- }
+        $options = [
+                'http' => [
+                        'method' => 'GET',
+                        ],
+                ];
+        $url = 'http://ip-api.com/json/'.$_SERVER['REMOTE_ADDR'].'?fields=countryCode,regionName,city,asname,mobile,proxy,hosting&lang=ja';
+        $cp = curl_init();
+        /*オプション:リダイレクトされたらリダイレクト先のページを取得する*/
+        curl_setopt($cp, CURLOPT_RETURNTRANSFER, 1);
+        /*オプション:URLを指定する*/
+        curl_setopt($cp, CURLOPT_URL, $url);
+        /*オプション:タイムアウト時間を指定する*/
+        curl_setopt($cp, CURLOPT_TIMEOUT, 2000);
+        /*オプション:ユーザーエージェントを指定する*/
+        curl_setopt($cp, CURLOPT_USERAGENT, 'Mozilla/5.0 P2/2.5 (iPad; CPU OS 13_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/87.0.4280.77 Mobile/15E148 Safari/604.1');
+        curl_setopt($cp, CURLOPT_HEADER, true);
+        $source = curl_exec($cp);
+        $curlInfo = curl_getinfo($cp);
+        // ヘッダを一緒に出力したときは分割させる
+        $headerSize = false;
+        if (isset($curlInfo['header_size']) && $curlInfo['header_size'] !== '') {
+            $headerSize = $curlInfo['header_size'];
+        }
+        $head = substr($source, 0, $headerSize); // ヘッダ部
+        $head = str_replace(["\r\n", "\r", "\n"], "\n", $head);
+        $header = explode("\n", $head);
+        foreach ($header as $tmp) {
+            list($key, $value) = explode(': ', $tmp);
+            $HTTP[$key] = $value;
+        }
+        $data = substr($source, $headerSize);    // ボディ部
+        curl_close($cp);
+        $area = json_decode($data, true);
+        // 国名取得(CFを通さないサーバの場合)
+        if (empty($_SERVER['HTTP_CF_IPCOUNTRY'])) {
+            if ($area['countryCode']) {
+                $_SERVER['HTTP_CF_IPCOUNTRY'] = $area['countryCode'];
+            } else {
+                $_SERVER['HTTP_CF_IPCOUNTRY'] = 'JP';
+            }
+        }
+        // モバイルを検出
+        if ($area['mobile'] === true && $slip === '0' && strpos($HOST, 'bbtec.net') === false && strpos($HOST, 'ocn.ne.jp') === false && strpos($HOST, 'dion.ne.jp') === false) {
+            $slip = 'S';
+            $SLIP_SP = true;
+            $SLIP_NAME = $area['asname'];
+        }
 
-// User-Agent Client Hints
-if ($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST']) $_SERVER['HTTP_SEC_CH_UA'] = $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'];
-$CH_UA = $_SERVER['HTTP_SEC_CH_UA'].$_SERVER['HTTP_SEC_CH_UA_PLATFORM'].$_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION'].$_SERVER['HTTP_SEC_CH_UA_BITNESS'].$_SERVER['HTTP_SEC_CH_UA_ARCH'].$_SERVER['HTTP_SEC_CH_UA_MODEL'].$_SERVER['HTTP_SEC_CH_UA_MOBILE'];
-if (!$CH_UA) $CH_UA = $_SERVER['HTTP_USER_AGENT'];
-$ACCEPT = $_SERVER['HTTP_ACCEPT'].$_SERVER['HTTP_ACCEPT_LANGUAGE'].$_SERVER['CONTENT_TYPE'];
+        // User-Agent Client Hints
+        if ($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST']) {
+            $_SERVER['HTTP_SEC_CH_UA'] = $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'];
+        }
+        $CH_UA = $_SERVER['HTTP_SEC_CH_UA'].$_SERVER['HTTP_SEC_CH_UA_PLATFORM'].$_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION'].$_SERVER['HTTP_SEC_CH_UA_BITNESS'].$_SERVER['HTTP_SEC_CH_UA_ARCH'].$_SERVER['HTTP_SEC_CH_UA_MODEL'].$_SERVER['HTTP_SEC_CH_UA_MOBILE'];
+        if (!$CH_UA) {
+            $CH_UA = $_SERVER['HTTP_USER_AGENT'];
+        }
+        $ACCEPT = $_SERVER['HTTP_ACCEPT'].$_SERVER['HTTP_ACCEPT_LANGUAGE'].$_SERVER['CONTENT_TYPE'];
 
-if (!preg_match("/\.jp$/i", $HOST) && !preg_match("/\.bbtec\.net$/", $HOST) && !$ipv6 && !$SLIP_SP && !$MM && !$WF) $slip = "H";
+        if (!preg_match("/\.jp$/i", $HOST) && !preg_match("/\.bbtec\.net$/", $HOST) && !$ipv6 && !$SLIP_SP && !$MM && !$WF) {
+            $slip = 'H';
+        }
 
-# 鍵を生成する(ClientIDから生成される8桁の数値)
-$WrtAgreementKey = substr(preg_replace("/[^0-9]/", "", md5($_POST['ClientID'])), 0, 8);
-# 記録ファイルが設置された場所。
-$HAP_PATH = './HAP/';
-$ip_file = $HAP_PATH.'ip_'.hash('sha256', $fileipaddr).'.cgi';
-$kr_file = $HAP_PATH.'kr_'.md5($range.$area["asname"].$CH_UA.$ACCEPT).'.cgi';
-$nokr = $noip = false;
-if (is_file($kr_file)) {
- if (filemtime($kr_file) + 2592000 > $NOWTIME) $WrtAgreementKey = file_get_contents($kr_file);
- else $nokr = true;
-}else $nokr = true;
-if (is_file($ip_file)) {
- if (filemtime($ip_file) + 2592000 > $NOWTIME) $WrtAgreementKey = file_get_contents($ip_file);
- else $noip = true;
-}else $noip = true;
+        # 鍵を生成する(ClientIDから生成される8桁の数値)
+        $WrtAgreementKey = substr(preg_replace('/[^0-9]/', '', md5($_POST['ClientID'])), 0, 8);
+        # 記録ファイルが設置された場所。
+        $HAP_PATH = './HAP/';
+        $ip_file = $HAP_PATH.'ip_'.hash('sha256', $fileipaddr).'.cgi';
+        $kr_file = $HAP_PATH.'kr_'.md5($range.$area['asname'].$CH_UA.$ACCEPT).'.cgi';
+        $nokr = $noip = false;
+        if (is_file($kr_file)) {
+            if (filemtime($kr_file) + 2592000 > $NOWTIME) {
+                $WrtAgreementKey = file_get_contents($kr_file);
+            } else {
+                $nokr = true;
+            }
+        } else {
+            $nokr = true;
+        }
+        if (is_file($ip_file)) {
+            if (filemtime($ip_file) + 2592000 > $NOWTIME) {
+                $WrtAgreementKey = file_get_contents($ip_file);
+            } else {
+                $noip = true;
+            }
+        } else {
+            $noip = true;
+        }
 
-if ($noip) file_put_contents($ip_file, $WrtAgreementKey, LOCK_EX);
-if ($nokr) file_put_contents($kr_file, $WrtAgreementKey, LOCK_EX);
+        if ($noip) {
+            file_put_contents($ip_file, $WrtAgreementKey, LOCK_EX);
+        }
+        if ($nokr) {
+            file_put_contents($kr_file, $WrtAgreementKey, LOCK_EX);
+        }
 
-$clientid = hash('sha256', hash('sha256', md5($WrtAgreementKey).preg_replace("/[^0-9]/", "", md5($WrtAgreementKey))));
-$file = $HAP_PATH.$clientid.'.cgi';
-if (!is_file($file)) {
-    $HAP = ["first"=>$NOWTIME,
- 	  "last"=>'',
- 	  "comment"=>'',
-          "HOST"=>$HOST,
-          "REMOTE_ADDR"=>$IP_ADDR,
- 	  "USER_AGENT"=>$_SERVER['HTTP_USER_AGENT'],
- 	  "CH_UA"=>$CH_UA,
- 	  "ACCEPT"=>$ACCEPT,
- 	  "range"=>$range,
- 	  "provider"=>$area["asname"],
- 	  "country"=>$_SERVER['HTTP_CF_IPCOUNTRY'],
- 	  "region"=>$area["regionName"].$area["city"].$area["district"],
- 	  "proxy"=>$area["proxy"],
- 	  "hosting"=>$area["hosting"],
- 	  "slip"=>$slip,
- 	  "SLIP_NAME"=>$SLIP_NAME,
- 	  "SLIP_SP"=>$SLIP_SP,
- 	  "MM"=>$MM,
- 	  "WF"=>$WF,
- 	 ];
-    file_put_contents($file, json_encode($HAP, JSON_UNESCAPED_UNICODE), LOCK_EX);
-}
-	setcookie("WrtAgreementKey", $WrtAgreementKey, $NOWTIME+31536000, "/");
-    exit('認証に成功しました。Web版をご利用の場合はそのまま投稿できます<br>2ch専用ブラウザでの投稿時やCookie失効時は以下のキーをE-mail欄に入力してご利用ください<br>※E-mail欄は外部には表示されません<input name="mcode" onfocus="this.select()" value="#'.$WrtAgreementKey.'" style="display:block;margin:auto;width:95%;" readonly=""><hr><a href="#" onclick="window.history.go(-1);">前ページに戻る</a><br><a href="#" onclick="window.history.go(-2);">2つ前のページに戻る</a>');
- }else exit("認証データがありません");
+        $clientid = hash('sha256', hash('sha256', md5($WrtAgreementKey).preg_replace('/[^0-9]/', '', md5($WrtAgreementKey))));
+        $file = $HAP_PATH.$clientid.'.cgi';
+        if (!is_file($file)) {
+            $HAP = ['first' => $NOWTIME,
+              'last' => '',
+              'comment' => '',
+                  'HOST' => $HOST,
+                  'REMOTE_ADDR' => $IP_ADDR,
+              'USER_AGENT' => $_SERVER['HTTP_USER_AGENT'],
+              'CH_UA' => $CH_UA,
+              'ACCEPT' => $ACCEPT,
+              'range' => $range,
+              'provider' => $area['asname'],
+              'country' => $_SERVER['HTTP_CF_IPCOUNTRY'],
+              'region' => $area['regionName'].$area['city'].$area['district'],
+              'proxy' => $area['proxy'],
+              'hosting' => $area['hosting'],
+              'slip' => $slip,
+              'SLIP_NAME' => $SLIP_NAME,
+              'SLIP_SP' => $SLIP_SP,
+              'MM' => $MM,
+              'WF' => $WF,
+             ];
+            file_put_contents($file, json_encode($HAP, JSON_UNESCAPED_UNICODE), LOCK_EX);
+        }
+        setcookie('WrtAgreementKey', $WrtAgreementKey, $NOWTIME + 31536000, '/');
+        exit('認証に成功しました。Web版をご利用の場合はそのまま投稿できます<br>2ch専用ブラウザでの投稿時やCookie失効時は以下のキーをE-mail欄に入力してご利用ください<br>※E-mail欄は外部には表示されません<input name="mcode" onfocus="this.select()" value="#'.$WrtAgreementKey.'" style="display:block;margin:auto;width:95%;" readonly=""><hr><a href="#" onclick="window.history.go(-1);">前ページに戻る</a><br><a href="#" onclick="window.history.go(-2);">2つ前のページに戻る</a>');
+    } else {
+        exit('認証データがありません');
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -264,9 +333,9 @@ function onSubmit(token) {
 <div class="#example-container">
 <form action="/test/nice.php" method="POST">
     <input type=hidden name=time value=<?php echo time(); ?>>
-    <input type=hidden name=HOST value=<?=$HOST?>>
+    <input type=hidden name=HOST value=<?=$HOST;?>>
     <input type=hidden name=ClientID id=ClientID>
-   <div class="cf-turnstile" data-sitekey="<?=$sitekey?>"></div>
+   <div class="cf-turnstile" data-sitekey="<?=$sitekey;?>"></div>
    <button type="submit" value="Submit">上記全てに同意する</button>
 </form>
 </div>
@@ -291,7 +360,7 @@ print_r($result);
 
     window.onloadTurnstileCallback = function () {
     turnstile.render('#example-container', {
-        sitekey: '<?=$sitekey?>',
+        sitekey: '<?=$sitekey;?>',
         callback: function(token) {
             console.log(`Challenge Success ${token}`);
         },
@@ -300,5 +369,5 @@ print_r($result);
 </script>
 </body>
 </html>
-<?
+<?php
 exit;
