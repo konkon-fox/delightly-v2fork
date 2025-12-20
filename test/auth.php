@@ -317,8 +317,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_COOKIE['WrtAgreementKey'])) {
         $WrtAgreementKey = $_COOKIE['WrtAgreementKey'];
     } elseif (is_file($enFile)) {
-        // 環境控えファイル更新が7日間以内なら同一キーを返す
-        if (filemtime($enFile) + 7 * 24 * 60 * 60 > $NOWTIME) {
+        // 環境控えファイル更新が30日間以内なら同一キーを返す
+        if (filemtime($enFile) + 30 * 24 * 60 * 60 > $NOWTIME) {
             $WrtAgreementKey = trim(safe_file_get_contents($enFile));
         }
     }
