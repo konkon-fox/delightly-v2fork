@@ -1739,7 +1739,7 @@ if (!$tlonly) {
 }
 
 // 投稿ログ
-$LOG_LIMIT = 100000;
+$LOG_LIMIT = 10000;
 if ($SETTING['LOG_LIMIT'] !== '') {
     $LOG_LIMIT = min((int) $SETTING['LOG_LIMIT'], $LOG_LIMIT);
     if ($LOG_LIMIT < 0) {
@@ -1749,7 +1749,7 @@ if ($SETTING['LOG_LIMIT'] !== '') {
 $logFileHandle = fopen($LOGFILE, 'a+');
 if (flock($logFileHandle, LOCK_EX)) {
     // 新規ログを追記
-    $newLog = $_POST['name'].'<>'.$_POST['mail'].'<>'.$DATE.' '.$ID.'<>'.$_POST['comment'].'<>'.$_POST['title'].'<>'.$_POST['thread'].'<>'.$number.'<>'.$HOST.'<>'.$_SERVER['REMOTE_ADDR'].'<>'.$_SERVER['HTTP_USER_AGENT'].'<>'.htmlspecialchars($CH_UA, ENT_NOQUOTES, 'UTF-8').'<>'.htmlspecialchars($ACCEPT, ENT_NOQUOTES, 'UTF-8').'<>'.$WrtAgreementKey.'<>'.$LV.'<>'.$info."\n";
+    $newLog = $_POST['name'].'<>'.$_POST['mail'].'<>'.$DATE.' '.$ID.'<>'.$_POST['comment'].'<>'.$subject.'<>'.$_POST['thread'].'<>'.$number.'<>'.$HOST.'<>'.$_SERVER['REMOTE_ADDR'].'<>'.$_SERVER['HTTP_USER_AGENT'].'<>'.htmlspecialchars($CH_UA, ENT_NOQUOTES, 'UTF-8').'<>'.htmlspecialchars($ACCEPT, ENT_NOQUOTES, 'UTF-8').'<>'.$WrtAgreementKey.'<>'.$LV.'<>'.$info."\n";
     fwrite($logFileHandle, $newLog);
     // ログの行数確認
     rewind($logFileHandle);
