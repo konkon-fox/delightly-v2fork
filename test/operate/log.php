@@ -18,21 +18,24 @@ dd {
 </head>
 <body>
 <div class="main">
-<div class="back"><a href="<?=$_SERVER['HTTP_REFERER']?>">← 管理ページへ戻る</a></div>
+<div class="back"><a href="<?=$_SERVER['HTTP_REFERER'];?>">← 管理ページへ戻る</a></div>
 <div><b>ログ閲覧</b></div>
 <?php
 // ログ
-$LOGFILE = "../".$_REQUEST['bbs']."/LOG.cgi";
-$LOG = array();
+$LOGFILE = '../'.$_REQUEST['bbs'].'/LOG.cgi';
+$LOG = [];
 $n = 0;
 // ログ取得
-if (is_file($LOGFILE)) $LOG = file($LOGFILE);
-else Finish('<b>ログファイルがありません</b><div class="back"><a href="'.$_SERVER['HTTP_REFERER'].'">← 戻る</a></div>');
-foreach($LOG as $tmp) {
-	$n++;
-	$tmp = rtrim($tmp);
-	list($name,$mail,$dateid,$comment,$title,$key,$number,$HOST,$IP,$UA,$CH_UA,$ACCEPT,$accountid,$LV,$PORT,$CF_IPCOUNTRY,,$ken,$slip,) = explode("<>", $tmp);
-	echo "<dt>".$n."[$d] ：<b>".$name."</b>[".$mail."]：".$dateid." 発信元:".$IP."<".$PORT."> HOST:".$HOST."<dd>".$comment."<hr>ClientID:".$accountid."<Lv".$LV."><br>User-Agent:".$UA."<br>Sec-CH-UA:".$CH_UA."<br>ACCEPT:".$ACCEPT."<br>IPCOUNTRY:".$CF_IPCOUNTRY." 認証時データ:".$ken." ".$slip."<br>URL:<a href='https://".$_SERVER['HTTP_HOST']."/?st=".$number."#".$_REQUEST['bbs']."/".$key."/' target='_new'>https://".$_SERVER['HTTP_HOST']."/?st=".$number."#".$_REQUEST['bbs']."/".$key."/</a></dd>\n";
+if (is_file($LOGFILE)) {
+    $LOG = file($LOGFILE);
+} else {
+    Finish('<b>ログファイルがありません</b><div class="back"><a href="'.$_SERVER['HTTP_REFERER'].'">← 戻る</a></div>');
+}
+foreach ($LOG as $tmp) {
+    $n++;
+    $tmp = rtrim($tmp);
+    list($name, $mail, $dateid, $comment, $title, $key, $number, $HOST, $IP, $UA, $CH_UA, $ACCEPT, $accountid, $LV, $PORT, $CF_IPCOUNTRY, , $ken, $slip, ) = explode('<>', $tmp);
+    echo '<dt>'.$n."[$d] ：<b>".$name.'</b>['.$mail.']：'.$dateid.' 発信元:'.$IP.'<'.$PORT.'> HOST:'.$HOST.'<dd>'.$comment.'<hr>ClientID:'.$accountid.'<Lv'.$LV.'><br>User-Agent:'.$UA.'<br>Sec-CH-UA:'.$CH_UA.'<br>ACCEPT:'.$ACCEPT.'<br>IPCOUNTRY:'.$CF_IPCOUNTRY.' 認証時データ:'.$ken.' '.$slip."<br>URL:<a href='https://".$_SERVER['HTTP_HOST'].'/?st='.$number.'#'.$_REQUEST['bbs'].'/'.$key."/' target='_new'>https://".$_SERVER['HTTP_HOST'].'/?st='.$number.'#'.$_REQUEST['bbs'].'/'.$key."/</a></dd>\n";
 }
 ?></div>
 </body>
