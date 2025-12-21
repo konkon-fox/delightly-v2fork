@@ -84,7 +84,7 @@ header('Accept-CH: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version-Lis
 header('Content-type: text/html; charset=UTF-8');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // 以上なUAを拒否
+    // 異常なUAを拒否
     if (
         strlen($_SERVER['HTTP_USER_AGENT']) !== mb_strlen($_SERVER['HTTP_USER_AGENT'], 'UTF-8') ||
         strlen($_SERVER['HTTP_USER_AGENT']) < 7 ||
@@ -178,6 +178,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit('認証データがありません');
     }
 
+    // クッキーがある場合はそれを返す
+    if (isset($_COOKIE['WrtAgreementKey'])) {
+        $WrtAgreementKey = $_COOKIE['WrtAgreementKey'];
+        setcookie('WrtAgreementKey', $WrtAgreementKey, $NOWTIME + 31536000, '/');
+        exit('認証に成功しました。Web版をご利用の場合はそのまま投稿できます<br>2ch専用ブラウザでの投稿時やCookie失効時は以下のキーをE-mail欄に入力してご利用ください<br>※E-mail欄は外部には表示されません<input name="mcode" onfocus="this.select()" value="#'.$WrtAgreementKey.'" style="display:block;margin:auto;width:95%;" readonly=""><hr><a href="#" onclick="window.history.go(-1);">前ページに戻る</a><br><a href="#" onclick="window.history.go(-2);">2つ前のページに戻る</a>');
+    }
+
     // smart phone marks
     $admin = false;
     $SLIP_NAME = 'JP';
@@ -200,27 +207,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     /*オプション:URLを指定する*/
     curl_setopt($cp, CURLOPT_URL, $url);
     /*オプション:タイムアウト時間を指定する*/
-    curl_setopt($cp, CURLOPT_TIMEOUT, 2000);
+    curl_setopt($cp, CURLOPT_TIMEOUT, 5);
     /*オプション:ユーザーエージェントを指定する*/
     curl_setopt($cp, CURLOPT_USERAGENT, 'Mozilla/5.0 P2/2.5 (iPad; CPU OS 13_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/87.0.4280.77 Mobile/15E148 Safari/604.1');
     curl_setopt($cp, CURLOPT_HEADER, true);
     $source = curl_exec($cp);
     $curlInfo = curl_getinfo($cp);
-    // ヘッダを一緒に出力したときは分割させる
-    $headerSize = false;
-    if (isset($curlInfo['header_size']) && $curlInfo['header_size'] !== '') {
-        $headerSize = $curlInfo['header_size'];
-    }
-    $head = substr($source, 0, $headerSize); // ヘッダ部
-    $head = str_replace(["\r\n", "\r", "\n"], "\n", $head);
-    $header = explode("\n", $head);
-    foreach ($header as $tmp) {
-        list($key, $value) = explode(': ', $tmp);
-        $HTTP[$key] = $value;
-    }
-    $data = substr($source, $headerSize);    // ボディ部
+
+    $headerSize = $curlInfo['header_size'];
+    $head = substr($source, 0, $headerSize);
+    $data = substr($source, $headerSize);
     curl_close($cp);
+
+    // ヘッダーを解析して配列に格納
+    $HTTP = [];
+    $headLines = explode("\n", str_replace(["\r\n", "\r"], "\n", $head));
+    foreach ($headLines as $line) {
+        if (strpos($line, ': ') !== false) {
+            list($key, $value) = explode(': ', $line, 2);
+            $HTTP[strtolower(trim($key))] = trim($value); // キーを小文字で統一して保存
+        }
+    }
+
+    // API制限（X-Rl）のチェック
+    if (isset($HTTP['x-rl']) && (int)$HTTP['x-rl'] <= 5) {
+        exit('【認証エラー】サーバーの認証リクエストが上限に達しました。1分ほど時間を置いてから再度お試しください。');
+    }
+
+    // $areaに結果を格納
     $area = json_decode($data, true);
+
     // 国名取得(CFを通さないサーバの場合)
     if (empty($_SERVER['HTTP_CF_IPCOUNTRY'])) {
         if ($area['countryCode']) {
@@ -291,8 +307,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // ホスティング判定された回線からの認証を拒否
-    if (file_exists(__DIR__ . '/.use_strict_auth') && $slip === 'H') {
-        exit('【認証エラー】ご使用の回線（海外/VPN/データセンター等）からの認証は現在制限されています。家庭用回線またはモバイル回線からお試しください。');
+    if (!getenv('SKIP_VERIFICATION')) {
+        if (file_exists(__DIR__ . '/.use_strict_auth') && $slip === 'H') {
+            exit('【認証エラー】ご使用の回線（海外/VPN/データセンター等）からの認証は現在制限されています。家庭用回線またはモバイル回線からお試しください。');
+        }
     }
 
     # 鍵を生成する(uuid上8桁の英数字)
@@ -313,11 +331,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 環境控えファイル
     $enFile = $HAP_PATH.'en_'.$environmentHash.'.cgi';
 
-    // クッキーがある場合はそれを返す
-    if (isset($_COOKIE['WrtAgreementKey'])) {
-        $WrtAgreementKey = $_COOKIE['WrtAgreementKey'];
-    } elseif (is_file($enFile)) {
-        // 環境控えファイル更新が30日間以内なら同一キーを返す
+    // 環境控えファイル更新が30日間以内なら同一キーを返す
+    if (is_file($enFile)) {
         if (filemtime($enFile) + 30 * 24 * 60 * 60 > $NOWTIME) {
             $WrtAgreementKey = trim(safe_file_get_contents($enFile));
         }
@@ -325,11 +340,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 環境控えファイルを更新
     file_put_contents($enFile, $WrtAgreementKey, LOCK_EX);
 
-    // クライアントID算出
-    $clientid = hash('sha256', hash('sha256', md5($WrtAgreementKey).preg_replace('/[^0-9]/', '', md5($WrtAgreementKey))));
+    // アカウントID算出
+    $accountId = hash('sha256', hash('sha256', md5($WrtAgreementKey).preg_replace('/[^0-9]/', '', md5($WrtAgreementKey))));
 
     // ユーザーファイル作成
-    $file = $HAP_PATH.$clientid.'.cgi';
+    $file = $HAP_PATH.$accountId.'.cgi';
     if (!is_file($file)) {
         $HAP = ['first' => $NOWTIME,
           'last' => '',
@@ -371,7 +386,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
 <h4>法的な投稿前確認画面</h4>
-<form method="POST" accept-charset="Shift_JIS" id="postForm" action=""><b><div>投稿を行うには下記に同意し、「同意する」をクリックする必要があります。</div>
+<form method="POST" id="postForm" action="">
+<b>
+<div>投稿を行うには下記に同意し、「同意する」をクリックする必要があります。</div>
 <div>
 ・投稿者は、投稿に際して、利用する掲示板のローカルルールに同意することを承諾します。また、この投稿規定と利用する掲示板のローカルルールが相反する場合、利用する掲示板のローカルルールが優先されます。<br>
 ・投稿者は、全ての投稿に際し、発生する責任が投稿者に帰すことを承諾します。なお、本サービスでは利用する掲示板の削除規定に該当する場合などを除き、一度投稿したコンテンツを削除することはできません。<br>
@@ -386,11 +403,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div>上記に同意できない場合は前ページ等へ戻ってください。なお同意しない場合は投稿することはできません。</div>
 
 <div class="#example-container">
-  <input type=hidden name=time value=<?php echo time(); ?>>
-  <input type=hidden name=HOST value=<?=$HOST;?>>
-  <div class="cf-turnstile" data-sitekey="<?=$sitekey;?>"></div>
+  <input type="hidden" name="time" value=<?php echo time(); ?>>
+  <input type="hidden" name="HOST" value=<?= htmlspecialchars($HOST, ENT_QUOTES, 'UTF-8'); ?>>
+  <div class="cf-turnstile" data-sitekey="<?= htmlspecialchars($sitekey, ENT_QUOTES, 'UTF-8'); ?>"></div>
   <button type="submit" value="Submit">上記全てに同意する</button>
 </div>
-
+</form>
 </body>
 </html>
