@@ -28,6 +28,6 @@ function safe_file(
     }
     flock($fp, LOCK_UN);
     fclose($fp);
-    $array = preg_split('/\R/', $content, -1, PREG_SPLIT_NO_EMPTY);
+    $array = preg_split('/(\r\n|\r|\n)/', $content, -1, PREG_SPLIT_NO_EMPTY);
     return $array;
 }
