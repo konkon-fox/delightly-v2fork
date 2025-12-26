@@ -147,8 +147,14 @@ if ($ipv6 === true) {
  */
 function escapePostData(&$postData, $keepNewLine, $trimAll)
 {
+    // &#10;(LF) &#13;(CR) をエスケープ
+    $postData = preg_replace('/&#0*1[03];/', ' ', $postData);
+    // &#x0a;(LF) &#x0d;(CR) をエスケープ
+    $postData = preg_replace('/&#[xX]0*[aAdD];/', ' ', $postData);
+    // 数値文字参照を生文字に変換
+    $postData = html_entity_decode($postData, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     // ゼロ幅スペースを削除
-    $postData = preg_replace('/[\x{200B}\x{200C}\x{2060}\x{FEFF}]/u', '', $postData);
+    $postData = preg_replace('/[\x{00AD}\x{200B}\x{200C}\x{200E}\x{200F}\x{202A}-\x{202E}\x{2060}\x{FEFF}]/u', '', $postData);
     // 文末の改行と空白を削除
     $postData = preg_replace('/[\h\v]+\z/u', '', $postData);
     if ($trimAll) {
@@ -158,16 +164,8 @@ function escapePostData(&$postData, $keepNewLine, $trimAll)
         // 文頭の改行を削除
         $postData = preg_replace('/\A[\v]+/u', '', $postData);
     }
-    // 専ブラからの絵文字は数値実体参照で送られてくるのでhtmlspecialcharsは不可
-    $postData = preg_replace('/&(?!#[a-zA-Z0-9]+;)/', '&amp;', $postData);
-    $postData = str_replace('<', '&lt;', $postData);
-    $postData = str_replace('>', '&gt;', $postData);
-    $postData = str_replace('"', '&quot;', $postData);
-    $postData = str_replace("'", '&apos;', $postData);
-    // &#10;(LF) &#13;(CR) をエスケープ
-    $postData = preg_replace('/&#0*1[03];/', ' ', $postData);
-    // &#x0a;(LF) &#x0d;(CR) をエスケープ
-    $postData = preg_replace('/&#[xX]0*[aAdD];/', ' ', $postData);
+    // htmlタグをエスケープ
+    $postData = htmlspecialchars($postData, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     // 改行コードをエスケープ ※本文のみ<br>に変換
     $newLineChar = $keepNewLine ? '<br>' : ' ';
     $postData = str_replace(["\r\n","\r","\n"], $newLineChar, $postData);
