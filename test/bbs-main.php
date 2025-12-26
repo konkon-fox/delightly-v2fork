@@ -145,6 +145,18 @@ if ($ipv6 === true) {
  * @param bool $trimAll 前後全てをtrimするか
  *
  */
+// U+00AD ソフトハイフン
+// U+200B ゼロ幅スペース
+// U+200C ゼロ幅非接合子（一部言語で使用）
+// U+200E 左から右へのマーク LRM
+// U+200F 右から左へのマーク RLM
+// U+202A 左から右への埋め込み
+// U+202B 右から左への埋め込み
+// U+202C ポップ方向フォーマット
+// U+202D 左から右への上書き
+// U+202E 右から左への上書き
+// U+2060 単語結合子
+// U+FEFF 幅ゼロの改行なしスペース ZWNBSP
 function escapePostData(&$postData, $keepNewLine, $trimAll)
 {
     // &#10;(LF) &#13;(CR) をエスケープ
