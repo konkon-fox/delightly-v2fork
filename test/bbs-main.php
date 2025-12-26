@@ -137,9 +137,27 @@ if ($ipv6 === true) {
     $sliphost = preg_replace('/[0-9]/', '', $HOST);
 }
 
-// 特殊な文字等変換
-function escapePostData(&$postData, $keepNewLine)
+/**
+ * 投稿データをサニタイズする関数
+ *
+ * @param string &$postData 投稿データ
+ * @param bool $keepNewLine 文中の改行を保持するか
+ * @param bool $trimAll 前後全てをtrimするか
+ *
+ */
+function escapePostData(&$postData, $keepNewLine, $trimAll)
 {
+    // ゼロ幅スペースを削除
+    $postData = preg_replace('/[\x{200B}\x{200C}\x{2060}\x{FEFF}]/u', '', $postData);
+    // 文末の改行と空白を削除
+    $postData = preg_replace('/[\h\v]+\z/u', '', $postData);
+    if ($trimAll) {
+        // 文頭の改行と空白を削除
+        $postData = preg_replace('/\A[\h\v]+/u', '', $postData);
+    } else {
+        // 文頭の改行を削除
+        $postData = preg_replace('/\A[\v]+/u', '', $postData);
+    }
     // 専ブラからの絵文字は数値実体参照で送られてくるのでhtmlspecialcharsは不可
     $postData = preg_replace('/&(?!#[a-zA-Z0-9]+;)/', '&amp;', $postData);
     $postData = str_replace('<', '&lt;', $postData);
@@ -153,13 +171,11 @@ function escapePostData(&$postData, $keepNewLine)
     // 改行コードをエスケープ ※本文のみ<br>に変換
     $newLineChar = $keepNewLine ? '<br>' : ' ';
     $postData = str_replace(["\r\n","\r","\n"], $newLineChar, $postData);
-    // trim
-    $postData = trim($postData);
 }
-escapePostData($_POST['title'], false);
-escapePostData($_POST['name'], false);
-escapePostData($_POST['mail'], false);
-escapePostData($_POST['comment'], true);
+escapePostData($_POST['title'], false, true);
+escapePostData($_POST['name'], false, true);
+escapePostData($_POST['mail'], false, true);
+escapePostData($_POST['comment'], true, false);
 $_POST['board'] = str_replace(['.','/','|'], '', $_POST['board']);
 $_POST['thread'] = str_replace(['.','/','|'], '', $_POST['thread']);
 $msgbr = explode('<br>', $_POST['comment']);
