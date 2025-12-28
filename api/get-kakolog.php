@@ -33,7 +33,7 @@ try {
     }
     if (isset($_GET['until-date']) && !empty($_GET['until-date'])) {
         $dateTime = new DateTimeImmutable($_GET['until-date']);
-        $dateTime =  $dateTime->add(new DateInterval('P1D'));
+        $dateTime = $dateTime->add(new DateInterval('P1D'));
         $untilTime = $dateTime->format('U');
     }
 } catch (\Exception $e) {
@@ -83,7 +83,7 @@ function readSmallFileLines($subjectHandle): \Generator
     while (($buffer = fgets($subjectHandle)) !== false) {
         $line = trim($buffer);
         if ($line !== '') {
-            $line =  mb_convert_encoding($line, 'UTF-8', 'SJIS-win');
+            $line = mb_convert_encoding($line, 'UTF-8', 'SJIS-win');
             $lines[] = $line;
         }
     }
@@ -168,7 +168,7 @@ if (!$useIndexMode) {
         $offsets = [];
     } else {
         $offsets = explode("\n", $idxContent);
-        $offsets  = array_filter($offsets, function ($offset) {
+        $offsets = array_filter($offsets, function ($offset) {
             return $offset !== '';
         });
         $offsets = array_map(function ($offset) {
@@ -207,8 +207,8 @@ foreach ($linesToProcess as $line) {
     }
     // 各値
     $thread = (int) $matches[1];
-    $title  = $matches[2];
-    $res    = (int) $matches[3];
+    $title = $matches[2];
+    $res = (int) $matches[3];
     // 検索ワードでフィルタリング
     if (!empty($keywords)) {
         $normalizedTitle = normalizeString($title);
@@ -269,8 +269,8 @@ foreach ($linesToProcess as $line) {
     $itemsCount++;
     $kakologList[] = [
         'thread' => $thread ,
-        'title'  => $title,
-        'res'    => $res
+        'title' => $title,
+        'res' => $res,
     ];
 }
 
@@ -307,82 +307,82 @@ if (isset($sinceTime) || isset($untilTime)) {
 if (isset($minRes) || isset($maxRes)) {
     $minResText = isset($minRes) ? $minRes : '';
     $maxResText = isset($maxRes) ? $maxRes : '';
-    $html .=  "<div>(レス数：{$minResText}～{$maxResText})</div>";
+    $html .= "<div>(レス数：{$minResText}～{$maxResText})</div>";
 }
 // ページャー
 $pager = '';
-$pager .=  '<div class="d-flex column-gap-1 ms-auto">';
+$pager .= '<div class="d-flex column-gap-1 ms-auto">';
 // 最初へボタン
 $firstPage = 0;
-$pager .=  '<button';
-$pager .=  " hx-get=\"/api/get-kakolog.php?page={$firstPage}\"";
-$pager .=  ' hx-target="#result"';
-$pager .=  ' hx-swap="innerHTML"';
-$pager .=  ' hx-include="#search-form"';
-$pager .=  ' hx-indicator="#loading"';
-$pager .=  ' class="btn btn-sm btn-secondary"';
-if ($page == 0) {
-    $pager .=  ' disabled';
+$pager .= '<button';
+$pager .= " hx-get=\"/api/get-kakolog.php?page={$firstPage}\"";
+$pager .= ' hx-target="#result"';
+$pager .= ' hx-swap="innerHTML"';
+$pager .= ' hx-include="#search-form"';
+$pager .= ' hx-indicator="#loading"';
+$pager .= ' class="btn btn-sm btn-secondary"';
+if ($page === 0) {
+    $pager .= ' disabled';
 }
-$pager .=  '>';
-$pager .=  '最初へ';
-$pager .=  '</button>';
+$pager .= '>';
+$pager .= '最初へ';
+$pager .= '</button>';
 // 前へボタン
 $prevPage = $page - 1;
-$pager .=  '<button';
-$pager .=  " hx-get=\"/api/get-kakolog.php?page={$prevPage}\"";
-$pager .=  ' hx-target="#result"';
-$pager .=  ' hx-swap="innerHTML"';
-$pager .=  ' hx-include="#search-form"';
-$pager .=  ' hx-indicator="#loading"';
-$pager .=  ' class="btn btn-sm btn-secondary"';
+$pager .= '<button';
+$pager .= " hx-get=\"/api/get-kakolog.php?page={$prevPage}\"";
+$pager .= ' hx-target="#result"';
+$pager .= ' hx-swap="innerHTML"';
+$pager .= ' hx-include="#search-form"';
+$pager .= ' hx-indicator="#loading"';
+$pager .= ' class="btn btn-sm btn-secondary"';
 if ($page === 0) {
-    $pager .=  ' disabled';
+    $pager .= ' disabled';
 }
-$pager .=  '>';
-$pager .=  '前へ';
-$pager .=  '</button>';
+$pager .= '>';
+$pager .= '前へ';
+$pager .= '</button>';
 // 前へボタン
 $nextPage = $page + 1;
-$pager .=  '<button';
-$pager .=  " hx-get=\"/api/get-kakolog.php?page={$nextPage}\"";
-$pager .=  ' hx-target="#result"';
-$pager .=  ' hx-swap="innerHTML"';
-$pager .=  ' hx-include="#search-form"';
-$pager .=  ' hx-indicator="#loading"';
-$pager .=  ' class="btn btn-sm btn-secondary"';
+$pager .= '<button';
+$pager .= " hx-get=\"/api/get-kakolog.php?page={$nextPage}\"";
+$pager .= ' hx-target="#result"';
+$pager .= ' hx-swap="innerHTML"';
+$pager .= ' hx-include="#search-form"';
+$pager .= ' hx-indicator="#loading"';
+$pager .= ' class="btn btn-sm btn-secondary"';
 if (($page + 1) * $ITEMS_PER_PAGE >= $totalCount) {
-    $pager .=  ' disabled';
+    $pager .= ' disabled';
 }
-$pager .=  '>';
-$pager .=  '次へ';
-$pager .=  '</button>';
+$pager .= '>';
+$pager .= '次へ';
+$pager .= '</button>';
 // 最後へボタン
 $lastPage = $totalCount === 0 ? 0 : (int) (ceil($totalCount / $ITEMS_PER_PAGE) - 1);
-$pager .=  '<button';
-$pager .=  " hx-get=\"/api/get-kakolog.php?page={$lastPage}\"";
-$pager .=  ' hx-target="#result"';
-$pager .=  ' hx-swap="innerHTML"';
-$pager .=  ' hx-include="#search-form"';
-$pager .=  ' hx-indicator="#loading"';
-$pager .=  ' class="btn btn-sm btn-secondary"';
+$pager .= '<button';
+$pager .= " hx-get=\"/api/get-kakolog.php?page={$lastPage}\"";
+$pager .= ' hx-target="#result"';
+$pager .= ' hx-swap="innerHTML"';
+$pager .= ' hx-include="#search-form"';
+$pager .= ' hx-indicator="#loading"';
+$pager .= ' class="btn btn-sm btn-secondary"';
 if ($page === $lastPage) {
-    $pager .=  ' disabled';
+    $pager .= ' disabled';
 }
-$pager .=  '>';
-$pager .=  '最後へ';
-$pager .=  '</button>';
+$pager .= '>';
+$pager .= '最後へ';
+$pager .= '</button>';
 // ページャー終了
-$pager .=  '</div>';
+$pager .= '</div>';
 $html .= $pager;
 // 件数
 $startPage = $totalCount === 0 ? 0 : $page * $ITEMS_PER_PAGE + 1;
 $endPage = $totalCount === 0 ? 0 : $startPage + count($kakologList) - 1;
-$html .=  '<div class="ms-auto">';
-$html .=  "{$startPage}-{$endPage}件 / {$totalCount}件";
-$html .=  '</div>';
+$html .= '<div class="ms-auto">';
+$html .= "{$startPage}-{$endPage}件 / {$totalCount}件";
+$html .= '</div>';
 // 検索情報 & ページャー & 件数表示 終了
-$html .=  '</div>';
+$html .= '</div>';
 
 // 件数0
 if ($totalCount === 0) {
@@ -398,7 +398,7 @@ foreach ($kakologList as $index => $kakolog) {
     $date = date('Y-m-d H:i', $kakolog['thread']);
     $url = "https://{$domain}/test/read.cgi/{$bbsOfUrl}/{$kakolog['thread']}/";
     $safeUrl = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
-    $html .= '<div class="d-flex flex-column align-items-start row-gap-2 p-1 border-bottom border-secondary">';
+    $html .= '<div class="d-flex flex-column align-items-start row-gap-2 p-1 border-bottom border-secondary text-break">';
     $html .= "<a href=\"/#{$bbsOfUrl}/{$kakolog['thread']}/\">{$title} ({$kakolog['res']})</a>";
     $html .= '<div class="d-flex justify-content-between align-items-end w-100">';
     $html .= "<span>{$date}</span>";
