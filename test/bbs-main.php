@@ -560,6 +560,8 @@ include './extend/extra-commands/utilities/add-system-message.php';
 // include './extend/extra-commands/utilities/get-threads-states.php';
 // !ninkeyコマンド
 @include './extend/extra-commands/ninkey.php';
+// !maxコマンド
+@include './extend/extra-commands/max.php';
 // !chttコマンド
 @include './extend/extra-commands/chtt.php';
 // !774設定
@@ -594,10 +596,11 @@ if (!$newthread && !$tlonly) {
 }
 
 // 上限超え
-if (!$newthread && !$tlonly && $number > $SETTING['MAX_RES']) {
+$maxResLimit = isset($threadStates['max']) ? (int) $threadStates['max'] : (int) $SETTING['MAX_RES'];
+if (!$newthread && !$tlonly && $number > $maxResLimit) {
     Error('このスレッドに投稿できる上限を超えました');
 }
-if (!$newthread && !$tlonly && $number > $SETTING['MAX_RES'] - 2) {
+if (!$newthread && !$tlonly && $number > $maxResLimit - 2) {
     $stop = true;
 }
 
@@ -1578,6 +1581,21 @@ if (!$tlonly) {
     // スレッドファイルに書き込み
     $newRes = $_POST['name'] . '<>' . $DATMAIL . '<>' . $DATE . ' ' . $ID . '<>' . $_POST['comment'] . '<>' . $_POST['title'] . "\n";
     addNewResToDat($THREADFILE, $newRes);
+
+    // 上限到達時の自動レス (1001レス等)
+    if ($number === $maxResLimit) {
+        $endContent = $SETTING['BBS_THREAD_END_CONTENT'] !== '' ? $SETTING['BBS_THREAD_END_CONTENT'] : 'このスレッドは上限に達しました。次スレッドを立ててください。';
+        $autoRes = ($maxResLimit + 1) . '<>' . ($maxResLimit + 1) . '<>Over ' . $maxResLimit . ' Thread ID:Thread<>' . $endContent . '<>' . $_POST['title'] . "\n";
+        addNewResToDat($THREADFILE, $autoRes);
+        // dat用にも追記 (Shift_JIS)
+        $outdat_auto = mb_convert_encoding($autoRes, 'SJIS-win', 'UTF-8');
+        $dat_auto_handle = fopen($DATFILE, 'a');
+        if (flock($dat_auto_handle, LOCK_EX)) {
+            fwrite($dat_auto_handle, $outdat_auto);
+            flock($dat_auto_handle, LOCK_UN);
+        }
+        fclose($dat_auto_handle);
+    }
 }
 
 // 新規スレッドの場合、過去ログ用スレッド一覧(subject.json)に追加
@@ -1784,7 +1802,7 @@ if (flock($logFileHandle, LOCK_EX)) {
     // ログの行数確認
     rewind($logFileHandle);
     for ($lineCount = 0; fgets($logFileHandle); $lineCount++)
-        ;
+    ;
     if ($lineCount > $LOG_LIMIT + 100) {
         // ログ縮小処理用にファイルを開き直す
         flock($logFileHandle, LOCK_UN);
