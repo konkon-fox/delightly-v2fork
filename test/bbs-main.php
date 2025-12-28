@@ -600,7 +600,7 @@ $maxResLimit = isset($threadStates['max']) ? (int) $threadStates['max'] : (int) 
 if (!$newthread && !$tlonly && $number > $maxResLimit) {
     Error('このスレッドに投稿できる上限を超えました');
 }
-if (!$newthread && !$tlonly && $number > $maxResLimit - 2) {
+if (!$tlonly && $number > $maxResLimit - 2) {
     $stop = true;
 }
 
