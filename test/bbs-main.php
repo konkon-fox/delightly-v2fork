@@ -47,9 +47,9 @@ if (isset($SETTING['date_comma_digit']) && $SETTING['date_comma_digit'] !== '0')
     $microTime = $NOWMICROTIME - floor($NOWMICROTIME);
     $commaDigit = (int) $SETTING['date_comma_digit'];
     $commaTime = floor($microTime * pow(10, $commaDigit));
-    $commaTime = sprintf('%0'.$commaDigit.'d', $commaTime);
+    $commaTime = sprintf('%0' . $commaDigit . 'd', $commaTime);
     $DATE = date('Y/m/d', $NOWMICROTIME);
-    $TIME = date('H:i:s', $NOWMICROTIME).'.'.$commaTime;
+    $TIME = date('H:i:s', $NOWMICROTIME) . '.' . $commaTime;
 } else {
     $DATE = date('Y/m/d', $NOWTIME);
     $TIME = date('H:i:s', $NOWMICROTIME);
@@ -58,14 +58,14 @@ if (file_exists(__DIR__ . '/.use_cloudflare') && isset($_SERVER['HTTP_CF_CONNECT
     $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_CF_CONNECTING_IP'];
 }
 $HOST = gethostbyaddr($_SERVER['REMOTE_ADDR']);
-$subjectfile = $PATH.'subject.json';	//スレッド一覧
-$LTLFILE = $PATH.'index.json';	//ローカルタイムライン
-$LOGFILE = $PATH.'LOG.cgi';	//投稿ログ・検索用
-$THREADFILE = $PATH.'thread/'.substr($_POST['thread'], 0, 4).'/'.$_POST['thread'].'.dat';	//UTF-8 read.html用
-$DATFILE = $PATH.'dat/'.$_POST['thread'].'.dat';	//Shift_JIS 専ブラ用 ※過去ログ用に保持
-$KAKOLOGLIST = $PATH.'kakolog-subject.txt';  // 過去ログ一覧
-$KAKOLOGLISTINDEX = $PATH.'kakolog-subject.idx';  // 過去ログ一覧のインデックスファイル
-$THREAD_STATES_PATH = $PATH.'threads-states';  // スレ状態ファイル用のフォルダ 現行スレ判定にも使用
+$subjectfile = $PATH . 'subject.json';	//スレッド一覧
+$LTLFILE = $PATH . 'index.json';	//ローカルタイムライン
+$LOGFILE = $PATH . 'LOG.cgi';	//投稿ログ・検索用
+$THREADFILE = $PATH . 'thread/' . substr($_POST['thread'], 0, 4) . '/' . $_POST['thread'] . '.dat';	//UTF-8 read.html用
+$DATFILE = $PATH . 'dat/' . $_POST['thread'] . '.dat';	//Shift_JIS 専ブラ用 ※過去ログ用に保持
+$KAKOLOGLIST = $PATH . 'kakolog-subject.txt';  // 過去ログ一覧
+$KAKOLOGLISTINDEX = $PATH . 'kakolog-subject.idx';  // 過去ログ一覧のインデックスファイル
+$THREAD_STATES_PATH = $PATH . 'threads-states';  // スレ状態ファイル用のフォルダ 現行スレ判定にも使用
 # 記録ファイルが設置された場所。
 $HAP_PATH = './HAP/';
 mb_substitute_character('entity');
@@ -127,9 +127,9 @@ if ($count_semi > 0 && $count_dot === 0) {
 if ($ipv6 === true) {
     $d = explode(':', $_SERVER['REMOTE_ADDR']);
     // IPv6では後半を切り捨て
-    $IP_ADDR = $d[0].':'.$d[1].':'.$d[2].':'.$d[3];
-    $range = $d[0].':'.$d[1].':'.substr($d[2], 0, 2);
-    $sliphost = $d[0].':'.$d[1];
+    $IP_ADDR = $d[0] . ':' . $d[1] . ':' . $d[2] . ':' . $d[3];
+    $range = $d[0] . ':' . $d[1] . ':' . substr($d[2], 0, 2);
+    $sliphost = $d[0] . ':' . $d[1];
 } else {
     $d = explode('.', $_SERVER['REMOTE_ADDR']);
     $IP_ADDR = $_SERVER['REMOTE_ADDR'];
@@ -180,14 +180,14 @@ function escapePostData(&$postData, $keepNewLine, $trimAll)
     $postData = htmlspecialchars($postData, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     // 改行コードをエスケープ ※本文のみ<br>に変換
     $newLineChar = $keepNewLine ? '<br>' : ' ';
-    $postData = str_replace(["\r\n","\r","\n"], $newLineChar, $postData);
+    $postData = str_replace(["\r\n", "\r", "\n"], $newLineChar, $postData);
 }
 escapePostData($_POST['title'], false, true);
 escapePostData($_POST['name'], false, true);
 escapePostData($_POST['mail'], false, true);
 escapePostData($_POST['comment'], true, false);
-$_POST['board'] = str_replace(['.','/','|'], '', $_POST['board']);
-$_POST['thread'] = str_replace(['.','/','|'], '', $_POST['thread']);
+$_POST['board'] = str_replace(['.', '/', '|'], '', $_POST['board']);
+$_POST['thread'] = str_replace(['.', '/', '|'], '', $_POST['thread']);
 $msgbr = explode('<br>', $_POST['comment']);
 
 // スレ立て時の判定
@@ -290,7 +290,7 @@ $_POST['name'] = str_replace('&#', '&!E', $_POST['name']);
 
 // トリップ変換
 if (preg_match("/([^\#]*)\#(.+)/", $_POST['name'], $tr)) {
-    $_POST['name'] = $tr[1].nametrip('#'.$tr[2]);
+    $_POST['name'] = $tr[1] . nametrip('#' . $tr[2]);
 }
 
 // トリップ変換後元に戻す
@@ -307,7 +307,7 @@ list($_POST['name'], $trip) = explode('◆', $_POST['name']);
 // トリップを表示する場合
 if ($trip) {
     if ((strpos($_POST['name'], '!hide') === false && strpos($_POST['mail'], '!hide') === false && $SETTING['DISABLE_TRIP'] !== 'checked') || $SETTING['FORCE_DISP_TRIP'] === 'checked') {
-        $_POST['name'] .= ' </b>◆'.$trip.' <b>';
+        $_POST['name'] .= ' </b>◆' . $trip . ' <b>';
     }
 }
 $_POST['name'] = str_replace('!hide', '', $_POST['name']);
@@ -323,15 +323,15 @@ if (empty($_COOKIE['WrtAgreementKey'])) {
     $_COOKIE['WrtAgreementKey'] = str_replace('#', '', $_POST['mail']);
 }
 if (!$_COOKIE['WrtAgreementKey']) {
-    Error('投稿するには同意が必要です <a href="http://'.$_SERVER['HTTP_HOST'].'/test/auth.php">http://'.$_SERVER['HTTP_HOST'].'/test/auth.php</a>');
+    Error('投稿するには同意が必要です <a href="http://' . $_SERVER['HTTP_HOST'] . '/test/auth.php">http://' . $_SERVER['HTTP_HOST'] . '/test/auth.php</a>');
 }
-$clientid = hash('sha256', hash('sha256', md5($_COOKIE['WrtAgreementKey']).preg_replace('/[^0-9]/', '', md5($_COOKIE['WrtAgreementKey']))));
-$hapfile = $HAP_PATH.$clientid.'.cgi'; // 新方式
+$clientid = hash('sha256', hash('sha256', md5($_COOKIE['WrtAgreementKey']) . preg_replace('/[^0-9]/', '', md5($_COOKIE['WrtAgreementKey']))));
+$hapfile = $HAP_PATH . $clientid . '.cgi'; // 新方式
 if (!is_file($hapfile)) {
-    $hapfile = $HAP_PATH.$_COOKIE['WrtAgreementKey'].'.cgi';
+    $hapfile = $HAP_PATH . $_COOKIE['WrtAgreementKey'] . '.cgi';
 } // 旧方式の記録ファイル
 if (!is_file($hapfile)) {
-    Error('鍵が失効しています:'.$_COOKIE['WrtAgreementKey']);
+    Error('鍵が失効しています:' . $_COOKIE['WrtAgreementKey']);
 }
 setcookie('WrtAgreementKey', $_COOKIE['WrtAgreementKey'], $NOWTIME + 31536000, '/');
 // 記録されたデータを取得
@@ -339,7 +339,7 @@ $HAP = getJsonFile($hapfile);
 if ($HAP === false) {
     Error('ユーザーデータの取得に失敗しました。');
 }
-$WrtAgreementKey = substr(md5($HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 7);
+$WrtAgreementKey = substr(md5($HAP['range'] . $HAP['provider'] . $HAP['CH_UA'] . $HAP['ACCEPT']), 0, 7);
 
 // 指定Lv以上で自動承認
 $ltime = $NOWTIME - $HAP['first'];
@@ -361,8 +361,8 @@ if ($SETTING['auto_authorize_lv'] !== '' && $LV >= $SETTING['auto_authorize_lv']
 }
 
 // 手動承認リスト
-if (is_file($PATH.'authorize.cgi')) {
-    $auth_str = safe_file($PATH.'authorize.cgi');
+if (is_file($PATH . 'authorize.cgi')) {
+    $auth_str = safe_file($PATH . 'authorize.cgi');
     foreach ($auth_str as $tmp) {
         $tmp = trim($tmp);
         if (!$tmp || strpos(substr($tmp, 0, 1), '#') !== false) {
@@ -377,7 +377,7 @@ if (is_file($PATH.'authorize.cgi')) {
 
 // 掲示板のパスワード
 if (preg_match("/([^\#]*)\#(.+)/", $_POST['mail'], $ca)) {
-    $pass1 = safe_file_get_contents($PATH.'passfile.cgi');
+    $pass1 = safe_file_get_contents($PATH . 'passfile.cgi');
     if ($pass1 === false) {
         Error('パスワードファイルの取得に失敗しました。');
     }
@@ -395,8 +395,8 @@ if (preg_match("/([^\#]*)\#(.+)/", $_POST['mail'], $ca)) {
 
 // キャップパスワード
 if (preg_match("/([^\#]*)\#(.+)/", $_POST['mail'], $ca)) {
-    if (is_file($PATH.'cap.cgi')) {
-        $cap_str = safe_file($PATH.'cap.cgi');
+    if (is_file($PATH . 'cap.cgi')) {
+        $cap_str = safe_file($PATH . 'cap.cgi');
         if ($cap_str === false) {
             Error('CAPファイルの取得に失敗しました。');
         }
@@ -445,11 +445,11 @@ if (!$Cookmail) {
 if ($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST']) {
     $_SERVER['HTTP_SEC_CH_UA'] = $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'];
 }
-$CH_UA = $_SERVER['HTTP_SEC_CH_UA'].$_SERVER['HTTP_SEC_CH_UA_PLATFORM'].$_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION'].$_SERVER['HTTP_SEC_CH_UA_BITNESS'].$_SERVER['HTTP_SEC_CH_UA_ARCH'].$_SERVER['HTTP_SEC_CH_UA_MODEL'].$_SERVER['HTTP_SEC_CH_UA_MOBILE'];
+$CH_UA = $_SERVER['HTTP_SEC_CH_UA'] . $_SERVER['HTTP_SEC_CH_UA_PLATFORM'] . $_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION'] . $_SERVER['HTTP_SEC_CH_UA_BITNESS'] . $_SERVER['HTTP_SEC_CH_UA_ARCH'] . $_SERVER['HTTP_SEC_CH_UA_MODEL'] . $_SERVER['HTTP_SEC_CH_UA_MOBILE'];
 if (!$CH_UA) {
     $CH_UA = $_SERVER['HTTP_USER_AGENT'];
 }
-$ACCEPT = $_SERVER['HTTP_ACCEPT'].$_SERVER['HTTP_ACCEPT_LANGUAGE'].$_SERVER['CONTENT_TYPE'];
+$ACCEPT = $_SERVER['HTTP_ACCEPT'] . $_SERVER['HTTP_ACCEPT_LANGUAGE'] . $_SERVER['CONTENT_TYPE'];
 
 // smart phone marks + ID末尾
 $SLIP_NAME = 'JP';
@@ -460,8 +460,8 @@ $SLIP_SP = $MM = $WF = false;
 // 新規スレッドの場合はスレッド番号を現在時刻に設定＆同時刻スレ立て規制
 if ($newthread) {
     $_POST['thread'] = $NOWTIME;
-    $THREADFILE = $PATH.'thread/'.substr($_POST['thread'], 0, 4).'/'.$_POST['thread'].'.dat';
-    $DATFILE = $PATH.'dat/'.$_POST['thread'].'.dat';
+    $THREADFILE = $PATH . 'thread/' . substr($_POST['thread'], 0, 4) . '/' . $_POST['thread'] . '.dat';
+    $DATFILE = $PATH . 'dat/' . $_POST['thread'] . '.dat';
     $subject = $_POST['title'];
     // 同じファイルが既にあった場合
     if (is_file($thread_file)) {
@@ -478,7 +478,7 @@ if ($newthread) {
     // 主表示
     if ($SETTING['thread_supervisor'] === 'checked') {
         $supervisor = true;
-        $supervisorID = substr(md5($_POST['thread'].$HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 8);
+        $supervisorID = substr(md5($_POST['thread'] . $HAP['range'] . $HAP['provider'] . $HAP['CH_UA'] . $HAP['ACCEPT']), 0, 8);
     }
 } elseif (!$tlonly) {
     // スレッドタイトルを取得
@@ -492,10 +492,10 @@ if ($newthread) {
         }
         fclose($THREADFILEHANDLE);
         list($firstResName, $firstResMail, $firstResDateId, $message, $subject) = explode('<>', $firstRes);
-        if (strpos($firstResMail, substr(md5($_POST['thread'].$HAP['range'].$HAP['provider'].$HAP['CH_UA'].$HAP['ACCEPT']), 0, 8)) !== false) {
+        if (strpos($firstResMail, substr(md5($_POST['thread'] . $HAP['range'] . $HAP['provider'] . $HAP['CH_UA'] . $HAP['ACCEPT']), 0, 8)) !== false) {
             $supervisor = true;
         }
-        $subject = str_replace(["\r\n","\r","\n"], '', $subject);
+        $subject = str_replace(["\r\n", "\r", "\n"], '', $subject);
     } else {
         fclose($THREADFILEHANDLE);
         Error('投稿に失敗しました。');
@@ -511,7 +511,7 @@ if (!$tlonly) {
 // 直前の投稿からtimeinterval秒投稿禁止
 if ($SETTING['timeinterval'] && !$tlonly && !$newthread) {
     if ($NOWTIME < filemtime($THREADFILE) + $SETTING['timeinterval']) {
-        Error('このスレッドでは直前の投稿から'.$SETTING['timeinterval'].'秒経たなければ投稿することができません');
+        Error('このスレッドでは直前の投稿から' . $SETTING['timeinterval'] . '秒経たなければ投稿することができません');
     }
 }
 
@@ -566,12 +566,16 @@ include './extend/extra-commands/utilities/add-system-message.php';
 @include './extend/extra-commands/set-774.php';
 // !gobi設定
 @include './extend/extra-commands/set-gobi.php';
+// !ngk設定
+@include './extend/extra-commands/set-ngk.php';
 // !rmjコマンド
 @include './extend/extra-commands/rmj.php';
 // !774適用
 @include './extend/extra-commands/apply-774.php';
 // !gobi適用
 @include './extend/extra-commands/apply-gobi.php';
+// !ngk適用
+@include './extend/extra-commands/apply-ngk.php';
 // スレ状態更新処理
 @include './extend/extra-commands/utilities/show-threads-states.php';
 // !xDy(dice)コマンド
@@ -644,7 +648,7 @@ if (!$authorized) {
         Error('改行が多すぎます');
     }
     if (mb_strlen($_POST['comment'], 'UTF-8') > $SETTING['BBS_MESSAGE_COUNT']) {
-        Error('本文が長すぎます。 (Check:'. mb_strlen($_POST['comment'], 'UTF-8').'/'.$SETTING['BBS_MESSAGE_COUNT'].')');
+        Error('本文が長すぎます。 (Check:' . mb_strlen($_POST['comment'], 'UTF-8') . '/' . $SETTING['BBS_MESSAGE_COUNT'] . ')');
     }
     if (mb_strlen($_POST['name'], 'UTF-8') > $SETTING['BBS_NAME_COUNT']) {
         Error('名前が長すぎます');
@@ -665,19 +669,19 @@ if (!$authorized) {
     $maxmail = $SETTING['BBS_MAIL_COUNT'] * 3;
     $maxtitle = $SETTING['BBS_SUBJECT_COUNT'] * 3;
     if (!$newthread && count($msgbr) > $maxkaigy) {
-        Error('改行が多すぎます。 (Check:'.count($msgbr).'/'.$maxkaigy.')');
+        Error('改行が多すぎます。 (Check:' . count($msgbr) . '/' . $maxkaigy . ')');
     }
     if (mb_strlen($_POST['comment'], 'UTF-8') > $maxmsg) {
-        Error('本文が長すぎます。 (Check:'.mb_strlen($_POST['comment'], 'UTF-8').'/'.$maxmsg.')');
+        Error('本文が長すぎます。 (Check:' . mb_strlen($_POST['comment'], 'UTF-8') . '/' . $maxmsg . ')');
     }
     if (mb_strlen($_POST['name'], 'UTF-8') > $maxname) {
-        Error('名前が長すぎます。 (Check:'.mb_strlen($_POST['name'], 'UTF-8').'/'.$maxname.')');
+        Error('名前が長すぎます。 (Check:' . mb_strlen($_POST['name'], 'UTF-8') . '/' . $maxname . ')');
     }
     if (mb_strlen($_POST['mail'], 'UTF-8') > $maxmail) {
-        Error('メールアドレスが長すぎます。 (Check:'.mb_strlen($_POST['mail'], 'UTF-8').'/'.$maxmail.')');
+        Error('メールアドレスが長すぎます。 (Check:' . mb_strlen($_POST['mail'], 'UTF-8') . '/' . $maxmail . ')');
     }
     if (mb_strlen($_POST['title'], 'UTF-8') > $maxtitle) {
-        Error('スレッドタイトルが長すぎます。 (Check:'.mb_strlen($_POST['title'], 'UTF-8').'/'.$maxtitle.')');
+        Error('スレッドタイトルが長すぎます。 (Check:' . mb_strlen($_POST['title'], 'UTF-8') . '/' . $maxtitle . ')');
     }
 }
 
@@ -732,7 +736,7 @@ elseif (!empty($HAP['country']) && $HAP['country'] !== 'JP') {
     if ($SETTING['BBS_FOREIGN_PASS'] !== 'on' && !$authorized) {
         Error('未承認ユーザーは日本国外の回線で発行された鍵で投稿することはできません');
     }
-    $SLIP_NAME .= '-'.$HAP['country'];
+    $SLIP_NAME .= '-' . $HAP['country'];
 }
 
 // ID生成用
@@ -742,13 +746,13 @@ if ($SETTING['ID_RESET'] === 'year') {
 } elseif ($SETTING['ID_RESET'] === 'month') {
     $SLIP_SERV .= date('Ym');
 } elseif ($SETTING['ID_RESET'] === '10days') {
-    $SLIP_SERV .= date('Ym').substr(date('d'), 0, 1);
+    $SLIP_SERV .= date('Ym') . substr(date('d'), 0, 1);
 } elseif ($SETTING['ID_RESET'] === '10hours') {
-    $SLIP_SERV .= date('Ymd').substr(date('H'), 0, 1);
+    $SLIP_SERV .= date('Ymd') . substr(date('H'), 0, 1);
 } elseif ($SETTING['ID_RESET'] === 'hour') {
     $SLIP_SERV .= date('YmdH');
 } elseif ($SETTING['ID_RESET'] === '10minutes') {
-    $SLIP_SERV .= date('YmdH').substr(date('i'), 0, 1);
+    $SLIP_SERV .= date('YmdH') . substr(date('i'), 0, 1);
 } elseif ($SETTING['ID_RESET'] === 'minute') {
     $SLIP_SERV .= date('Ymdi');
 } else {
@@ -768,41 +772,41 @@ if (!$provider) {
     $d = explode('.', $SLIP_HOST); // リモートホストからドメイン部分を取り出す
     if (isset($d)) {
         $c = count($d);
-        $provider = $d[$c - 2].$d[$c - 1];
+        $provider = $d[$c - 2] . $d[$c - 1];
     }
 }
 
 // KOROKORO
-$SLIP_IP = substr(crypt(md5($HAP['range'].$SLIP_SERV), md5($HAP['range'].$SLIP_SERV)), 2, 2); #IPの一部
-$SLIP_ID = substr(crypt(md5($HAP['provider'].$SLIP_SERV), md5($HAP['provider'].$SLIP_SERV)), 2, 2); #プロバイダ
-$SLIP_AC = substr(crypt(md5($HAP['CH_UA'].$SLIP_SERV), md5($HAP['CH_UA'].$SLIP_SERV)), 2, 2);	#ブラウザ
-$SLIP_TE = substr(crypt(md5($HAP['ACCEPT'].$SLIP_SERV), md5($HAP['ACCEPT'].$SLIP_SERV)), 2, 2); #ACCEPTヘッダー
+$SLIP_IP = substr(crypt(md5($HAP['range'] . $SLIP_SERV), md5($HAP['range'] . $SLIP_SERV)), 2, 2); #IPの一部
+$SLIP_ID = substr(crypt(md5($HAP['provider'] . $SLIP_SERV), md5($HAP['provider'] . $SLIP_SERV)), 2, 2); #プロバイダ
+$SLIP_AC = substr(crypt(md5($HAP['CH_UA'] . $SLIP_SERV), md5($HAP['CH_UA'] . $SLIP_SERV)), 2, 2);	#ブラウザ
+$SLIP_TE = substr(crypt(md5($HAP['ACCEPT'] . $SLIP_SERV), md5($HAP['ACCEPT'] . $SLIP_SERV)), 2, 2); #ACCEPTヘッダー
 
 // モバイル等
 if ($HAP['slip'] !== '0') {
     $temp = substr($SLIP_ID, 0, 1);
     $SLIP_ID = $SLIP_IP;
-    $SLIP_IP = $HAP['slip'].$temp;
+    $SLIP_IP = $HAP['slip'] . $temp;
 }
 
 // IDの種類
-$rawID = $SLIP_IP.$SLIP_ID.$SLIP_AC.$SLIP_TE;
+$rawID = $SLIP_IP . $SLIP_ID . $SLIP_AC . $SLIP_TE;
 $rawID = str_replace(['.', '/', '+'], '0', $rawID);
 // chidにプレフィックス
 if ($SETTING['BBS_ID_CHANGE'] === 'checked') {
-    $rawID = 'ch-'.$rawID;
+    $rawID = 'ch-' . $rawID;
 }
 
 if ($CAPID) {  // キャップID
     $rawID = $CAPID;
-    $ID = 'ID:'.$CAPID;
+    $ID = 'ID:' . $CAPID;
 } elseif ($SETTING['id'] === 'siberia') {
-    $ID = '発信元:'.$_SERVER['REMOTE_ADDR'];
+    $ID = '発信元:' . $_SERVER['REMOTE_ADDR'];
 } elseif ($SETTING['id']) {
     if (isset($SETTING['id_9th_char']) && $SETTING['id_9th_char'] === 'checked') {
-        $rawID .= substr(hash('sha256', $IP_ADDR.md5($IP_ADDR)), 2, 1);
+        $rawID .= substr(hash('sha256', $IP_ADDR . md5($IP_ADDR)), 2, 1);
     }
-    $ID = 'ID:'.$rawID;
+    $ID = 'ID:' . $rawID;
 }
 
 // 未ログイン時で本文が半角文字のみ
@@ -854,25 +858,25 @@ if ($_POST['icon'] === 'on' && $_COOKIE['icon'] && $SETTING['DISABLE_ICON'] !== 
         Error('ホームページURLが異常です。削除するか再度設定してください');
     }
     if ($_COOKIE['homepage']) {
-        $_POST['comment'] = '<a href="'.$_COOKIE['homepage'].'" target="_blank"><img src="'.$_COOKIE['icon'].'" class="icon" width="50" height="50" align="left"></a>'.$_POST['comment'];
+        $_POST['comment'] = '<a href="' . $_COOKIE['homepage'] . '" target="_blank"><img src="' . $_COOKIE['icon'] . '" class="icon" width="50" height="50" align="left"></a>' . $_POST['comment'];
     } else {
-        $_POST['comment'] = '<img src="'.$_COOKIE['icon'].'" class="icon" width="50" height="50" align="left">'.$_POST['comment'];
+        $_POST['comment'] = '<img src="' . $_COOKIE['icon'] . '" class="icon" width="50" height="50" align="left">' . $_POST['comment'];
     }
 }
 
 // AAモード
 if ($aa || $SETTING['BBS_AA'] === 'checked') {
-    $_POST['comment'] = '<span class="AA">'.$_POST['comment'].'</span>';
+    $_POST['comment'] = '<span class="AA">' . $_POST['comment'] . '</span>';
 }
 
 // レス情報欄
-$info = $_SERVER['REMOTE_PORT'].'<>'.htmlspecialchars($_SERVER['HTTP_CF_IPCOUNTRY'], ENT_NOQUOTES, 'UTF-8').'<>'.$HAP['REMOTE_ADDR'].'<>'.htmlspecialchars($HAP['HOST'].$HAP['country'].$HAP['region'].' '.$HAP['provider'], ENT_NOQUOTES, 'UTF-8').'<>'.htmlspecialchars($HAP['SLIP_NAME'].' '.$HAP['USER_AGENT'].$HAP['CH_UA'].$HAP['ACCEPT'], ENT_NOQUOTES, 'UTF-8').'<>';
+$info = $_SERVER['REMOTE_PORT'] . '<>' . htmlspecialchars($_SERVER['HTTP_CF_IPCOUNTRY'], ENT_NOQUOTES, 'UTF-8') . '<>' . $HAP['REMOTE_ADDR'] . '<>' . htmlspecialchars($HAP['HOST'] . $HAP['country'] . $HAP['region'] . ' ' . $HAP['provider'], ENT_NOQUOTES, 'UTF-8') . '<>' . htmlspecialchars($HAP['SLIP_NAME'] . ' ' . $HAP['USER_AGENT'] . $HAP['CH_UA'] . $HAP['ACCEPT'], ENT_NOQUOTES, 'UTF-8') . '<>';
 
 // 板別規制
 if (!$admin) {
     if ($SETTING['authorized_denypass'] !== 'checked' || !$authorized) {
-        if (is_file($PATH.'deny_host.cgi')) {
-            $denys = safe_file($PATH.'deny_host.cgi');
+        if (is_file($PATH . 'deny_host.cgi')) {
+            $denys = safe_file($PATH . 'deny_host.cgi');
             if ($denys === false) {
                 Error('規制ファイルの取得に失敗しました。');
             }
@@ -883,24 +887,24 @@ if (!$admin) {
                 }
                 list($kisei, $kt, $kw) = explode('<>', $deny);
                 if (strpos(substr($kisei, 0, 1), '/') === false) {
-                    $kisei = '/'.$kisei.'/';
+                    $kisei = '/' . $kisei . '/';
                 } // 規制対象
                 if (strpos(substr($kt, 0, 1), '/') === false) {
-                    $kt = '/'.$kt.'/';
+                    $kt = '/' . $kt . '/';
                 } // 規制を発動するスレッドタイトル
                 if (strpos(substr($kw, 0, 1), '/') === false) {
-                    $kw = '/'.$kw.'/';
+                    $kw = '/' . $kw . '/';
                 } // 規制を発動するワード
                 if (preg_match($kisei, $HOST) || preg_match($kisei, $HAP['HOST'])) {
-                    if ((!$kt || preg_match($kt, $subject)) && (!$kw || preg_match($kw, $_POST['name'].$_POST['mail'].$_POST['comment'].$_POST['title']))) {
+                    if ((!$kt || preg_match($kt, $subject)) && (!$kw || preg_match($kw, $_POST['name'] . $_POST['mail'] . $_POST['comment'] . $_POST['title']))) {
                         Error('このホストからの投稿は禁止されています');
                     }
                 }
             }
         }
 
-        if (is_file($PATH.'deny_ip.cgi')) {
-            $denys = safe_file($PATH.'deny_ip.cgi');
+        if (is_file($PATH . 'deny_ip.cgi')) {
+            $denys = safe_file($PATH . 'deny_ip.cgi');
             if ($denys === false) {
                 Error('規制ファイルの取得に失敗しました。');
             }
@@ -911,24 +915,24 @@ if (!$admin) {
                 }
                 list($kisei, $kt, $kw) = explode('<>', $deny);
                 if (strpos(substr($kisei, 0, 1), '/') === false) {
-                    $kisei = '/'.$kisei.'/';
+                    $kisei = '/' . $kisei . '/';
                 } // 規制対象
                 if (strpos(substr($kt, 0, 1), '/') === false) {
-                    $kt = '/'.$kt.'/';
+                    $kt = '/' . $kt . '/';
                 } // 規制を発動するスレッドタイトル
                 if (strpos(substr($kw, 0, 1), '/') === false) {
-                    $kw = '/'.$kw.'/';
+                    $kw = '/' . $kw . '/';
                 } // 規制を発動するワード
                 if (preg_match($kisei, $_SERVER['REMOTE_ADDR']) || preg_match($kisei, $HAP['REMOTE_ADDR'])) {
-                    if ((!$kt || preg_match($kt, $subject)) && (!$kw || preg_match($kw, $_POST['name'].$_POST['mail'].$_POST['comment'].$_POST['title']))) {
+                    if ((!$kt || preg_match($kt, $subject)) && (!$kw || preg_match($kw, $_POST['name'] . $_POST['mail'] . $_POST['comment'] . $_POST['title']))) {
                         Error('このIPアドレスからの投稿は禁止されています');
                     }
                 }
             }
         }
 
-        if (is_file($PATH.'deny_ua.cgi')) {
-            $denys = safe_file($PATH.'deny_ua.cgi');
+        if (is_file($PATH . 'deny_ua.cgi')) {
+            $denys = safe_file($PATH . 'deny_ua.cgi');
             if ($denys === false) {
                 Error('規制ファイルの取得に失敗しました。');
             }
@@ -939,24 +943,24 @@ if (!$admin) {
                 }
                 list($kisei, $kt, $kw) = explode('<>', $deny);
                 if (strpos(substr($kisei, 0, 1), '/') === false) {
-                    $kisei = '/'.$kisei.'/';
+                    $kisei = '/' . $kisei . '/';
                 } // 規制対象
                 if (strpos(substr($kt, 0, 1), '/') === false) {
-                    $kt = '/'.$kt.'/';
+                    $kt = '/' . $kt . '/';
                 } // 規制を発動するスレッドタイトル
                 if (strpos(substr($kw, 0, 1), '/') === false) {
-                    $kw = '/'.$kw.'/';
+                    $kw = '/' . $kw . '/';
                 } // 規制を発動するワード
                 if (preg_match($kisei, $_SERVER['HTTP_USER_AGENT']) || preg_match($kisei, $CH_UA) || preg_match($kisei, $HAP['USER_AGENT']) || preg_match($kisei, $HAP['CH_UA'])) {
-                    if ((!$kt || preg_match($kt, $subject)) && (!$kw || preg_match($kw, $_POST['name'].$_POST['mail'].$_POST['comment'].$_POST['title']))) {
+                    if ((!$kt || preg_match($kt, $subject)) && (!$kw || preg_match($kw, $_POST['name'] . $_POST['mail'] . $_POST['comment'] . $_POST['title']))) {
                         Error('このUser-Agentからの投稿は禁止されています');
                     }
                 }
             }
         }
 
-        if (is_file($PATH.'deny_area.cgi')) {
-            $denys = safe_file($PATH.'deny_area.cgi');
+        if (is_file($PATH . 'deny_area.cgi')) {
+            $denys = safe_file($PATH . 'deny_area.cgi');
             if ($denys === false) {
                 Error('規制ファイルの取得に失敗しました。');
             }
@@ -967,16 +971,16 @@ if (!$admin) {
                 }
                 list($kisei, $kt, $kw) = explode('<>', $deny);
                 if (strpos(substr($kisei, 0, 1), '/') === false) {
-                    $kisei = '/'.$kisei.'/';
+                    $kisei = '/' . $kisei . '/';
                 } // 規制対象
                 if (strpos(substr($kt, 0, 1), '/') === false) {
-                    $kt = '/'.$kt.'/';
+                    $kt = '/' . $kt . '/';
                 } // 規制を発動するスレッドタイトル
                 if (strpos(substr($kw, 0, 1), '/') === false) {
-                    $kw = '/'.$kw.'/';
+                    $kw = '/' . $kw . '/';
                 } // 規制を発動するワード
-                if (preg_match($kisei, $_SERVER['HTTP_CF_IPCOUNTRY'].$HAP['country'].$HAP['region'])) {
-                    if ((!$kt || preg_match($kt, $subject)) && (!$kw || preg_match($kw, $_POST['name'].$_POST['mail'].$_POST['comment'].$_POST['title']))) {
+                if (preg_match($kisei, $_SERVER['HTTP_CF_IPCOUNTRY'] . $HAP['country'] . $HAP['region'])) {
+                    if ((!$kt || preg_match($kt, $subject)) && (!$kw || preg_match($kw, $_POST['name'] . $_POST['mail'] . $_POST['comment'] . $_POST['title']))) {
                         Error('この国・地域からの投稿は禁止されています');
                     }
                 }
@@ -985,8 +989,8 @@ if (!$admin) {
 
     }
 
-    if (is_file($PATH.'deny_account.cgi')) {
-        $denys = safe_file($PATH.'deny_account.cgi');
+    if (is_file($PATH . 'deny_account.cgi')) {
+        $denys = safe_file($PATH . 'deny_account.cgi');
         if ($denys === false) {
             Error('規制ファイルの取得に失敗しました。');
         }
@@ -997,16 +1001,16 @@ if (!$admin) {
             }
             list($kisei, $kt, $kw) = explode('<>', $deny);
             if (strpos(substr($kisei, 0, 1), '/') === false) {
-                $kisei = '/'.$kisei.'/';
+                $kisei = '/' . $kisei . '/';
             } // 規制対象
             if (strpos(substr($kt, 0, 1), '/') === false) {
-                $kt = '/'.$kt.'/';
+                $kt = '/' . $kt . '/';
             } // 規制を発動するスレッドタイトル
             if (strpos(substr($kw, 0, 1), '/') === false) {
-                $kw = '/'.$kw.'/';
+                $kw = '/' . $kw . '/';
             } // 規制を発動するワード
             if (preg_match($kisei, $WrtAgreementKey)) {
-                if ((!$kt || preg_match($kt, $subject)) && (!$kw || preg_match($kw, $_POST['name'].$_POST['mail'].$_POST['comment'].$_POST['title']))) {
+                if ((!$kt || preg_match($kt, $subject)) && (!$kw || preg_match($kw, $_POST['name'] . $_POST['mail'] . $_POST['comment'] . $_POST['title']))) {
                     Error('BANされています');
                 }
             }
@@ -1020,7 +1024,7 @@ if (!$admin) {
 if ($SETTING['Samba24'] === 'checked' && $HAP['last']) {
     $samba = $HAP['last'] + $SETTING['BBS_SAMBA24'];
     if ($NOWTIME < $samba) {
-        Error('593 間隔が'.$SETTING['BBS_SAMBA24'].'秒以内の連続投稿はできません');
+        Error('593 間隔が' . $SETTING['BBS_SAMBA24'] . '秒以内の連続投稿はできません');
     }
 }
 
@@ -1031,8 +1035,8 @@ if (!$tlonly && $SETTING['threadcheck'] === 'checked') {
     }
     $IP = [];
     $count = 0;
-    if (is_file($PATH.'dat/'.$_POST['thread'].'_kisei.cgi')) {
-        $IP = safe_file($PATH.'dat/'.$_POST['thread'].'_kisei.cgi');
+    if (is_file($PATH . 'dat/' . $_POST['thread'] . '_kisei.cgi')) {
+        $IP = safe_file($PATH . 'dat/' . $_POST['thread'] . '_kisei.cgi');
         if ($IP === false) {
             Error('規制ファイルの取得に失敗しました。');
         }
@@ -1047,7 +1051,7 @@ if (!$tlonly && $SETTING['threadcheck'] === 'checked') {
     if ($count >= $SETTING['timecover']) {
         Error('このスレッド内で一定時間内に投稿可能な上限に達しました');
     }
-    array_unshift($IP, $NOWTIME.'<>'.$IP_ADDR.'<>'.$WrtAgreementKey);
+    array_unshift($IP, $NOWTIME . '<>' . $IP_ADDR . '<>' . $WrtAgreementKey);
     while (count($IP) > $SETTING['threadcount']) {
         array_pop($IP);
     }
@@ -1056,11 +1060,11 @@ if (!$tlonly && $SETTING['threadcheck'] === 'checked') {
     if (!file_exists($directoryPath)) {
         mkdir($directoryPath, 0777, true);
     }
-    $fp = fopen($PATH.'dat/'.$_POST['thread'].'_kisei.cgi', 'w');
+    $fp = fopen($PATH . 'dat/' . $_POST['thread'] . '_kisei.cgi', 'w');
     if ($fp !== false) {
         if (flock($fp, LOCK_EX)) {
             foreach ($IP as $tmp) {
-                fwrite($fp, $tmp."\n");
+                fwrite($fp, $tmp . "\n");
             }
             flock($fp, LOCK_UN);
         }
@@ -1075,8 +1079,8 @@ if ($SETTING['timecheck'] === 'checked') {
     }
     $IP = [];
     $count = $time1 = $addr1 = $tmp = 0;
-    if (is_file($PATH.'timecheck.cgi')) {
-        $IP = safe_file($PATH.'timecheck.cgi');
+    if (is_file($PATH . 'timecheck.cgi')) {
+        $IP = safe_file($PATH . 'timecheck.cgi');
         if ($IP === false) {
             Error('規制ファイルの取得に失敗しました。');
         }
@@ -1091,15 +1095,15 @@ if ($SETTING['timecheck'] === 'checked') {
     if ($count >= $SETTING['timeclose']) {
         Error('一定時間内に投稿可能な上限に達しました');
     }
-    array_unshift($IP, $NOWTIME.'<>'.$IP_ADDR.'<>'.$WrtAgreementKey);
+    array_unshift($IP, $NOWTIME . '<>' . $IP_ADDR . '<>' . $WrtAgreementKey);
     while (count($IP) > $SETTING['timecount']) {
         array_pop($IP);
     }
-    $fp = fopen($PATH.'timecheck.cgi', 'w');
+    $fp = fopen($PATH . 'timecheck.cgi', 'w');
     if ($fp !== false) {
         if (flock($fp, LOCK_EX)) {
             foreach ($IP as $tmp) {
-                fwrite($fp, $tmp."\n");
+                fwrite($fp, $tmp . "\n");
             }
             flock($fp, LOCK_UN);
         }
@@ -1110,8 +1114,8 @@ if ($SETTING['timecheck'] === 'checked') {
 // スレッド作成規制
 if ($newthread && !$admin) {
     if ($SETTING['authorized_makedenypass'] !== 'checked' || !$authorized) {
-        if (is_file($PATH.'makedeny_host.cgi')) {
-            $denys = safe_file($PATH.'makedeny_host.cgi');
+        if (is_file($PATH . 'makedeny_host.cgi')) {
+            $denys = safe_file($PATH . 'makedeny_host.cgi');
             if ($denys === false) {
                 Error('規制ファイルの取得に失敗しました。');
             }
@@ -1122,24 +1126,24 @@ if ($newthread && !$admin) {
                 }
                 list($kisei, $kt, $kw) = explode('<>', $deny);
                 if (strpos(substr($kisei, 0, 1), '/') === false) {
-                    $kisei = '/'.$kisei.'/';
+                    $kisei = '/' . $kisei . '/';
                 } // 規制対象
                 if (strpos(substr($kt, 0, 1), '/') === false) {
-                    $kt = '/'.$kt.'/';
+                    $kt = '/' . $kt . '/';
                 } // 禁止タイトル
                 if (strpos(substr($kw, 0, 1), '/') === false) {
-                    $kw = '/'.$kw.'/';
+                    $kw = '/' . $kw . '/';
                 } // 規制を発動するワード
                 if (preg_match($kisei, $HOST) || preg_match($kisei, $HAP['HOST'])) {
-                    if ((!$kt || preg_match($kt, $_POST['title'])) && (!$kw || preg_match($kw, $_POST['name'].$_POST['mail'].$_POST['comment'].$_POST['title']))) {
+                    if ((!$kt || preg_match($kt, $_POST['title'])) && (!$kw || preg_match($kw, $_POST['name'] . $_POST['mail'] . $_POST['comment'] . $_POST['title']))) {
                         Error('このホストからのスレッド作成は禁止されています');
                     }
                 }
             }
         }
 
-        if (is_file($PATH.'makedeny_ip.cgi')) {
-            $denys = safe_file($PATH.'makedeny_ip.cgi');
+        if (is_file($PATH . 'makedeny_ip.cgi')) {
+            $denys = safe_file($PATH . 'makedeny_ip.cgi');
             if ($denys === false) {
                 Error('規制ファイルの取得に失敗しました。');
             }
@@ -1150,24 +1154,24 @@ if ($newthread && !$admin) {
                 }
                 list($kisei, $kt, $kw) = explode('<>', $deny);
                 if (strpos(substr($kisei, 0, 1), '/') === false) {
-                    $kisei = '/'.$kisei.'/';
+                    $kisei = '/' . $kisei . '/';
                 } // 規制対象
                 if (strpos(substr($kt, 0, 1), '/') === false) {
-                    $kt = '/'.$kt.'/';
+                    $kt = '/' . $kt . '/';
                 } // 禁止タイトル
                 if (strpos(substr($kw, 0, 1), '/') === false) {
-                    $kw = '/'.$kw.'/';
+                    $kw = '/' . $kw . '/';
                 } // 規制を発動するワード
                 if (preg_match($kisei, $_SERVER['REMOTE_ADDR']) || preg_match($kisei, $HAP['REMOTE_ADDR'])) {
-                    if ((!$kt || preg_match($kt, $_POST['title'])) && (!$kw || preg_match($kw, $_POST['name'].$_POST['mail'].$_POST['comment'].$_POST['title']))) {
+                    if ((!$kt || preg_match($kt, $_POST['title'])) && (!$kw || preg_match($kw, $_POST['name'] . $_POST['mail'] . $_POST['comment'] . $_POST['title']))) {
                         Error('このIPアドレスからのスレッド作成は禁止されています');
                     }
                 }
             }
         }
 
-        if (is_file($PATH.'makedeny_ua.cgi')) {
-            $denys = safe_file($PATH.'makedeny_ua.cgi');
+        if (is_file($PATH . 'makedeny_ua.cgi')) {
+            $denys = safe_file($PATH . 'makedeny_ua.cgi');
             if ($denys === false) {
                 Error('規制ファイルの取得に失敗しました。');
             }
@@ -1178,24 +1182,24 @@ if ($newthread && !$admin) {
                 }
                 list($kisei, $kt, $kw) = explode('<>', $deny);
                 if (strpos(substr($kisei, 0, 1), '/') === false) {
-                    $kisei = '/'.$kisei.'/';
+                    $kisei = '/' . $kisei . '/';
                 } // 規制対象
                 if (strpos(substr($kt, 0, 1), '/') === false) {
-                    $kt = '/'.$kt.'/';
+                    $kt = '/' . $kt . '/';
                 } // 禁止タイトル
                 if (strpos(substr($kw, 0, 1), '/') === false) {
-                    $kw = '/'.$kw.'/';
+                    $kw = '/' . $kw . '/';
                 } // 規制を発動するワード
                 if (preg_match($kisei, $_SERVER['HTTP_USER_AGENT']) || preg_match($kisei, $CH_UA) || preg_match($kisei, $HAP['USER_AGENT']) || preg_match($kisei, $HAP['CH_UA'])) {
-                    if ((!$kt || preg_match($kt, $_POST['title'])) && (!$kw || preg_match($kw, $_POST['name'].$_POST['mail'].$_POST['comment'].$_POST['title']))) {
+                    if ((!$kt || preg_match($kt, $_POST['title'])) && (!$kw || preg_match($kw, $_POST['name'] . $_POST['mail'] . $_POST['comment'] . $_POST['title']))) {
                         Error('このUAからのスレッド作成は禁止されています');
                     }
                 }
             }
         }
 
-        if (is_file($PATH.'makedeny_area.cgi')) {
-            $denys = safe_file($PATH.'makedeny_area.cgi');
+        if (is_file($PATH . 'makedeny_area.cgi')) {
+            $denys = safe_file($PATH . 'makedeny_area.cgi');
             if ($denys === false) {
                 Error('規制ファイルの取得に失敗しました。');
             }
@@ -1206,16 +1210,16 @@ if ($newthread && !$admin) {
                 }
                 list($kisei, $kt, $kw) = explode('<>', $deny);
                 if (strpos(substr($kisei, 0, 1), '/') === false) {
-                    $kisei = '/'.$kisei.'/';
+                    $kisei = '/' . $kisei . '/';
                 } // 規制対象
                 if (strpos(substr($kt, 0, 1), '/') === false) {
-                    $kt = '/'.$kt.'/';
+                    $kt = '/' . $kt . '/';
                 } // 禁止タイトル
                 if (strpos(substr($kw, 0, 1), '/') === false) {
-                    $kw = '/'.$kw.'/';
+                    $kw = '/' . $kw . '/';
                 } // 規制を発動するワード
-                if (preg_match($kisei, $_SERVER['HTTP_CF_IPCOUNTRY'].$HAP['country'].$HAP['region'])) {
-                    if ((!$kt || preg_match($kt, $_POST['title'])) && (!$kw || preg_match($kw, $_POST['name'].$_POST['mail'].$_POST['comment'].$_POST['title']))) {
+                if (preg_match($kisei, $_SERVER['HTTP_CF_IPCOUNTRY'] . $HAP['country'] . $HAP['region'])) {
+                    if ((!$kt || preg_match($kt, $_POST['title'])) && (!$kw || preg_match($kw, $_POST['name'] . $_POST['mail'] . $_POST['comment'] . $_POST['title']))) {
                         Error('この国・地域からのスレッド作成は禁止されています');
                     }
                 }
@@ -1224,8 +1228,8 @@ if ($newthread && !$admin) {
 
     }
 
-    if (is_file($PATH.'makedeny_account.cgi')) {
-        $denys = safe_file($PATH.'makedeny_account.cgi');
+    if (is_file($PATH . 'makedeny_account.cgi')) {
+        $denys = safe_file($PATH . 'makedeny_account.cgi');
         if ($denys === false) {
             Error('規制ファイルの取得に失敗しました。');
         }
@@ -1236,16 +1240,16 @@ if ($newthread && !$admin) {
             }
             list($kisei, $kt, $kw) = explode('<>', $deny);
             if (strpos(substr($kisei, 0, 1), '/') === false) {
-                $kisei = '/'.$kisei.'/';
+                $kisei = '/' . $kisei . '/';
             } // 規制対象
             if (strpos(substr($kt, 0, 1), '/') === false) {
-                $kt = '/'.$kt.'/';
+                $kt = '/' . $kt . '/';
             } // 禁止タイトル
             if (strpos(substr($kw, 0, 1), '/') === false) {
-                $kw = '/'.$kw.'/';
+                $kw = '/' . $kw . '/';
             } // 規制を発動するワード
             if (preg_match($kisei, $WrtAgreementKey)) {
-                if ((!$kt || preg_match($kt, $_POST['title'])) && (!$kw || preg_match($kw, $_POST['name'].$_POST['mail'].$_POST['comment'].$_POST['title']))) {
+                if ((!$kt || preg_match($kt, $_POST['title'])) && (!$kw || preg_match($kw, $_POST['name'] . $_POST['mail'] . $_POST['comment'] . $_POST['title']))) {
                     Error('あなたはスレッドを作成することができません');
                 }
             }
@@ -1261,11 +1265,11 @@ if ($newthread) {
         }
         $IP = [];
         $count = $tmp = 0;
-        if (is_file($PATH.'newthread.cgi')) {
-            if ($NOWTIME < filemtime($PATH.'newthread.cgi') + $SETTING['THREAD_INTERVAL']) {
-                Error('直前のスレッド作成から'.$SETTING['THREAD_INTERVAL'].'秒経たなければスレッドを作成することができません');
+        if (is_file($PATH . 'newthread.cgi')) {
+            if ($NOWTIME < filemtime($PATH . 'newthread.cgi') + $SETTING['THREAD_INTERVAL']) {
+                Error('直前のスレッド作成から' . $SETTING['THREAD_INTERVAL'] . '秒経たなければスレッドを作成することができません');
             }
-            $IP = safe_file($PATH.'newthread.cgi');
+            $IP = safe_file($PATH . 'newthread.cgi');
             if ($IP === false) {
                 Error('規制ファイルの取得に失敗しました。');
             }
@@ -1277,24 +1281,24 @@ if ($newthread) {
                 }
             }
         }
-        array_unshift($IP, $NOWTIME.'<>'.$IP_ADDR.'<>'.$WrtAgreementKey);
+        array_unshift($IP, $NOWTIME . '<>' . $IP_ADDR . '<>' . $WrtAgreementKey);
         while (count($IP) > $SETTING['THREAD_JUNBAN']) {
             array_pop($IP);
         }
-        $fp = fopen($PATH.'newthread.cgi', 'w');
+        $fp = fopen($PATH . 'newthread.cgi', 'w');
         if ($fp !== false) {
             if (flock($fp, LOCK_EX)) {
                 foreach ($IP as $tmp) {
-                    fwrite($fp, $tmp."\n");
+                    fwrite($fp, $tmp . "\n");
                 }
                 flock($fp, LOCK_UN);
             }
             fclose($fp);
         }
     } elseif ($SETTING['THREAD_INTERVAL']) {
-        $file = $PATH.'newthread.cgi';
+        $file = $PATH . 'newthread.cgi';
         if (is_file($file) and $NOWTIME < filemtime($file) + $SETTING['THREAD_INTERVAL']) {
-            Error('直前のスレッド作成から'.$SETTING['THREAD_INTERVAL'].'秒経たなければスレッドを作成することができません');
+            Error('直前のスレッド作成から' . $SETTING['THREAD_INTERVAL'] . '秒経たなければスレッドを作成することができません');
         }
         touch($file);
     }
@@ -1319,7 +1323,7 @@ $_POST['mail'] = str_replace('!no', '', $_POST['mail']);
 
 // キャップ色
 if ($ncolor) {
-    $_POST['name'] = "<font color=\"$ncolor\">".$_POST['name'].'</font>';
+    $_POST['name'] = "<font color=\"$ncolor\">" . $_POST['name'] . '</font>';
 }
 
 // 名前入力チェックと補完
@@ -1340,7 +1344,7 @@ if ($SETTING['NAME_ARR'] === 'checked') {
 
 // 県名表示
 if ($SETTING['BBS_JP_CHECK'] && $SETTING['BBS_JP_CHECK'] !== 'none' && !$admin) {
-    $M .= ' </b>('.$HAP['region'].')<b>';
+    $M .= ' </b>(' . $HAP['region'] . ')<b>';
 }
 
 // 回線別末尾+新規表示
@@ -1354,12 +1358,12 @@ if ($SETTING['slip'] === 'checked' && !$admin) {
 }
 
 // BBS_SLIP=vvvvv相当
-$sliprange = substr(crypt(md5($range.$_POST['board'].date('Ym').substr(date('d'), 0, 1)), md5($range.$_POST['board'].date('Ym').substr(date('d'), 0, 1))), 2, 2); #IPの一部
-$slipid = substr(crypt(md5($sliphost.$_POST['board'].date('Ym').substr(date('d'), 0, 1)), md5($sliphost.$_POST['board'].date('Ym').substr(date('d'), 0, 1))), 2, 2); #プロバイダ
-$slipua = substr(crypt(md5($CH_UA.$_POST['board'].date('Ym').substr(date('d'), 0, 1)), md5($CH_UA.$_POST['board'].date('Ym').substr(date('d'), 0, 1))), 2, 2);	#ブラウザ
-$slipac = substr(crypt(md5($ACCEPT.$_POST['board'].date('Ym').substr(date('d'), 0, 1)), md5($ACCEPT.$_POST['board'].date('Ym').substr(date('d'), 0, 1))), 2, 2);
+$sliprange = substr(crypt(md5($range . $_POST['board'] . date('Ym') . substr(date('d'), 0, 1)), md5($range . $_POST['board'] . date('Ym') . substr(date('d'), 0, 1))), 2, 2); #IPの一部
+$slipid = substr(crypt(md5($sliphost . $_POST['board'] . date('Ym') . substr(date('d'), 0, 1)), md5($sliphost . $_POST['board'] . date('Ym') . substr(date('d'), 0, 1))), 2, 2); #プロバイダ
+$slipua = substr(crypt(md5($CH_UA . $_POST['board'] . date('Ym') . substr(date('d'), 0, 1)), md5($CH_UA . $_POST['board'] . date('Ym') . substr(date('d'), 0, 1))), 2, 2);	#ブラウザ
+$slipac = substr(crypt(md5($ACCEPT . $_POST['board'] . date('Ym') . substr(date('d'), 0, 1)), md5($ACCEPT . $_POST['board'] . date('Ym') . substr(date('d'), 0, 1))), 2, 2);
 // 置き換える文字
-$vvvvv = preg_replace('/\./', '+', $sliprange.$slipid.'-'.$slipua.$slipac);
+$vvvvv = preg_replace('/\./', '+', $sliprange . $slipid . '-' . $slipua . $slipac);
 $vvvvv = str_replace('/', '+', $vvvvv);
 $vvvvv = str_replace('+', '0', $vvvvv);	// read.js対策
 if ($SETTING['disp_slipname'] === 'checked' && !$authorized && !$admin) {
@@ -1382,18 +1386,18 @@ if (!$newthread && $supervisor && !$no && $SETTING['id'] !== '') {
 
 // KOROKOROをタイトルに表示
 if ($newthread && $SETTING['createid'] === 'checked' && $SETTING['id'] && !$admin) {
-    $_POST['title'] .= ' ['.$rawID.'★]';
-    $subject .= ' ['.$rawID.'★]';
+    $_POST['title'] .= ' [' . $rawID . '★]';
+    $subject .= ' [' . $rawID . '★]';
 }
 
 // fusianasanでホスト表示
-$_POST['name'] = str_replace('fusianasan', ' </b>('.$HOST.')<b>', $_POST['name']);
+$_POST['name'] = str_replace('fusianasan', ' </b>(' . $HOST . ')<b>', $_POST['name']);
 // ClientID表示
-$_POST['name'] = str_replace('!clientid', ' </b>('.$WrtAgreementKey.')<b>', $_POST['name']);
+$_POST['name'] = str_replace('!clientid', ' </b>(' . $WrtAgreementKey . ')<b>', $_POST['name']);
 // 県名表示
-$_POST['name'] = str_replace('!ken', ' </b>('.$HAP['region'].')<b>', $_POST['name']);
+$_POST['name'] = str_replace('!ken', ' </b>(' . $HAP['region'] . ')<b>', $_POST['name']);
 // ID表示
-$_POST['name'] = str_replace('!id', ' </b>('.$SLIP_IP.$SLIP_ID.$SLIP_AC.$SLIP_TE.')<b>', $_POST['name']);
+$_POST['name'] = str_replace('!id', ' </b>(' . $SLIP_IP . $SLIP_ID . $SLIP_AC . $SLIP_TE . ')<b>', $_POST['name']);
 
 // ワッチョイ等を表示
 if ($M) {
@@ -1436,7 +1440,7 @@ function updateFirstRes($datFile, $newFirstRes, $isShiftJis)
     fclose($datFileHandle);
 }
 if (!$newthread && !$tlonly && $reload) {
-    $newFirstRes = $firstResName.'<>'.$firstResMail.'<>'.$firstResDateId.'<>'.$message.'<>'.$subject;
+    $newFirstRes = $firstResName . '<>' . $firstResMail . '<>' . $firstResDateId . '<>' . $message . '<>' . $subject;
     // $THREADFILE更新
     updateFirstRes($THREADFILE, $newFirstRes, false);
     // $DATFILE更新
@@ -1462,7 +1466,7 @@ function addNewResToDat($datFile, $newRes)
 // dat用にShift_JISに再変換
 if (!$tlonly) {
     $DATMAIL = $newthread ? $supervisorID : $_POST['mail'];
-    $outdat = mb_convert_encoding($_POST['name'].'<>'.$DATMAIL.'<>'.$DATE.' '.$ID.'<>'.$_POST['comment'].'<>'.$_POST['title']."\n", 'SJIS-win', 'UTF-8');
+    $outdat = mb_convert_encoding($_POST['name'] . '<>' . $DATMAIL . '<>' . $DATE . ' ' . $ID . '<>' . $_POST['comment'] . '<>' . $_POST['title'] . "\n", 'SJIS-win', 'UTF-8');
     // datに書き込み
     // datディレクトリがあるかチェック
     $directoryPath = $PATH . 'dat/';
@@ -1524,7 +1528,7 @@ $_POST['comment'] = preg_replace_callback('/https?:([a-zA-z0-9\/\._\-&\?#=%:@]+)
     } elseif (strpos($url, 'www.instagram.com/reel/') !== false) {
         $iframeurl = substr($url, (strpos($url, 'reel/') + 5));
         $iframeurl = substr($iframeurl, 0, 11);
-        return '<iframe class="instagram-media instagram-media-rendered" id="instagram-embed-12" src="https://www.instagram.com/p/'.$iframeurl."/embed/?cr=1&amp;\" allowtransparency=\"true\" allowfullscreen=\"true\" frameborder=\"0\" height=\"500\" data-instgrm-payload-id=\"instagram-media-payload-12\" scrolling=\"no\" style=\"background-color: white; border-radius: 3px; border: 1px solid rgb(219, 219, 219); box-shadow: none; display: block; margin: 0px 0px 12px; min-width: 326px; padding: 0px;\" data-ruffle-polyfilled=\"\" loading=\"lazy\"></iframe><br>$url";
+        return '<iframe class="instagram-media instagram-media-rendered" id="instagram-embed-12" src="https://www.instagram.com/p/' . $iframeurl . "/embed/?cr=1&amp;\" allowtransparency=\"true\" allowfullscreen=\"true\" frameborder=\"0\" height=\"500\" data-instgrm-payload-id=\"instagram-media-payload-12\" scrolling=\"no\" style=\"background-color: white; border-radius: 3px; border: 1px solid rgb(219, 219, 219); box-shadow: none; display: block; margin: 0px 0px 12px; min-width: 326px; padding: 0px;\" data-ruffle-polyfilled=\"\" loading=\"lazy\"></iframe><br>$url";
     } elseif ((strpos($url, 'x.com/') !== false || strpos($url, 'twitter.com/') !== false) && strpos($url, '/status/') !== false) {
         if (strpos($url, 'twitter.com') !== false) {
             $xdomain = 'platform.twitter.com';
@@ -1533,8 +1537,8 @@ $_POST['comment'] = preg_replace_callback('/https?:([a-zA-z0-9\/\._\-&\?#=%:@]+)
         }
         $twitterurl = substr($url, (strpos($url, 'status/') + 7));
         $twitterurl = substr($twitterurl, 0, 19);
-        $rurl = str_replace('/', '%2F', $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']);
-        return '<div class="twitter-tweet twitter-tweet-rendered" style="display: flex; max-width: 550px; width: 100%; margin-bottom: 10px;"><iframe id="twitter-widget-0" scrolling="no" allowtransparency="true" allowfullscreen="true" class="" style="position: static; visibility: visible; width: 550px; min-height: 550px; display: block; flex-grow: 1;" title="Twitter Tweet" src="https://'.$xdomain.'/embed/Tweet.html?dnt=false&amp;embedId=twitter-widget-0&amp;features=eyJ0ZndfdGltZWxpbmVfbGlzdCI6eyJidWNrZXQiOltdLCJ2ZXJzaW9uIjpudWxsfSwidGZ3X2ZvbGxvd2VyX2NvdW50X3N1bnNldCI6eyJidWNrZXQiOnRydWUsInZlcnNpb24iOm51bGx9LCJ0ZndfdHdlZXRfZWRpdF9iYWNrZW5kIjp7ImJ1Y2tldCI6Im9uIiwidmVyc2lvbiI6bnVsbH0sInRmd19yZWZzcmNfc2Vzc2lvbiI6eyJidWNrZXQiOiJvbiIsInZlcnNpb24iOm51bGx9LCJ0ZndfbWl4ZWRfbWVkaWFfMTU4OTciOnsiYnVja2V0IjoidHJlYXRtZW50IiwidmVyc2lvbiI6bnVsbH0sInRmd19leHBlcmltZW50c19jb29raWVfZXhwaXJhdGlvbiI6eyJidWNrZXQiOjEyMDk2MDAsInZlcnNpb24iOm51bGx9LCJ0ZndfZHVwbGljYXRlX3NjcmliZXNfdG9fc2V0dGluZ3MiOnsiYnVja2V0Ijoib24iLCJ2ZXJzaW9uIjpudWxsfSwidGZ3X3ZpZGVvX2hsc19keW5hbWljX21hbmlmZXN0c18xNTA4MiI6eyJidWNrZXQiOiJ0cnVlX2JpdHJhdGUiLCJ2ZXJzaW9uIjpudWxsfSwidGZ3X2xlZ2FjeV90aW1lbGluZV9zdW5zZXQiOnsiYnVja2V0Ijp0cnVlLCJ2ZXJzaW9uIjpudWxsfSwidGZ3X3R3ZWV0X2VkaXRfZnJvbnRlbmQiOnsiYnVja2V0Ijoib24iLCJ2ZXJzaW9uIjpudWxsfX0%3D&amp;frame=false&amp;hideCard=false&amp;hideThread=false&amp;id='.$twitterurl.'&amp;lang=en&amp;origin=https%3A%2F%2F'.$rurl.'&amp;sessionId=a9d4d113f56d7d35c5da4aa01b7ee15e6bdeb19a&amp;theme=light&amp;widgetsVersion=aaf4084522e3a%3A1674595607486&amp;width=550px" data-tweet-id="'.$twitterurl.'" frameborder="0" loading=\"lazy\"></iframe></div>'.$url;
+        $rurl = str_replace('/', '%2F', $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+        return '<div class="twitter-tweet twitter-tweet-rendered" style="display: flex; max-width: 550px; width: 100%; margin-bottom: 10px;"><iframe id="twitter-widget-0" scrolling="no" allowtransparency="true" allowfullscreen="true" class="" style="position: static; visibility: visible; width: 550px; min-height: 550px; display: block; flex-grow: 1;" title="Twitter Tweet" src="https://' . $xdomain . '/embed/Tweet.html?dnt=false&amp;embedId=twitter-widget-0&amp;features=eyJ0ZndfdGltZWxpbmVfbGlzdCI6eyJidWNrZXQiOltdLCJ2ZXJzaW9uIjpudWxsfSwidGZ3X2ZvbGxvd2VyX2NvdW50X3N1bnNldCI6eyJidWNrZXQiOnRydWUsInZlcnNpb24iOm51bGx9LCJ0ZndfdHdlZXRfZWRpdF9iYWNrZW5kIjp7ImJ1Y2tldCI6Im9uIiwidmVyc2lvbiI6bnVsbH0sInRmd19yZWZzcmNfc2Vzc2lvbiI6eyJidWNrZXQiOiJvbiIsInZlcnNpb24iOm51bGx9LCJ0ZndfbWl4ZWRfbWVkaWFfMTU4OTciOnsiYnVja2V0IjoidHJlYXRtZW50IiwidmVyc2lvbiI6bnVsbH0sInRmd19leHBlcmltZW50c19jb29raWVfZXhwaXJhdGlvbiI6eyJidWNrZXQiOjEyMDk2MDAsInZlcnNpb24iOm51bGx9LCJ0ZndfZHVwbGljYXRlX3NjcmliZXNfdG9fc2V0dGluZ3MiOnsiYnVja2V0Ijoib24iLCJ2ZXJzaW9uIjpudWxsfSwidGZ3X3ZpZGVvX2hsc19keW5hbWljX21hbmlmZXN0c18xNTA4MiI6eyJidWNrZXQiOiJ0cnVlX2JpdHJhdGUiLCJ2ZXJzaW9uIjpudWxsfSwidGZ3X2xlZ2FjeV90aW1lbGluZV9zdW5zZXQiOnsiYnVja2V0Ijp0cnVlLCJ2ZXJzaW9uIjpudWxsfSwidGZ3X3R3ZWV0X2VkaXRfZnJvbnRlbmQiOnsiYnVja2V0Ijoib24iLCJ2ZXJzaW9uIjpudWxsfX0%3D&amp;frame=false&amp;hideCard=false&amp;hideThread=false&amp;id=' . $twitterurl . '&amp;lang=en&amp;origin=https%3A%2F%2F' . $rurl . '&amp;sessionId=a9d4d113f56d7d35c5da4aa01b7ee15e6bdeb19a&amp;theme=light&amp;widgetsVersion=aaf4084522e3a%3A1674595607486&amp;width=550px" data-tweet-id="' . $twitterurl . '" frameborder="0" loading=\"lazy\"></iframe></div>' . $url;
     } elseif (preg_match('/https?:\S+\.mp4/', $url)) {
         return "<video src=\"$url\" width=\"560\" height=\"315\" playsinline=\"\" controls=\"\"></video><br>$url";
     } elseif (strpos($url, $_SERVER['HTTP_HOST']) !== false && strpos($url, '#') !== false) {
@@ -1548,18 +1552,18 @@ $_POST['comment'] = str_replace(' rel="nofollow noopener" target="_blank" title=
 // レスアンカーをリンクに変換
 $_POST['comment'] = preg_replace_callback('/&gt;&gt;([0-9]+),?([0-9]+)?,?([0-9]+)?,?([0-9]+)?,?([0-9]+)?(?![-\d])/', function ($m) {
     global $number;
-    $anka = "<a class=\"ank rep-$number\" href=\"/?st=$m[1]#".$_POST['board'].'/'.$_POST['thread']."/\">&gt;&gt;$m[1]</a>";
+    $anka = "<a class=\"ank rep-$number\" href=\"/?st=$m[1]#" . $_POST['board'] . '/' . $_POST['thread'] . "/\">&gt;&gt;$m[1]</a>";
     if ($m[2]) {
-        $anka .= ",<a class=\"ank rep-$number\" href=\"/?st=$m[2]#".$_POST['board'].'/'.$_POST['thread']."/\">&gt;&gt;$m[2]</a>";
+        $anka .= ",<a class=\"ank rep-$number\" href=\"/?st=$m[2]#" . $_POST['board'] . '/' . $_POST['thread'] . "/\">&gt;&gt;$m[2]</a>";
     }
     if ($m[3]) {
-        $anka .= ",<a class=\"ank rep-$number\" href=\"/?st=$m[3]#".$_POST['board'].'/'.$_POST['thread']."/\">&gt;&gt;$m[3]</a>";
+        $anka .= ",<a class=\"ank rep-$number\" href=\"/?st=$m[3]#" . $_POST['board'] . '/' . $_POST['thread'] . "/\">&gt;&gt;$m[3]</a>";
     }
     if ($m[4]) {
-        $anka .= ",<a class=\"ank rep-$number\" href=\"/?st=$m[4]#".$_POST['board'].'/'.$_POST['thread']."/\">&gt;&gt;$m[4]</a>";
+        $anka .= ",<a class=\"ank rep-$number\" href=\"/?st=$m[4]#" . $_POST['board'] . '/' . $_POST['thread'] . "/\">&gt;&gt;$m[4]</a>";
     }
     if ($m[5]) {
-        $anka .= ",<a class=\"ank rep-$number\" href=\"/?st=$m[5]#".$_POST['board'].'/'.$_POST['thread']."/\">&gt;&gt;$m[5]</a>";
+        $anka .= ",<a class=\"ank rep-$number\" href=\"/?st=$m[5]#" . $_POST['board'] . '/' . $_POST['thread'] . "/\">&gt;&gt;$m[5]</a>";
     }
     return $anka;
 }, $_POST['comment']);
@@ -1570,15 +1574,15 @@ $_POST['comment'] = preg_replace_callback('/&gt;&gt;([0-9]+)\-([0-9]+)/', functi
 
 if (!$tlonly) {
     // ディレクトリチェック
-    makeDir($PATH.'thread/'.substr($_POST['thread'], 0, 4).'/');
+    makeDir($PATH . 'thread/' . substr($_POST['thread'], 0, 4) . '/');
     // スレッドファイルに書き込み
-    $newRes = $_POST['name'].'<>'.$DATMAIL.'<>'.$DATE.' '.$ID.'<>'.$_POST['comment'].'<>'.$_POST['title']."\n";
+    $newRes = $_POST['name'] . '<>' . $DATMAIL . '<>' . $DATE . ' ' . $ID . '<>' . $_POST['comment'] . '<>' . $_POST['title'] . "\n";
     addNewResToDat($THREADFILE, $newRes);
 }
 
 // 新規スレッドの場合、過去ログ用スレッド一覧(subject.json)に追加
 if ($newthread) {
-    $kakoSubjectFile = $PATH.'thread/'.substr($_POST['thread'], 0, 4).'/subject.json';
+    $kakoSubjectFile = $PATH . 'thread/' . substr($_POST['thread'], 0, 4) . '/subject.json';
     $fileExists = is_file($kakoSubjectFile);
     $kakoSubjectFileHandle = fopen($kakoSubjectFile, 'c+');
     if (flock($kakoSubjectFileHandle, LOCK_EX)) {
@@ -1606,7 +1610,7 @@ if ($newthread) {
 if (!$sage) {
     $post = [
         'name' => $_POST['name'],
-        'mail' => 'No.'.$NOWTIME,
+        'mail' => 'No.' . $NOWTIME,
         'date' => $DATE,
         'id' => $ID,
         'comment' => $_POST['comment'],
@@ -1644,28 +1648,28 @@ if (!$sage) {
     }
     // 専ブラ用タイムライン (1000000000.dat)
     $TTL = array_reverse($LTL);
-    $headText = safe_file_get_contents($PATH.'head.txt');
+    $headText = safe_file_get_contents($PATH . 'head.txt');
     if ($headText === false) {
         Error('heat.txtの取得に失敗しました。');
     }
     $headText = mb_convert_encoding($headText, 'UTF-8', 'SJIS-win');
-    $headText = str_replace(["\r\n","\r","\n"], '', $headText);
-    $kokutiText = safe_file_get_contents($PATH.'kokuti.txt');
+    $headText = str_replace(["\r\n", "\r", "\n"], '', $headText);
+    $kokutiText = safe_file_get_contents($PATH . 'kokuti.txt');
     if ($kokutiText === false) {
         Error('kokuti.txtの取得に失敗しました。');
     }
-    $kokutiText = str_replace(["\r\n","\r","\n"], '', $kokutiText);
-    $tlDatData = 'ローカルルール<><>99/01/01 00:00:00 <>'.$headText."<>TL\n";
-    $tlDatData .= '告知欄<><>99/01/01 00:00:00 <>'.$kokutiText."<>\n";
+    $kokutiText = str_replace(["\r\n", "\r", "\n"], '', $kokutiText);
+    $tlDatData = 'ローカルルール<><>99/01/01 00:00:00 <>' . $headText . "<>TL\n";
+    $tlDatData .= '告知欄<><>99/01/01 00:00:00 <>' . $kokutiText . "<>\n";
     foreach ($TTL as $tmp) {
         if (isset($tmp['thread'])) {
-            $tt = '<br><hr>'.$tmp['title'].'<br>http://'.$_SERVER['HTTP_HOST'].'/test/read.cgi/'.$_POST['board'].'/'.$tmp['thread'].'/';
+            $tt = '<br><hr>' . $tmp['title'] . '<br>http://' . $_SERVER['HTTP_HOST'] . '/test/read.cgi/' . $_POST['board'] . '/' . $tmp['thread'] . '/';
         } else {
             $tt = '';
         }
-        $tlDatData .= $tmp['name'].'<>'.$tmp['mail'].'<>'.$tmp['date'].' '.$tmp['id'].'<>'.$tmp['comment'].$tt."<>\n";
+        $tlDatData .= $tmp['name'] . '<>' . $tmp['mail'] . '<>' . $tmp['date'] . ' ' . $tmp['id'] . '<>' . $tmp['comment'] . $tt . "<>\n";
     }
-    $tlDatHandle = fopen($PATH.'dat/1000000000.dat', 'w');
+    $tlDatHandle = fopen($PATH . 'dat/1000000000.dat', 'w');
     if (flock($tlDatHandle, LOCK_EX)) {
         fwrite($tlDatHandle, mb_convert_encoding($tlDatData, 'SJIS-win', 'UTF-8'));
         flock($tlDatHandle, LOCK_UN);
@@ -1679,7 +1683,7 @@ include './extend/archive-thread.php';
 if (!$tlonly) {
     // 停止済のスレッド
     if ($stop) {
-        $subject = '[stop] '.$subject;
+        $subject = '[stop] ' . $subject;
     }
     // 投稿先スレッド
     $posted = [
@@ -1724,13 +1728,13 @@ if (!$tlonly) {
                         $SETTING,
                         $KAKOLOGLIST,
                         $KAKOLOGLISTINDEX,
-                        $THREAD_STATES_PATH."/{$PAGEFILE[$start]['thread']}.json",
-                        $PATH.'thread/'.substr($PAGEFILE[$start]['thread'], 0, 4).'/'.$PAGEFILE[$start]['thread'].'.dat',
-                        $PATH.'dat/'.$PAGEFILE[$start]['thread'].'.dat',
+                        $THREAD_STATES_PATH . "/{$PAGEFILE[$start]['thread']}.json",
+                        $PATH . 'thread/' . substr($PAGEFILE[$start]['thread'], 0, 4) . '/' . $PAGEFILE[$start]['thread'] . '.dat',
+                        $PATH . 'dat/' . $PAGEFILE[$start]['thread'] . '.dat',
                         $PAGEFILE[$start]['thread'],
                         $PAGEFILE[$start]['title'],
                         $PAGEFILE[$start]['number'],
-                        $PATH.'dat/'.$PAGEFILE[$start]['thread'].'_kisei.cgi',
+                        $PATH . 'dat/' . $PAGEFILE[$start]['thread'] . '_kisei.cgi',
                     );
                 }
                 $PAGEFILE = array_slice($PAGEFILE, 0, $SETTING['BBS_THREADS_LIMIT']);
@@ -1750,11 +1754,11 @@ if (!$tlonly) {
         $subjectTxtLines = array_merge(
             ["1000000000.dat<>TL (1)\n"],
             array_map(function ($thread) {
-                return $thread['thread'].'.dat<>'.$thread['title'].' ('.$thread['number'].")\n";
+                return $thread['thread'] . '.dat<>' . $thread['title'] . ' (' . $thread['number'] . ")\n";
             }, $PAGEFILE)
         );
         $subjectTxtData = mb_convert_encoding(implode('', $subjectTxtLines), 'SJIS-win', 'UTF-8');
-        $subjectTxtHandle = fopen($PATH.'subject.txt', 'w');
+        $subjectTxtHandle = fopen($PATH . 'subject.txt', 'w');
         if (flock($subjectTxtHandle, LOCK_EX)) {
             fwrite($subjectTxtHandle, $subjectTxtData);
             flock($subjectTxtHandle, LOCK_UN);
@@ -1775,11 +1779,12 @@ if ($SETTING['LOG_LIMIT'] !== '') {
 $logFileHandle = fopen($LOGFILE, 'a+');
 if (flock($logFileHandle, LOCK_EX)) {
     // 新規ログを追記
-    $newLog = $_POST['name'].'<>'.$_POST['mail'].'<>'.$DATE.' '.$ID.'<>'.$_POST['comment'].'<>'.$subject.'<>'.$_POST['thread'].'<>'.$number.'<>'.$HOST.'<>'.$_SERVER['REMOTE_ADDR'].'<>'.$_SERVER['HTTP_USER_AGENT'].'<>'.htmlspecialchars($CH_UA, ENT_NOQUOTES, 'UTF-8').'<>'.htmlspecialchars($ACCEPT, ENT_NOQUOTES, 'UTF-8').'<>'.$WrtAgreementKey.'<>'.$LV.'<>'.$info."\n";
+    $newLog = $_POST['name'] . '<>' . $_POST['mail'] . '<>' . $DATE . ' ' . $ID . '<>' . $_POST['comment'] . '<>' . $subject . '<>' . $_POST['thread'] . '<>' . $number . '<>' . $HOST . '<>' . $_SERVER['REMOTE_ADDR'] . '<>' . $_SERVER['HTTP_USER_AGENT'] . '<>' . htmlspecialchars($CH_UA, ENT_NOQUOTES, 'UTF-8') . '<>' . htmlspecialchars($ACCEPT, ENT_NOQUOTES, 'UTF-8') . '<>' . $WrtAgreementKey . '<>' . $LV . '<>' . $info . "\n";
     fwrite($logFileHandle, $newLog);
     // ログの行数確認
     rewind($logFileHandle);
-    for ($lineCount = 0; fgets($logFileHandle); $lineCount++);
+    for ($lineCount = 0; fgets($logFileHandle); $lineCount++)
+        ;
     if ($lineCount > $LOG_LIMIT + 100) {
         // ログ縮小処理用にファイルを開き直す
         flock($logFileHandle, LOCK_UN);
@@ -1807,7 +1812,7 @@ $HAP['comment'] = $_POST['comment'];
 file_put_contents($hapfile, json_encode($HAP, JSON_UNESCAPED_UNICODE), LOCK_EX);
 
 // ヘッダー送信
-header('X-Resnum: '.$number);
+header('X-Resnum: ' . $number);
 
 // 投稿完了画面
 finish();
@@ -1838,11 +1843,11 @@ function nametrip($tripkey)
             $trip = str_replace('+', '.', $trip);
         }
     } else { // 10 digits
-        $salt = substr($tripkey.'H.', 1, 2);
+        $salt = substr($tripkey . 'H.', 1, 2);
         $salt = preg_replace("/[^\.-z]/", '.', $salt);
         $salt = strtr($salt, ':;<=>?@[\\]^_`', 'ABCDEFGabcdef');
         $trip = substr(crypt($tripkey, $salt), -10);
     }
-    $trip = '◆'.$trip;
+    $trip = '◆' . $trip;
     return $trip;
 }
