@@ -33,16 +33,8 @@ function applyngkCommand(
         return;
     }
 
-    // 名前を強制固定
-    // !774の設定があればそれを使用、なければ板のデフォルト名を使用
-    $forcedName = isset($threadStates['774']) ? $threadStates['774'] : $SETTING['BBS_NONAME_NAME'];
-
-    // !rmjが適用される可能性があるため、一応考慮
-    if (function_exists('replaceRmj')) {
-        $forcedName = replaceRmj($forcedName);
-    }
-
-    $_POST['name'] = $forcedName;
+    // 名前を空にする
+    $_POST['name'] = '';
 }
 
 applyngkCommand(
