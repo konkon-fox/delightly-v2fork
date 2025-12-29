@@ -21,6 +21,8 @@ return (new Config())
         // インデント・改行
         'indentation_type' => true,
         'line_ending' => true,
+        'blank_line_after_opening_tag' => true,
+        'no_extra_blank_lines' => true,
 
         // 配列
         'array_syntax' => ['syntax' => 'short'],
@@ -33,11 +35,15 @@ return (new Config())
             'sort_algorithm' => 'alpha',
         ],
         'no_unused_imports' => true,
+        'single_line_after_imports' => true,
 
         // スペース
         'binary_operator_spaces' => [
             'default' => 'single_space',
         ],
+        'cast_spaces' => ['space' => 'single'],
+        'no_trailing_whitespace' => true,
+        'whitespace_after_comma_in_array' => true,
 
         // 制御構文
         'control_structure_braces' => true,
@@ -45,6 +51,7 @@ return (new Config())
 
         // 文字列
         'single_quote' => true,
+        'concat_space' => ['spacing' => 'one'],
 
         // セミコロン
         'semicolon_after_instruction' => true,
