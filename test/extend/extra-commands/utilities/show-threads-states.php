@@ -42,10 +42,12 @@ function showThreadStates(
         array_push($commentParts, '');
     }
     $commentParts[2] = '';
+    // rmjの有効判定
+    $isValidRmj = function_exists('replaceRmj') && (!isset($SETTING['commands-rmj']) || $SETTING['commands-rmj'] === 'checked');
     // デフォ名無し情報追加
     if (isset($threadStates['774'])) {
         $defaultName = $threadStates['774'];
-        if (function_exists('replaceRmj')) {
+        if ($isValidRmj) {
             $defaultName = replaceRmj($defaultName);
         }
         $defaultName = preg_replace('/\!(?=[a-zA-Z0-9])/', '&#33;', $defaultName);
@@ -54,7 +56,7 @@ function showThreadStates(
     // 語尾情報追加
     if (isset($threadStates['gobi'])) {
         $gobi = $threadStates['gobi'];
-        if (function_exists('replaceRmj')) {
+        if ($isValidRmj) {
             $gobi = replaceRmj($gobi);
         }
         $gobi = preg_replace('/\!(?=[a-zA-Z0-9])/', '&#33;', $gobi);

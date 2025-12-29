@@ -19,6 +19,9 @@ function applyngkCommand(
     if ($SETTING['commands'] !== 'checked') {
         return;
     }
+    if (isset($SETTING['commands-ngk']) && $SETTING['commands-ngk'] !== 'checked') {
+        return;
+    }
     if ($tlonly) {
         return;
     }

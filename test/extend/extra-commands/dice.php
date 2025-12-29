@@ -1,10 +1,14 @@
 <?php
+
 /**
  * @param array $SETTING 板の設定
  */
 function applyDiceCommand($SETTING)
 {
     if ($SETTING['commands'] !== 'checked') {
+        return;
+    }
+    if (isset($SETTING['commands-dice']) && $SETTING['commands-dice'] !== 'checked') {
         return;
     }
     if (strpos($_POST['name'], '!nocmd') !== false) {
@@ -33,14 +37,14 @@ function applyDiceCommand($SETTING)
             $diceType = $commandMatches[3];
             $y = $commandMatches[4];
             // 最大数オーバー確認
-            if($x > $MAX_NUM_OF_DICE) {
+            if ($x > $MAX_NUM_OF_DICE) {
                 $xIsOver = true;
             }
-            if($y > $MAX_DICE_VALUE) {
+            if ($y > $MAX_DICE_VALUE) {
                 $yIsOver = true;
             }
             // 最大数オーバーなので処理しない
-            if($x > $MAX_NUM_OF_DICE || $y > $MAX_DICE_VALUE) {
+            if ($x > $MAX_NUM_OF_DICE || $y > $MAX_DICE_VALUE) {
                 return "【{$diceText}】";
             }
             // 通常処理
@@ -48,7 +52,7 @@ function applyDiceCommand($SETTING)
                 return mt_rand(1, $y);
             }, array_fill(0, $x, 1));
             $sum = array_sum($values);
-            if($diceType === 'd') {
+            if ($diceType === 'd') {
                 $valuesAddition = implode('+', $values);
                 return "<b>【{$diceText}:{$sum}({$valuesAddition})】</b>";
             } else {
@@ -61,12 +65,12 @@ function applyDiceCommand($SETTING)
     // 本文変更
     $_POST['comment'] = implode('<hr>', $commentParts);
     // 例外メッセージ
-    if($xIsOver || $yIsOver) {
+    if ($xIsOver || $yIsOver) {
         $systemMessage = '';
-        if($xIsOver) {
+        if ($xIsOver) {
             $systemMessage .= "★x(ダイスの個数)の最大値は{$MAX_NUM_OF_DICE}です。<br>";
         }
-        if($yIsOver) {
+        if ($yIsOver) {
             $systemMessage .= "★y(ダイスの出目)の最大値は{$MAX_DICE_VALUE}です。<br>";
         }
         addSystemMessage($systemMessage);

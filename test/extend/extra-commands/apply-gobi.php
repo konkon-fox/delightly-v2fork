@@ -15,6 +15,9 @@ function applyGobiCommand(
     if ($SETTING['commands'] !== 'checked') {
         return;
     }
+    if (isset($SETTING['commands-gobi']) && $SETTING['commands-gobi'] !== 'checked') {
+        return;
+    }
     if ($tlonly) {
         return;
     }
@@ -33,7 +36,7 @@ function applyGobiCommand(
     $gobi = $threadStates['gobi'];
     // rmjが有効なら適用
     // 本文と語尾のrmj展開数を独立させるために別々に処理
-    if (function_exists('replaceRmj')) {
+    if (function_exists('replaceRmj') && (!isset($SETTING['commands-rmj']) || $SETTING['commands-rmj'] === 'checked')) {
         $gobi = replaceRmj($gobi);
     }
     $commentParts[0] .= $gobi;

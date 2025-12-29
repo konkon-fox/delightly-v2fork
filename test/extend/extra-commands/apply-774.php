@@ -19,6 +19,9 @@ function apply774Command(
     if ($SETTING['commands'] !== 'checked') {
         return;
     }
+    if (isset($SETTING['commands-774']) && $SETTING['commands-774'] !== 'checked') {
+        return;
+    }
     if ($SETTING['DISABLE_NAME'] === 'checked') {
         return;
     }

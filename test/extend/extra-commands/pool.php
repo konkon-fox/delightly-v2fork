@@ -35,6 +35,9 @@ function applyPoolCommand(
     if ($SETTING['commands'] !== 'checked') {
         return;
     }
+    if (isset($SETTING['commands-pool']) && $SETTING['commands-pool'] !== 'checked') {
+        return;
+    }
     if ($newthread || $tlonly) {
         return;
     }
@@ -73,7 +76,7 @@ applyPoolCommand(
     $admin,
     $newthread,
     $tlonly,
-    $PATH."dat/".$_POST['thread']."_kisei.cgi", // $datlog
+    $PATH . 'dat/' . $_POST['thread'] . '_kisei.cgi', // $datlog
     $THREADFILE,
     $DATFILE,
     $PAGEFILE,

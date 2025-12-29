@@ -23,6 +23,9 @@ function setGobiCommand(
     if ($SETTING['commands'] !== 'checked') {
         return;
     }
+    if (isset($SETTING['commands-gobi']) && $SETTING['commands-gobi'] !== 'checked') {
+        return;
+    }
     if ($tlonly) {
         return;
     }
@@ -54,7 +57,7 @@ function setGobiCommand(
     $systemMessage = "★語尾を「{$gobi}」に設定しました。<br>";
     if ($gobi === '') {
         unset($threadStates['gobi']);
-        $systemMessage = "★語尾を取り消しました。<br>";
+        $systemMessage = '★語尾を取り消しました。<br>';
     }
     // 成功メッセージ出力(本文)
     if (!$newthread) {

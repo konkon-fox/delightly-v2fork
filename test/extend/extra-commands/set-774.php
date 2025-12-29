@@ -23,6 +23,9 @@ function set774Command(
     if ($SETTING['commands'] !== 'checked') {
         return;
     }
+    if (isset($SETTING['commands-774']) && $SETTING['commands-774'] !== 'checked') {
+        return;
+    }
     if ($SETTING['DISABLE_NAME'] === 'checked') {
         return;
     }
@@ -53,25 +56,25 @@ function set774Command(
     }
     /* --置換処理ここから-- */
     // 変換
-    if ($SETTING['change_sakujyo'] == "checked") {
-        $name = str_replace("管理", '"管理"', $name);
-        $name = str_replace("削除", '"削除"', $name);
-        $name = str_replace("sakujyo", '"sakujyo"', $name);
+    if ($SETTING['change_sakujyo'] === 'checked') {
+        $name = str_replace('管理', '"管理"', $name);
+        $name = str_replace('削除', '"削除"', $name);
+        $name = str_replace('sakujyo', '"sakujyo"', $name);
     }
     // 偽キャップ、偽トリップ変換
-    $name = str_replace("★", "☆", $name);
-    $name = preg_replace("/&#0*9733([^0-9]|$)/", "☆", $name);
-    $name = preg_replace("/&#[xX]0*2605([^a-zA-Z0-9]|$)/", "☆", $name);
-    $name = str_replace("◆", "◇", $name);
-    $name = preg_replace("/&#0*9670([^0-9]|$)/", "◇", $name);
-    $name = preg_replace("/&#[xX]0*25[cC]6([^a-zA-Z0-9]|$)/", "◇", $name);
+    $name = str_replace('★', '☆', $name);
+    $name = preg_replace('/&#0*9733([^0-9]|$)/', '☆', $name);
+    $name = preg_replace('/&#[xX]0*2605([^a-zA-Z0-9]|$)/', '☆', $name);
+    $name = str_replace('◆', '◇', $name);
+    $name = preg_replace('/&#0*9670([^0-9]|$)/', '◇', $name);
+    $name = preg_replace('/&#[xX]0*25[cC]6([^a-zA-Z0-9]|$)/', '◇', $name);
     /* --置換処理ここまで-- */
     // スレッド状態を更新
     $threadStates['774'] = $name;
     $systemMessage = "★デフォ名無しを「{$name}」に設定しました。<br>";
     if ($name === '') {
         unset($threadStates['774']);
-        $systemMessage = "★デフォ名無しを取り消しました。<br>";
+        $systemMessage = '★デフォ名無しを取り消しました。<br>';
     }
     // 成功メッセージ出力(本文)
     if (!$newthread) {
