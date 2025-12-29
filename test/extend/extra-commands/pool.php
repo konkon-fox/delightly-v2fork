@@ -73,7 +73,7 @@ applyPoolCommand(
     $admin,
     $newthread,
     $tlonly,
-    $PATH."dat/".$_POST['thread']."_kisei.cgi", // $datlog
+    $PATH . 'dat/' . $_POST['thread'] . '_kisei.cgi', // $datlog
     $THREADFILE,
     $DATFILE,
     $PAGEFILE,

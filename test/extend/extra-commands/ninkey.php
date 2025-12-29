@@ -38,7 +38,7 @@ function applyMykeyCommand($SETTING, $NOWTIME)
         </head>
         <body>{$message}</body>
         </html>";
-        echo mb_convert_encoding($html, "SJIS-win", "UTF-8");
+        echo mb_convert_encoding($html, 'SJIS-win', 'UTF-8');
         exit;
     }
     // 通常webブラウザの場合
@@ -48,7 +48,7 @@ function applyMykeyCommand($SETTING, $NOWTIME)
         } else {
             $message = "Your_ninkey_is_{$_COOKIE['WrtAgreementKey']}";
         }
-        setcookie("ninkey", urlencode($message), $NOWTIME + 5, "/");
+        setcookie('ninkey', urlencode($message), $NOWTIME + 5, '/');
         exit;
     }
 }

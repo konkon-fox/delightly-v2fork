@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @param array $SETTING 板の設定
  * @param boolean $supervisor スレ主判定
@@ -23,34 +24,34 @@ function applyChttCommand(
     &$subject,
     &$reload
 ) {
-    if($SETTING['commands'] !== 'checked') {
+    if ($SETTING['commands'] !== 'checked') {
         return;
     }
-    if($newthread || $tlonly) {
+    if ($newthread || $tlonly) {
         return;
     }
-    if(!($supervisor || $admin)) {
+    if (!($supervisor || $admin)) {
         return;
     }
     if (strpos($_POST['name'], '!nocmd') !== false) {
         return;
     }
-    if(strpos($_POST['comment'], '!chtt:') === false) {
+    if (strpos($_POST['comment'], '!chtt:') === false) {
         return;
     }
     $commentParts = explode('<hr>', $_POST['comment']);
-    if(!preg_match('/\!chtt:(.*?)((?=\<br\>)|$)/', $commentParts[0], $commandMatches)) {
+    if (!preg_match('/\!chtt:(.*?)((?=\<br\>)|$)/', $commentParts[0], $commandMatches)) {
         return;
     }
     // コマンド文字列から新スレタイを抽出
     $newThreadTitle = trim($commandMatches[1]);
     // 空欄エラー
-    if($newThreadTitle === '') {
+    if ($newThreadTitle === '') {
         addSystemMessage('★新スレタイが空欄です。<br>');
         return;
     }
     // スレタイ長すぎエラー
-    if(mb_strlen($newThreadTitle, 'UTF-8') > $SETTING['BBS_SUBJECT_COUNT']) {
+    if (mb_strlen($newThreadTitle, 'UTF-8') > $SETTING['BBS_SUBJECT_COUNT']) {
         addSystemMessage('★新スレタイが長すぎます。<br>');
         return;
     }
@@ -63,22 +64,22 @@ function applyChttCommand(
     addSystemMessage($changeMessage);
     // 成功メッセージ出力(>>1) datへの反映はbbs-main.phpで行われる
     $messageParts = explode('<hr>', $message);
-    if(count($messageParts) < 2) {
+    if (count($messageParts) < 2) {
         array_push($messageParts, '');
     }
     $messageParts[1] .= preg_replace('/\!(?=[a-zA-Z0-9])/', '&#33;', $changeMessage);
     $message = implode('<hr>', $messageParts);
     // 新スレタイに>>1のIDを追加
-    if($titleHasId) {
+    if ($titleHasId) {
         $newThreadTitle .= " [{$IDMatches[1]}★]";
     }
     // 過去ログ用subject.jsonを更新
-    if(is_file($threadSubjectFile)) {
+    if (is_file($threadSubjectFile)) {
         $threadSubjectFileHandle = fopen($threadSubjectFile, 'r+');
-        if(flock($threadSubjectFileHandle, LOCK_EX)) {
+        if (flock($threadSubjectFileHandle, LOCK_EX)) {
             $tlist = json_decode(fread($threadSubjectFileHandle, filesize($threadSubjectFile)), true);
             $tlist = array_map(function ($thread) use ($newThreadTitle) {
-                if((int) $thread['thread'] === (int) $_POST['thread']) {
+                if ((int) $thread['thread'] === (int) $_POST['thread']) {
                     $thread['title'] = $newThreadTitle;
                 }
                 return $thread;
@@ -101,7 +102,7 @@ applyChttCommand(
     $admin,
     $newthread,
     $tlonly,
-    $PATH."thread/".substr($_POST['thread'], 0, 4)."/subject.json",
+    $PATH . 'thread/' . substr($_POST['thread'], 0, 4) . '/subject.json',
     $firstResDateId,
     $message,
     $subject,
