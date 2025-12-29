@@ -60,6 +60,10 @@ function showThreadStates(
         $gobi = preg_replace('/\!(?=[a-zA-Z0-9])/', '&#33;', $gobi);
         $commentParts[2] .= "<font color=\"red\">※GOBI=</font>{$gobi}<br>";
     }
+    // ngk状態追加
+    if (isset($threadStates['ngk'])) {
+        $commentParts[2] .= '<font color="red">※ngk</font>（名前入力禁止）<br>';
+    }
     // 分割された本文を統合
     $comment = implode('<hr>', $commentParts);
     $comment = preg_replace('/(<hr>)+$/', '', $comment);
