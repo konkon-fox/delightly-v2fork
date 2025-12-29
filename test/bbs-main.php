@@ -1584,8 +1584,35 @@ if (!$tlonly) {
 
     // 上限到達時の自動レス (1001レス等)
     if ($number === $maxResLimit) {
-        $endContent = $SETTING['BBS_THREAD_END_CONTENT'] !== '' ? $SETTING['BBS_THREAD_END_CONTENT'] : 'このスレッドは上限に達しました。新しいスレッドを立ててください。';
-        $autoRes = ($maxResLimit + 1) . '<>' . ($maxResLimit + 1) . '<>Over ' . $maxResLimit . ' Thread ID:Thread<>' . $endContent . '<>' . $_POST['title'] . "\n";
+        $endContent = 'このスレッドは上限に達しました。新しいスレッドを立ててください。';
+        if ($SETTING['BBS_THREAD_END_CONTENT'] !== '') {
+            $endContent = $SETTING['BBS_THREAD_END_CONTENT'];
+            $endContent = str_replace(["\r\n", "\r", "\n"], '<br>', $endContent);
+            // 表示設定で内容が設定されていない場合、1001ディレクトリのランダムなファイルの内容を自動レスの内容として表示
+        } else {
+            $directoryPath = $PATH . '1001/';
+            if (!file_exists($directoryPath)) {
+                mkdir($directoryPath, 0775, true);
+                chmod($directoryPath, 0775);
+            }
+            $endFiles = glob($directoryPath . '*');
+            $endFiles = array_filter($endFiles, 'is_file');
+            if (!empty($endFiles)) {
+                $randomFile = $endFiles[array_rand($endFiles)];
+                if (($fp = fopen($randomFile, 'r')) !== false) {
+                    if (flock($fp, LOCK_SH)) {
+                        $filesize = filesize($randomFile);
+                        if ($filesize > 0) {
+                            $endContent = fread($fp, $filesize);
+                        }
+                        flock($fp, LOCK_UN);
+                    }
+                    fclose($fp);
+                }
+                $endContent = str_replace(["\r\n", "\r", "\n"], '<br>', $endContent);
+            }
+        }
+        $autoRes = ($maxResLimit + 1) . '<>' . ($maxResLimit + 1) . '<>Over ' . $maxResLimit . ' Thread ID:TheEnd<>' . $endContent . '<>' . $_POST['title'] . "\n";
         addNewResToDat($THREADFILE, $autoRes);
         // dat用にも追記 (Shift_JIS)
         $outdat_auto = mb_convert_encoding($autoRes, 'SJIS-win', 'UTF-8');

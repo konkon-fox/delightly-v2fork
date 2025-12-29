@@ -1,24 +1,19 @@
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['edit'] === 'yes') {
-  // スレッドのレス数が最大数に達した時に表示される内容に改行が含まれていたらbrタグに変換
-  if (isset($_POST['BBS_THREAD_END_CONTENT'])) {
-    $_POST['BBS_THREAD_END_CONTENT'] = str_replace(["\r\n", "\r", "\n"], '<br>', $_POST['BBS_THREAD_END_CONTENT']);
-  }
-
-  foreach ($SETTING as $name => $value) {
-    if (isset($_POST[$name])) {
-      $SETTING[$name] = $_POST[$name];
+    foreach ($SETTING as $name => $value) {
+        if (isset($_POST[$name])) {
+            $SETTING[$name] = $_POST[$name];
+        }
+        $SET .= $name . '=' . $SETTING[$name] . "\n";
     }
-    $SET .= $name . '=' . $SETTING[$name] . "\n";
-  }
 
-  mb_substitute_character('entity');
-  file_put_contents($setfile, json_encode($SETTING, JSON_UNESCAPED_UNICODE), LOCK_EX);
-  file_put_contents($settxt, mb_convert_encoding($SET, 'SJIS-win', 'UTF-8'), LOCK_EX);
+    mb_substitute_character('entity');
+    file_put_contents($setfile, json_encode($SETTING, JSON_UNESCAPED_UNICODE), LOCK_EX);
+    file_put_contents($settxt, mb_convert_encoding($SET, 'SJIS-win', 'UTF-8'), LOCK_EX);
 
-  $utf8 = $SETTING['BBS_TITLE'];
-  $sjis = mb_convert_encoding($SETTING['BBS_TITLE'], 'SJIS-win', 'UTF-8');
-  file_put_contents($PATH . 'index.php', "<?php \$BBS_TITLE_UTF8 = \"{$utf8}\";\$BBS_TITLE_SJIS = \"{$sjis}\";include \"../test/board/index.php\";?>");
+    $utf8 = $SETTING['BBS_TITLE'];
+    $sjis = mb_convert_encoding($SETTING['BBS_TITLE'], 'SJIS-win', 'UTF-8');
+    file_put_contents($PATH . 'index.php', "<?php \$BBS_TITLE_UTF8 = \"{$utf8}\";\$BBS_TITLE_SJIS = \"{$sjis}\";include \"../test/board/index.php\";?>");
 }
 ?>
 <!DOCTYPE html>
@@ -49,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['edit'] === 'yes') {
       <div><input type="text" name="DELETED_TEXT" value="<?= $SETTING['DELETED_TEXT']; ?>"></div>
       <div><b>スレッドのレス数が最大数に達した時に表示される内容</b><small class="notice mt5">(省略可)</small></div>
       <div><textarea name="BBS_THREAD_END_CONTENT" style="width: 500px; height: 250px;"
-          placeholder="このスレッドは上限に達しました。新しいスレッドを立ててください。"><?= isset($SETTING['BBS_THREAD_END_CONTENT']) ? str_replace('<br>', "\n", $SETTING['BBS_THREAD_END_CONTENT']) : ''; ?></textarea>
+          placeholder="未入力の場合は <?= $PATH; ?>1001/ にあるランダムなファイルの内容が表示されます"><?= isset($SETTING['BBS_THREAD_END_CONTENT']) ? $SETTING['BBS_THREAD_END_CONTENT'] : ''; ?></textarea>
       </div>
       <hr>
       <div class="contents"><input type="submit" name="Submit" class="btn btn-primary btn-block" value="適用"></div>
