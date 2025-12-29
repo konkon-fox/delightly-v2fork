@@ -38,11 +38,7 @@ function apply774Command(
         return;
     }
     // 名前変更
-    $defalutName = $threadStates['774'];
-    if (function_exists('replaceRmj')) {
-        $defalutName = replaceRmj($defalutName);
-    }
-    $_POST['name'] = $defalutName;
+    $_POST['name'] = $threadStates['774'];
 }
 
 apply774Command(
