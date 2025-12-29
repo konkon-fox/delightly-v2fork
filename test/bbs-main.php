@@ -566,12 +566,16 @@ include './extend/extra-commands/utilities/add-system-message.php';
 @include './extend/extra-commands/set-774.php';
 // !gobi設定
 @include './extend/extra-commands/set-gobi.php';
+// !ngk設定
+@include './extend/extra-commands/set-ngk.php';
 // !rmjコマンド
 @include './extend/extra-commands/rmj.php';
 // !774適用
 @include './extend/extra-commands/apply-774.php';
 // !gobi適用
 @include './extend/extra-commands/apply-gobi.php';
+// !ngk適用
+@include './extend/extra-commands/apply-ngk.php';
 // スレ状態更新処理
 @include './extend/extra-commands/utilities/show-threads-states.php';
 // !xDy(dice)コマンド
