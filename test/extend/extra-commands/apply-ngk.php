@@ -29,7 +29,7 @@ function applyngkCommand(
     if (empty($threadStates)) {
         return;
     }
-    if (!isset($threadStates['ngk']) || $threadStates['ngk'] !== true) {
+    if (!isset($threadStates['ngk'])) {
         return;
     }
 
