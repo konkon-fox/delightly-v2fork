@@ -31,6 +31,8 @@ function applyGobiCommand(
     $commentParts = explode('<hr>', $_POST['comment']);
     // 語尾追加
     $gobi = $threadStates['gobi'];
+    // rmjが有効なら適用
+    // 本文と語尾のrmj展開数を独立させるために別々に処理
     if (function_exists('replaceRmj')) {
         $gobi = replaceRmj($gobi);
     }
