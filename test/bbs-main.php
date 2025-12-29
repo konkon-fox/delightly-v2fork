@@ -560,6 +560,8 @@ include './extend/extra-commands/utilities/add-system-message.php';
 // include './extend/extra-commands/utilities/get-threads-states.php';
 // !ninkeyコマンド
 @include './extend/extra-commands/ninkey.php';
+// !maxコマンド
+@include './extend/extra-commands/max.php';
 // !chttコマンド
 @include './extend/extra-commands/chtt.php';
 // !ngk設定
@@ -594,10 +596,11 @@ if (!$newthread && !$tlonly) {
 }
 
 // 上限超え
-if (!$newthread && !$tlonly && $number > $SETTING['MAX_RES']) {
+$maxResLimit = isset($threadStates['max']) ? (int) $threadStates['max'] : (int) $SETTING['MAX_RES'];
+if (!$newthread && !$tlonly && $number > $maxResLimit) {
     Error('このスレッドに投稿できる上限を超えました');
 }
-if (!$newthread && !$tlonly && $number > $SETTING['MAX_RES'] - 2) {
+if (!$newthread && !$tlonly && $number > $maxResLimit - 2) {
     $stop = true;
 }
 

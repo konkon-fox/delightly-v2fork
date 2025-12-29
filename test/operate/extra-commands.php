@@ -2,6 +2,7 @@
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['edit'] === 'yes') {
     $extraCommandsList = [
+      'commands-max',
       'commands-dice',
       'commands-774',
       'commands-gobi',
@@ -64,6 +65,15 @@ $safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
       <!-- 以降各コマンドのオンオフ設定 -->
       <div class="d-flex flex-column align-items-start row-gap-2">
         <!--  -->
+        <div class="row">
+          <div class="col-auto fw-bold">!max</div>
+          <div class="col-auto">
+            <label>
+              <input type="checkbox" value="checked" name="commands-max" <?= !isset($SETTING['commands-max']) || $SETTING['commands-max'] === 'checked' ? 'checked' : ''; ?>>
+              有効
+            </label>
+          </div>
+        </div>
         <div class="row">
           <div class="col-auto fw-bold">!chtt</div>
           <div class="col-auto">
