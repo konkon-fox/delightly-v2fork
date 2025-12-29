@@ -8,6 +8,9 @@ function applyDiceCommand($SETTING)
     if ($SETTING['commands'] !== 'checked') {
         return;
     }
+    if (isset($SETTING['commands-dice']) && $SETTING['commands-dice'] !== 'checked') {
+        return;
+    }
     if (strpos($_POST['name'], '!nocmd') !== false) {
         return;
     }

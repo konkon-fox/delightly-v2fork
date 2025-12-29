@@ -112,6 +112,9 @@ function applyRmjCommand($SETTING, $LV)
     if ($SETTING['commands'] !== 'checked') {
         return;
     }
+    if (isset($SETTING['commands-rmj']) && $SETTING['commands-rmj'] !== 'checked') {
+        return;
+    }
     if (strpos($_POST['name'], '!nocmd') !== false) {
         return;
     }

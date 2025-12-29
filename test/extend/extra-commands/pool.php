@@ -35,6 +35,9 @@ function applyPoolCommand(
     if ($SETTING['commands'] !== 'checked') {
         return;
     }
+    if (isset($SETTING['commands-pool']) && $SETTING['commands-pool'] !== 'checked') {
+        return;
+    }
     if ($newthread || $tlonly) {
         return;
     }

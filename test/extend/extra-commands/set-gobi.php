@@ -23,6 +23,9 @@ function setGobiCommand(
     if ($SETTING['commands'] !== 'checked') {
         return;
     }
+    if (isset($SETTING['commands-gobi']) && $SETTING['commands-gobi'] !== 'checked') {
+        return;
+    }
     if ($tlonly) {
         return;
     }

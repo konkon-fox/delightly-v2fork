@@ -27,6 +27,9 @@ function applyChttCommand(
     if ($SETTING['commands'] !== 'checked') {
         return;
     }
+    if (isset($SETTING['commands-chtt']) && $SETTING['commands-chtt'] !== 'checked') {
+        return;
+    }
     if ($newthread || $tlonly) {
         return;
     }

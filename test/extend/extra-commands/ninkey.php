@@ -16,6 +16,9 @@ function applyMykeyCommand($SETTING, $NOWTIME)
     if ($SETTING['commands'] !== 'checked') {
         return;
     }
+    if (isset($SETTING['commands-ninkey']) && $SETTING['commands-ninkey'] !== 'checked') {
+        return;
+    }
     if (strpos($_POST['name'], '!nocmd') !== false) {
         return;
     }
