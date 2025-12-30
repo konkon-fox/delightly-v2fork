@@ -292,16 +292,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ホスティング判定
     if (
-        // hostが.jpではない
-        !preg_match("/\.jp$/i", $HOST) &&
-        // hostが.bbtec.netではない
-        !preg_match("/\.bbtec\.net$/", $HOST) &&
-        // スマホ回線ではない
-        !$SLIP_SP &&
-        // MVNOではない
-        !$MM &&
-        // フリーwifiではない
-        !$WF
+        $area['proxy'] || $area['hosting']
     ) {
         $slip = 'H';
     }
