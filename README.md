@@ -81,6 +81,18 @@ Cloudflare を導入しない場合は`/test/.use_cloudflare`を削除してく�
 
 ブランチやバージョニング、リリースについては [DEVELOPMENT.md](./DEVELOPMENT.md) を参照してください。
 
+# 商用利用および外部 API について
+
+本スクリプトの利用に関しては [LICENSE](./LICENSE) に従います。
+
+ただし、本スクリプトは認証時に `ip-api.com` の API を利用しています。
+この API の **Free プランは規約により商用利用が禁止されています。**
+
+商用サイトで本スクリプトを運用する場合は、以下のいずれかの対応を行ってください。
+
+1. [ip-api.com](https://ip-api.com/) の有料プランに加入し、必要に応じて認証ロジックを修正する。
+2. 認証処理内の `ip-api.com` を利用している箇所を無効化、または別の判定ロジックへ差し替える。
+
 # Lisence
 
 The license in the LICENSE.txt file applies, unless a separate license is listed in the source code.
