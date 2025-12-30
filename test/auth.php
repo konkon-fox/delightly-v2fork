@@ -182,7 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_COOKIE['WrtAgreementKey'])) {
         $WrtAgreementKey = $_COOKIE['WrtAgreementKey'];
         setcookie('WrtAgreementKey', $WrtAgreementKey, $NOWTIME + 31536000, '/');
-        exit('認証に成功しました。Web版をご利用の場合はそのまま投稿できます<br>2ch専用ブラウザでの投稿時やCookie失効時は以下のキーをE-mail欄に入力してご利用ください<br>※E-mail欄は外部には表示されません<input name="mcode" onfocus="this.select()" value="#'.$WrtAgreementKey.'" style="display:block;margin:auto;width:95%;" readonly=""><hr><a href="#" onclick="window.history.go(-1);">前ページに戻る</a><br><a href="#" onclick="window.history.go(-2);">2つ前のページに戻る</a>');
+        exit('認証に成功しました。Web版をご利用の場合はそのまま投稿できます<br>2ch専用ブラウザでの投稿時やCookie失効時は以下のキーをE-mail欄に入力してご利用ください<br>※E-mail欄は外部には表示されません<input name="mcode" onfocus="this.select()" value="#' . $WrtAgreementKey . '" style="display:block;margin:auto;width:95%;" readonly=""><hr><a href="#" onclick="window.history.go(-1);">前ページに戻る</a><br><a href="#" onclick="window.history.go(-2);">2つ前のページに戻る</a>');
     }
 
     // smart phone marks
@@ -200,7 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'method' => 'GET',
                     ],
             ];
-    $url = 'http://ip-api.com/json/'.$IP.'?fields=countryCode,regionName,city,asname,mobile,proxy,hosting&lang=ja';
+    $url = 'http://ip-api.com/json/' . $IP . '?fields=countryCode,regionName,city,asname,mobile,proxy,hosting&lang=ja';
     $cp = curl_init();
     /*オプション:リダイレクトされたらリダイレクト先のページを取得する*/
     curl_setopt($cp, CURLOPT_RETURNTRANSFER, 1);
@@ -230,7 +230,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // API制限（X-Rl）のチェック
-    if (isset($HTTP['x-rl']) && (int)$HTTP['x-rl'] <= 5) {
+    if (isset($HTTP['x-rl']) && (int) $HTTP['x-rl'] <= 5) {
         exit('【認証エラー】サーバーの認証リクエストが上限に達しました。1分ほど時間を置いてから再度お試しください。');
     }
 
@@ -265,11 +265,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST']) {
         $_SERVER['HTTP_SEC_CH_UA'] = $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'];
     }
-    $CH_UA = $_SERVER['HTTP_SEC_CH_UA'].$_SERVER['HTTP_SEC_CH_UA_PLATFORM'].$_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION'].$_SERVER['HTTP_SEC_CH_UA_BITNESS'].$_SERVER['HTTP_SEC_CH_UA_ARCH'].$_SERVER['HTTP_SEC_CH_UA_MODEL'].$_SERVER['HTTP_SEC_CH_UA_MOBILE'];
+    $CH_UA = $_SERVER['HTTP_SEC_CH_UA'] . $_SERVER['HTTP_SEC_CH_UA_PLATFORM'] . $_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION'] . $_SERVER['HTTP_SEC_CH_UA_BITNESS'] . $_SERVER['HTTP_SEC_CH_UA_ARCH'] . $_SERVER['HTTP_SEC_CH_UA_MODEL'] . $_SERVER['HTTP_SEC_CH_UA_MOBILE'];
     if (!$CH_UA) {
         $CH_UA = $_SERVER['HTTP_USER_AGENT'];
     }
-    $ACCEPT = $_SERVER['HTTP_ACCEPT'].$_SERVER['HTTP_ACCEPT_LANGUAGE'].$_SERVER['CONTENT_TYPE'];
+    $ACCEPT = $_SERVER['HTTP_ACCEPT'] . $_SERVER['HTTP_ACCEPT_LANGUAGE'] . $_SERVER['CONTENT_TYPE'];
 
     // 仮で準備 同一環境チェックを緩めたい時に使用
     // // OS名取得
@@ -319,7 +319,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $HAP_PATH = './HAP/';
 
     $fingerprint =
-        $ipNetworkPart.
+        $ipNetworkPart .
         $area['asname'];
     // 以下を混ぜると範囲が狭くなる
     // $os
@@ -329,7 +329,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ユーザー環境のハッシュ
     $environmentHash = hash('sha256', $fingerprint);
     // 環境控えファイル
-    $enFile = $HAP_PATH.'en_'.$environmentHash.'.cgi';
+    $enFile = $HAP_PATH . 'en_' . $environmentHash . '.cgi';
 
     // 環境控えファイル更新が30日間以内なら同一キーを返す
     if (is_file($enFile)) {
@@ -341,10 +341,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     file_put_contents($enFile, $WrtAgreementKey, LOCK_EX);
 
     // アカウントID算出
-    $accountId = hash('sha256', hash('sha256', md5($WrtAgreementKey).preg_replace('/[^0-9]/', '', md5($WrtAgreementKey))));
+    $accountId = hash('sha256', hash('sha256', md5($WrtAgreementKey) . preg_replace('/[^0-9]/', '', md5($WrtAgreementKey))));
 
     // ユーザーファイル作成
-    $file = $HAP_PATH.$accountId.'.cgi';
+    $file = $HAP_PATH . $accountId . '.cgi';
     if (!is_file($file)) {
         $HAP = ['first' => $NOWTIME,
           'last' => '',
@@ -357,7 +357,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           'range' => $range,
           'provider' => $area['asname'],
           'country' => $_SERVER['HTTP_CF_IPCOUNTRY'],
-          'region' => $area['regionName'].$area['city'].$area['district'],
+          'region' => $area['regionName'] . $area['city'] . $area['district'],
           'proxy' => $area['proxy'],
           'hosting' => $area['hosting'],
           'slip' => $slip,
@@ -369,7 +369,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         file_put_contents($file, json_encode($HAP, JSON_UNESCAPED_UNICODE), LOCK_EX);
     }
     setcookie('WrtAgreementKey', $WrtAgreementKey, $NOWTIME + 31536000, '/');
-    exit('認証に成功しました。Web版をご利用の場合はそのまま投稿できます<br>2ch専用ブラウザでの投稿時やCookie失効時は以下のキーをE-mail欄に入力してご利用ください<br>※E-mail欄は外部には表示されません<input name="mcode" onfocus="this.select()" value="#'.$WrtAgreementKey.'" style="display:block;margin:auto;width:95%;" readonly=""><hr><a href="#" onclick="window.history.go(-1);">前ページに戻る</a><br><a href="#" onclick="window.history.go(-2);">2つ前のページに戻る</a>');
+    exit('認証に成功しました。Web版をご利用の場合はそのまま投稿できます<br>2ch専用ブラウザでの投稿時やCookie失効時は以下のキーをE-mail欄に入力してご利用ください<br>※E-mail欄は外部には表示されません<input name="mcode" onfocus="this.select()" value="#' . $WrtAgreementKey . '" style="display:block;margin:auto;width:95%;" readonly=""><hr><a href="#" onclick="window.history.go(-1);">前ページに戻る</a><br><a href="#" onclick="window.history.go(-2);">2つ前のページに戻る</a>');
 
 }
 ?>
