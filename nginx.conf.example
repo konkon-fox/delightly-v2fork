@@ -28,7 +28,7 @@ server {
         deny all;
     }
     
-    rewrite ^/test/read\.cgi/([^/]+)/([0-9]+)/$ /#$1/$2/ permanent;
+    rewrite ^/test/read\.cgi/([^/]+)/([0-9]+)/(.*)$ /#$1/$2/$3 permanent;
     rewrite ^/test/bbs\.cgi$ /test/bbs.php last;
 
     location ~ /test/bbs\.php$ {
