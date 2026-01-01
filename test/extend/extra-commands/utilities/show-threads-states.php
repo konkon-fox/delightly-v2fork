@@ -66,6 +66,10 @@ function showThreadStates(
     if (isset($threadStates['ngk'])) {
         $commentParts[2] .= '<font color="red">※ngk</font>（名前入力禁止）<br>';
     }
+    // max状態追加
+    if (isset($threadStates['max'])) {
+        $commentParts[2] .= 'レス数上限を<font color="red">' . $threadStates['max'] . '</font>に設定<br>';
+    }
     // 分割された本文を統合
     $comment = implode('<hr>', $commentParts);
     $comment = preg_replace('/(<hr>)+$/', '', $comment);
