@@ -79,7 +79,7 @@ Cloudflare を導入しない場合は`/test/.use_cloudflare`を削除してく�
 
 # 開発・運用方針
 
-ブランチやバージョニング、リリースについては [DEVELOPMENT.md](./DEVELOPMENT.md) を参照してください。
+ブランチやバージョニング、リリースについては [CONTRIBUTING.md](./CONTRIBUTING.md) を参照してください。
 
 # 商用利用および外部 API について
 
