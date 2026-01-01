@@ -210,7 +210,7 @@ function load(mode) {
         ids += '</span>';
         let datetext;
         if (isSmartPhone() == true)
-          datetext = '<span class="date" id="date-' + number + '">' + ids + date + mail + '</span>';
+          datetext = '<span class="date" id="date-' + number + '">' + date + ids + mail + '</span>';
         else
           datetext = '<span class="date" id="date-' + number + '">' + date + ids + mail + '</span>';
         let rnum = message.match(/&gt;&gt;([0-9]+)(?![-\d])/);
@@ -257,8 +257,8 @@ function load(mode) {
           newpost.innerHTML =
             numtext +
             nametext +
-            msgtext +
             datetext +
+            msgtext +
             '<div id="replys-' +
             number +
             '" style="display:none;"><img class="aresicon" src="/static/ares.svg" width="12" height="12"><small id="rcount-' +

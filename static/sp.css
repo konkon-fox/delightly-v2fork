@@ -42,16 +42,11 @@ details {
   color: #4d4d4d !important;
 }
 .date {
-  display: block;
+  display: flex;
+  column-gap: 4px;
   color: #ccc;
   font-size: 80%;
-  padding-left: 0;
-}
-.id {
-  right: 10px;
-  position: absolute;
-  color: #9ba1a8;
-  color: #9ba1a8;
+  padding-left: 16px;
 }
 .message {
   margin-top: 1px;
