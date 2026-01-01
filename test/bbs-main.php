@@ -502,6 +502,13 @@ if ($newthread) {
     }
 }
 
+// レス番号を取得
+if (!$newthread && !$tlonly) {
+    $number++;
+} else {
+    $number = 1;
+}
+
 // コマンド
 $reload = false;
 if (!$tlonly) {
@@ -587,13 +594,6 @@ include './extend/extra-commands/utilities/add-system-message.php';
 $daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
 $dayOfWeek = $daysOfWeek[date('w')];
 $DATE .= " ({$dayOfWeek}) {$TIME}";
-
-// レス番号を取得
-if (!$newthread && !$tlonly) {
-    $number++;
-} else {
-    $number = 1;
-}
 
 // 上限超え
 $maxResLimit = isset($threadStates['max']) ? (int) $threadStates['max'] : (int) $SETTING['MAX_RES'];
