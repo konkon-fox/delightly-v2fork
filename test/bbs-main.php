@@ -70,7 +70,7 @@ $THREAD_STATES_PATH = $PATH . 'threads-states';  // スレ状態ファイル用�
 $HAP_PATH = './HAP/';
 mb_substitute_character('entity');
 $M = $ken = $ncolor = $Cookmail = $LV = $CAPID = $accountid = $supervisorID = '';
-$stop = $admin = $sage = $supervisor = $authorized = $PROXY = $threadStatesReload = false;
+$stop = $admin = $sage = $supervisor = $authorized = $PROXY = $threadStatesReload = $isMax = false;
 
 include './utils/safe-file-get-contents.php';
 include './utils/safe-file.php';
@@ -600,8 +600,8 @@ $maxResLimit = isset($threadStates['max']) ? (int) $threadStates['max'] : (int) 
 if (!$newthread && !$tlonly && $number > $maxResLimit) {
     Error('このスレッドに投稿できる上限を超えました');
 }
-if (!$newthread && !$tlonly && $number > $maxResLimit - 2) {
-    $stop = true;
+if (!$tlonly && $number >= $maxResLimit) {
+    $isMax = true;
 }
 
 // 画像禁止
@@ -1684,8 +1684,11 @@ include './extend/archive-thread.php';
 
 // スレッド一覧 (subject.json)
 if (!$tlonly) {
-    // 停止済のスレッド
-    if ($stop) {
+    if ($isMax) {
+        // 投稿上限のスレッド
+        $subject = '[max] ' . $subject;
+    } elseif ($stop) {
+        // 停止済のスレッド
         $subject = '[stop] ' . $subject;
     }
     // 投稿先スレッド
