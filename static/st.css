@@ -351,3 +351,9 @@ div.sticky {
 #overright {
   overflow-x: hidden;
 }
+/* v2-fork追加分 */
+#headtitle,
+.subject,
+.message {
+  overflow: clip;
+}

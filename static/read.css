@@ -732,3 +732,10 @@ textarea {
   border-left: solid 3px rgb(103, 103, 103);
   opacity: 0.7;
 }
+/* v2-fork追加分 */
+.title {
+  display: inline-block;
+  overflow: clip;
+  margin-top: 0;
+  margin-bottom: 0;
+}
