@@ -17,8 +17,73 @@ $IP = $_SERVER['REMOTE_ADDR'];
 $HOST = gethostbyaddr($IP);
 $area = [];
 $area['district'] = $area['proxy'] = $area['hosting'] = $area['regionName'] = $area['city'] = $area['countryCode'] = $area['mobile'] = $area['asname'] = '';
+$authStatus = 'failed';
 
 include './utils/safe-file-get-contents.php';
+
+/**
+ * 認証ログを記録する関数
+ *
+ * @param 'success'|'failed' $authStatus 認証の成功判定
+ * @param string $WrtAgreementKey 同意鍵
+ * @param string $IP IPアドレス
+ * @param string $HOST ホスト
+ * @param string $isp プロバイダ
+ * @param string $asname
+ * @param string $UA UA
+ * @param string $CH_UA Client Hints
+ * @param string $clientId Client ID
+ * @param string $enFile 環境ファイル名
+ */
+function recordLog(
+    $authStatus,
+    $WrtAgreementKey,
+    $IP,
+    $HOST,
+    $isp,
+    $asname,
+    $UA,
+    $CH_UA,
+    $clientId,
+    $enFile
+) {
+    // 定数定義
+    $LOG_LIMITS = 10000;
+    // ログを追記
+    $nowDate = date('Y-m-d H:i:s');
+    $log = $nowDate . '<>' . $authStatus . '<>' . $WrtAgreementKey . '<>' . $IP . '<>' . $HOST . '<>' . $isp . '<>' . $asname . '<>' . $UA . '<>' . $CH_UA . '<>' . $clientId . '<>' . $enFile . "\n";
+    $logFile = './HAP/log.cgi';
+    file_put_contents($logFile, $log, FILE_APPEND | LOCK_EX);
+    // ログの数チェック
+    $fp = fopen($logFile, 'c+b');
+    if (!$fp) {
+        return;
+    }
+    if (!flock($fp, LOCK_EX)) {
+        fclose($fp);
+        return;
+    }
+    $lines = [];
+    while (($line = fgets($fp)) !== false) {
+        $lines[] = $line;
+    }
+    // 規定数未満なので終了
+    if (count($lines) < $LOG_LIMITS) {
+        flock($fp, LOCK_UN);
+        fclose($fp);
+        return;
+    }
+    // 古いlogを削除する処理
+    $offset = -($LOG_LIMITS - 100);
+    $newLines = array_slice($lines, $offset);
+    // ファイルに書き込み
+    rewind($fp);
+    ftruncate($fp, 0);
+    fwrite($fp, implode('', $newLines));
+    // ファイル閉じる
+    flock($fp, LOCK_UN);
+    fclose($fp);
+}
 
 // UA初期化
 if (!isset($_SERVER['HTTP_SEC_CH_UA'])) {
@@ -200,7 +265,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'method' => 'GET',
                     ],
             ];
-    $url = 'http://ip-api.com/json/' . $IP . '?fields=countryCode,regionName,city,asname,mobile,proxy,hosting&lang=ja';
+    $url = 'http://ip-api.com/json/' . $IP . '?fields=countryCode,regionName,city,isp,asname,mobile,proxy,hosting&lang=ja';
     $cp = curl_init();
     /*オプション:リダイレクトされたらリダイレクト先のページを取得する*/
     curl_setopt($cp, CURLOPT_RETURNTRANSFER, 1);
@@ -297,13 +362,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $slip = 'H';
     }
 
-    // ホスティング判定された回線からの認証を拒否
-    if (!getenv('SKIP_VERIFICATION')) {
-        if (file_exists(__DIR__ . '/.use_strict_auth') && $slip === 'H') {
-            exit('【認証エラー】ご使用の回線（海外/VPN/データセンター等）からの認証は現在制限されています。家庭用回線またはモバイル回線からお試しください。');
-        }
-    }
-
     # 鍵を生成する(uuid上8桁の英数字)
     $WrtAgreementKey = substr(uniqid(), 0, 8);
     # 記録ファイルが設置された場所。
@@ -320,16 +378,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ユーザー環境のハッシュ
     $environmentHash = hash('sha256', $fingerprint);
     // 環境控えファイル
-    $enFile = $HAP_PATH . 'en_' . $environmentHash . '.cgi';
+    $enFile = 'en_' . $environmentHash . '.cgi';
+    $enPath = $HAP_PATH . $enFile;
+
+    // ホスティング判定された回線からの認証を拒否
+    if (!getenv('SKIP_VERIFICATION')) {
+        if (file_exists(__DIR__ . '/.use_strict_auth') && $slip === 'H') {
+            recordLog(
+                $authStatus,
+                'null', // $WrtAgreementKey
+                $IP,
+                $HOST,
+                $area['isp'],
+                $area['asname'],
+                $_SERVER['HTTP_USER_AGENT'],
+                $CH_UA,
+                'null', // $clientId
+                'null' // $enFile
+            );
+            exit('【認証エラー】ご使用の回線（海外/VPN/データセンター等）からの認証は現在制限されています。家庭用回線またはモバイル回線からお試しください。');
+        }
+    }
 
     // 環境控えファイル更新が30日間以内なら同一キーを返す
-    if (is_file($enFile)) {
-        if (filemtime($enFile) + 30 * 24 * 60 * 60 > $NOWTIME) {
-            $WrtAgreementKey = trim(safe_file_get_contents($enFile));
+    if (is_file($enPath)) {
+        if (filemtime($enPath) + 30 * 24 * 60 * 60 > $NOWTIME) {
+            $WrtAgreementKey = trim(safe_file_get_contents($enPath));
         }
     }
     // 環境控えファイルを更新
-    file_put_contents($enFile, $WrtAgreementKey, LOCK_EX);
+    file_put_contents($enPath, $WrtAgreementKey, LOCK_EX);
+
+    // ログ記録
+    $authStatus = 'success';
+    $clientId = substr(md5($range . $area['asname'] . $CH_UA . $ACCEPT), 0, 7);
+    recordLog(
+        $authStatus,
+        $WrtAgreementKey,
+        $IP,
+        $HOST,
+        $area['isp'],
+        $area['asname'],
+        $_SERVER['HTTP_USER_AGENT'],
+        $CH_UA,
+        $clientId,
+        $enFile
+    );
 
     // アカウントID算出
     $accountId = hash('sha256', hash('sha256', md5($WrtAgreementKey) . preg_replace('/[^0-9]/', '', md5($WrtAgreementKey))));
