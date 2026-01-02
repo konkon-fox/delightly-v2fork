@@ -42,6 +42,11 @@ server {
         fastcgi_pass php:9000;
     }
 
+    # /test/HAP/.htaccessに相当
+    location ^~ /test/HAP/ {
+        deny all;
+    }
+
     # /test/board/.htaccessに相当
     location ^~ /test/board/ {
         deny all;
