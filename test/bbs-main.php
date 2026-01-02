@@ -190,6 +190,10 @@ $_POST['board'] = str_replace(['.', '/', '|'], '', $_POST['board']);
 $_POST['thread'] = str_replace(['.', '/', '|'], '', $_POST['thread']);
 $msgbr = explode('<br>', $_POST['comment']);
 
+if ($_POST['comment'] === '') {
+    Error('本文が空です。');
+}
+
 // スレ立て時の判定
 if ($newthread) {
     // 先頭と末尾の空白文字を削除
