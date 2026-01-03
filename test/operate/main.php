@@ -74,24 +74,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['edit'] === 'yes') {
       'res_decoration',
       'date_comma_digit',
     ];
-    foreach ($SETTING as $name => $value) {
-        if (in_array($name, $extraSettingsList, true)) {
-            continue;
-        }
-        if (isset($_POST[$name])) {
-            $SETTING[$name] = $_POST[$name];
-        }
-        $SET .= $name . '=' . $SETTING[$name] . "\n";
-    }
     foreach ($extraSettingsList as $settingName) {
         if (isset($_POST[$settingName])) {
             $SETTING[$settingName] = $_POST[$settingName];
         } else {
             $SETTING[$settingName] = '';
         }
-        if (isset($SETTING[$settingName])) {
-            $SET .= $settingName . '=' . $SETTING[$settingName] . "\n";
+    }
+    foreach ($SETTING as $name => $value) {
+        if (isset($_POST[$name]) && !in_array($name, $extraSettingsList, true)) {
+            $SETTING[$name] = $_POST[$name];
         }
+        $SET .= $name . '=' . $SETTING[$name] . "\n";
     }
     file_put_contents($setfile, json_encode($SETTING, JSON_UNESCAPED_UNICODE), LOCK_EX);
     file_put_contents($settxt, mb_convert_encoding($SET, 'SJIS-win', 'UTF-8'), LOCK_EX);
