@@ -399,7 +399,7 @@ foreach ($kakologList as $index => $kakolog) {
     $url = "https://{$domain}/test/read.cgi/{$bbsOfUrl}/{$kakolog['thread']}/";
     $safeUrl = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
     $html .= '<div class="d-flex flex-column align-items-start row-gap-2 p-1 border-bottom border-secondary text-break">';
-    $html .= "<a href=\"/#{$bbsOfUrl}/{$kakolog['thread']}/\">{$title} ({$kakolog['res']})</a>";
+    $html .= "<a href=\"/#{$bbsOfUrl}/{$kakolog['thread']}/\" class=\"overflow-hidden\">{$title} ({$kakolog['res']})</a>";
     $html .= '<div class="d-flex justify-content-between align-items-end w-100">';
     $html .= "<span>{$date}</span>";
     $html .= "<button class=\"ms-auto btn btn-primary copy-button\" data-index=\"{$index}\">URLをコピー</button>";
