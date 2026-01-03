@@ -186,21 +186,21 @@ function load(mode) {
         if (!dateids) return;
         let date = TimeDiff(dateids[0] + ' ' + dateids[1] + ' ' + dateids[2]);
         let id = [];
-        if (dateids[2]) {
-          if (!NG) NG = MuteCheck(dateids[2]);
-          id[0] = ID(dateids[2], 0, number);
-        }
         if (dateids[3]) {
           if (!NG) NG = MuteCheck(dateids[3]);
-          id[1] = ID(dateids[3], 1, number);
+          id[0] = ID(dateids[3], 0, number);
         }
         if (dateids[4]) {
           if (!NG) NG = MuteCheck(dateids[4]);
-          id[2] = ID(dateids[4], 2, number);
+          id[1] = ID(dateids[4], 1, number);
         }
         if (dateids[5]) {
           if (!NG) NG = MuteCheck(dateids[5]);
-          id[3] = ID(dateids[5], 3, number);
+          id[2] = ID(dateids[5], 2, number);
+        }
+        if (dateids[6]) {
+          if (!NG) NG = MuteCheck(dateids[6]);
+          id[3] = ID(dateids[6], 3, number);
         }
         let ids = '<span id="ids-' + number + '">';
         if (id[0]) ids += ' ' + id[0];
