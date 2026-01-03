@@ -73,6 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['edit'] === 'yes') {
       'id_9th_char',
       'res_decoration',
       'date_comma_digit',
+      'is_valid_TL',
     ];
     foreach ($extraSettingsList as $settingName) {
         if (isset($_POST[$settingName])) {
@@ -205,6 +206,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['edit'] === 'yes') {
     } ?>>3</option>
   </select>
 </div>
+<div><b>TL(タイムライン)機能を有効にする</b></div>
+<div><input type="checkbox" value="checked" name="is_valid_TL"<?php if (!isset($SETTING['is_valid_TL']) || $SETTING['is_valid_TL'] === 'checked') {
+    echo ' checked';
+} ?>>する</div>
 <hr><div class="contents"><input type="submit" name="Submit" class="btn btn-primary btn-block" value="適用"></div>
 </form>
 </div>

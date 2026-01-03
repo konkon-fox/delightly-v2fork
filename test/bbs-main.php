@@ -1626,21 +1626,30 @@ if (!$sage) {
         $post['title'] = $subject;
         $post['thread'] = $_POST['thread'];
     }
+    // TL有効判定
+    $isValidTL = !isset($SETTING['is_valid_TL']) || $SETTING['is_valid_TL'] === 'checked';
+    // webブラウザ用TLファイルを更新
     $fileExists = is_file($LTLFILE);
     $LTLFILEHandle = fopen($LTLFILE, 'c+');
     if (flock($LTLFILEHandle, LOCK_EX)) {
-        if ($fileExists) {
-            $LTL = json_decode(fread($LTLFILEHandle, filesize($LTLFILE)), true);
+        if ($isValidTL) {
+            // LTL更新
+            if ($fileExists) {
+                $LTL = json_decode(fread($LTLFILEHandle, filesize($LTLFILE)), true);
+            } else {
+                $LTL = [];
+            }
+            array_unshift($LTL, $post);
+            // ファイル内の投稿数を $SETTING['LTL_LIMIT'] 個以内に調整して保存
+            if ($SETTING['LTL_LIMIT'] < 50) {
+                $SETTING['LTL_LIMIT'] = 50;
+            }
+            if (count($LTL) > $SETTING['LTL_LIMIT'] + 100) {
+                $LTL = array_slice($LTL, 0, (int) $SETTING['LTL_LIMIT']);
+            }
         } else {
+            // LTL無効なので空にする
             $LTL = [];
-        }
-        array_unshift($LTL, $post);
-        // ファイル内の投稿数を $SETTING['LTL_LIMIT'] 個以内に調整して保存
-        if ($SETTING['LTL_LIMIT'] < 50) {
-            $SETTING['LTL_LIMIT'] = 50;
-        }
-        if (count($LTL) > $SETTING['LTL_LIMIT'] + 100) {
-            $LTL = array_slice($LTL, 0, (int) $SETTING['LTL_LIMIT']);
         }
         ftruncate($LTLFILEHandle, 0);
         rewind($LTLFILEHandle);
@@ -1668,13 +1677,15 @@ if (!$sage) {
     $kokutiText = str_replace(["\r\n", "\r", "\n"], '', $kokutiText);
     $tlDatData = 'ローカルルール<><>99/01/01 00:00:00 <>' . $headText . "<>TL\n";
     $tlDatData .= '告知欄<><>99/01/01 00:00:00 <>' . $kokutiText . "<>\n";
-    foreach ($TTL as $tmp) {
-        if (isset($tmp['thread'])) {
-            $tt = '<br><hr>' . $tmp['title'] . '<br>http://' . $_SERVER['HTTP_HOST'] . '/test/read.cgi/' . $_POST['board'] . '/' . $tmp['thread'] . '/';
-        } else {
-            $tt = '';
+    if ($isValidTL) {
+        foreach ($TTL as $tmp) {
+            if (isset($tmp['thread'])) {
+                $tt = '<br><hr>' . $tmp['title'] . '<br>http://' . $_SERVER['HTTP_HOST'] . '/test/read.cgi/' . $_POST['board'] . '/' . $tmp['thread'] . '/';
+            } else {
+                $tt = '';
+            }
+            $tlDatData .= $tmp['name'] . '<>' . $tmp['mail'] . '<>' . $tmp['date'] . ' ' . $tmp['id'] . '<>' . $tmp['comment'] . $tt . "<>\n";
         }
-        $tlDatData .= $tmp['name'] . '<>' . $tmp['mail'] . '<>' . $tmp['date'] . ' ' . $tmp['id'] . '<>' . $tmp['comment'] . $tt . "<>\n";
     }
     $tlDatHandle = fopen($PATH . 'dat/1000000000.dat', 'w');
     if (flock($tlDatHandle, LOCK_EX)) {
