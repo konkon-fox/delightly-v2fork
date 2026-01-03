@@ -70,6 +70,10 @@ function showThreadStates(
     if (isset($threadStates['max'])) {
         $commentParts[2] .= 'レス数上限を<font color="red">' . $threadStates['max'] . '</font>に設定<br>';
     }
+    // ピン留め状態追加
+    if (isset($threadStates['sticky'])) {
+        $commentParts[2] .= '<font color="red">※ピン留め中</font><br>';
+    }
     // 分割された本文を統合
     $comment = implode('<hr>', $commentParts);
     $comment = preg_replace('/(<hr>)+$/', '', $comment);

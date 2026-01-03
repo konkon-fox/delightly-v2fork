@@ -571,6 +571,8 @@ include './extend/extra-commands/utilities/add-system-message.php';
 // include './extend/extra-commands/utilities/get-threads-states.php';
 // !ninkeyコマンド
 @include './extend/extra-commands/ninkey.php';
+// !stickyコマンド
+@include './extend/extra-commands/sticky.php';
 // !maxコマンド
 @include './extend/extra-commands/max.php';
 // !chttコマンド
@@ -1699,6 +1701,10 @@ include './extend/archive-thread.php';
 
 // スレッド一覧 (subject.json)
 if (!$tlonly) {
+    // ピン留めスレッド
+    if (isset($threadStates['sticky'])) {
+        $subject = '[📌] ' . $subject;
+    }
     if ($isMax) {
         // 投稿上限のスレッド
         $subject = '[max] ' . $subject;
@@ -1713,6 +1719,9 @@ if (!$tlonly) {
         'number' => $number,
         'date' => $NOWTIME,
     ];
+    if (isset($threadStates['sticky'])) {
+        $posted['sticky'] = true;
+    }
     // subject.json更新
     $fileExists = is_file($subjectfile);
     $subjectfileHandle = fopen($subjectfile, 'c+');
@@ -1722,21 +1731,41 @@ if (!$tlonly) {
         } else {
             $Threads = [];
         }
+        // スレ一覧
         $PAGEFILE = [];
-        if (!$sage || $newthread) {
+        $isCurrentThreadAdded = false;
+        // ピン留めスレ一覧
+        $stickyThreads = [];
+        if (isset($posted['sticky'])) {
+            // ピン留めスレへ追加
+            $stickyThreads[] = $posted;
+            $isCurrentThreadAdded = true;
+        } elseif (!$sage || $newthread) {
+            // ageの場合書き込んだスレを先頭へ追加
             $PAGEFILE[] = $posted;
+            $isCurrentThreadAdded = true;
         }
-        // その他のスレッド
+        // その他のスレッドを挿入
         foreach ($Threads as $thread) {
+            // 投稿先スレッド
             if ((int) $thread['thread'] === (int) $_POST['thread']) {
-                // sageの場合
-                if ($sage && !$newthread) {
+                // 書き込みスレッドはsageの場合のみこのタイミングで挿入
+                if (!$isCurrentThreadAdded) {
                     $PAGEFILE[] = $posted;
+                    $isCurrentThreadAdded = true;
                 }
+                continue;
+            }
+            // 他のスレッド
+            if (isset($thread['sticky'])) {
+                $stickyThreads[] = $thread;
             } else {
+                // 順番そのまま
                 $PAGEFILE[] = $thread;
             }
         }
+        // ピン留めスレッドを先頭に追加
+        $PAGEFILE = array_merge($stickyThreads, $PAGEFILE);
         // 過去ログ化チェック
         if ($newthread) {
             // スレッド数を取得
