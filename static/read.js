@@ -184,7 +184,7 @@ function load(mode) {
         let dateids;
         if (dateid) dateids = dateid.split(' ');
         if (!dateids) return;
-        let date = TimeDiff(dateids[0] + ' ' + dateids[1]);
+        let date = TimeDiff(dateids[0] + ' ' + dateids[1] + ' ' + dateids[2]);
         let id = [];
         if (dateids[2]) {
           if (!NG) NG = MuteCheck(dateids[2]);
