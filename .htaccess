@@ -5,6 +5,13 @@ Header set Content-Type 'text/html; charset=UTF-8'
 Header set Content-Type 'application/javascript; charset=UTF-8'
 </FilesMatch>
 
+<Files "kakolog-subject.txt">
+    Require all denied
+</Files>
+<Files "secret-key.txt">
+    Require all denied
+</Files>
+
 # 特定フォルダへのアクセス拒否
 RewriteEngine On
 RewriteRule threads-states/ - [F,L]

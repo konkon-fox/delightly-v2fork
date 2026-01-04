@@ -12,6 +12,16 @@ server {
         allow all;
     }
 
+    # 大容量ファイルの保護
+    location ~ /kakolog-subject\.txt$ {
+        deny all;
+    }
+
+    # キーファイルの保護
+    location = /test/secret-key.txt {
+        deny all;
+    }
+
     # rootの.htaccessに相当
     location ~* \.html$ {
         charset UTF-8;
