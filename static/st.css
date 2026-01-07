@@ -357,3 +357,9 @@ div.sticky {
 .message {
   overflow: clip;
 }
+#headtitle {
+  min-width: 0;
+  flex-shrink: 1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
