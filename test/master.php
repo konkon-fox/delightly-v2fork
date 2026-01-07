@@ -3,19 +3,37 @@ error_reporting(E_COMPILE_ERROR | E_RECOVERABLE_ERROR | E_ERROR | E_CORE_ERROR |
 
 include './utils/safe-file-get-contents.php';
 
+$error = '';
+
+// パスワードチェック
 if (isset($_POST['code'])) {
-    $file = 'createcode.cgi';
-    $code = safe_file_get_contents($file);
-    if ($code === false) {
-        exit('<b>パスワードファイルの取得に失敗しました。</b>');
-    }
-    if ($_POST['code'] === $code) {
-        //設定の一覧ページ
-        require './operate/master-settinglist.php';
-        exit;
+    $createcodefile = 'createcode.cgi';
+    $masterPasswordfile = './operate/master-password.txt';
+    if (is_file($createcodefile)) {
+        $code = safe_file_get_contents($createcodefile);
+        if ($code === false) {
+            exit('<b>パスワードファイルの取得に失敗しました。</b>');
+        }
+        $isAuthed = $_POST['code'] === $code;
+    } elseif (is_file($masterPasswordfile)) {
+        $code = safe_file_get_contents($masterPasswordfile);
+        if ($code === false) {
+            exit('<b>パスワードファイルの取得に失敗しました。</b>');
+        }
+        $isAuthed = password_verify($_POST['code'], $code);
     } else {
-        exit('<b>パスワードが違います。</b>');
+        $error = 'パスワードファイルが存在しません。<br>/test/createcode.cgi に仮パスワードを作成してください。';
     }
+    if (empty($error)) {
+        if ($isAuthed) {
+            //設定の一覧ページ
+            require './operate/master-settinglist.php';
+            exit;
+        } else {
+            $error = 'パスワードが違います。';
+        }
+    }
+
 }
 ?><!DOCTYPE HTML>
 <html>
@@ -36,8 +54,16 @@ if (isset($_POST['code'])) {
       <h1>システム総管理ページ</h1>
     </header>
     <main>
+      <?php
+if (isset($_GET['update-password'])) {
+    echo '<p class="alert alert-primary" role="alert">パスワードを更新しました。</p>';
+}
+if (!empty($error)) {
+    echo "<div class=\"alert alert-warning\" role=\"alert\">{$error}</div>";
+}
+?>
       <p>
-        掲示板作成コードを記入してください。
+        掲示板作成コード（仮パスワード）か本パスワードを記入してください。
       </p>
       <form action="" method="POST" class="d-flex flex-column align-items-start row-gap-1">
         <input type="password" name="code" class="form-control" required>
