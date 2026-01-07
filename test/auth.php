@@ -384,8 +384,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $slip = 'H';
     }
 
-    # 鍵を生成する(uuid上8桁の英数字)
-    $WrtAgreementKey = substr(uniqid(), 0, 8);
+    # 新規鍵を生成する
+    $WrtAgreementKey = bin2hex(random_bytes(4));
     # 記録ファイルが設置された場所。
     $HAP_PATH = './HAP/';
 
