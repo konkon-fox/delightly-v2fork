@@ -3,6 +3,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['edit'] == "yes") {
  file_put_contents($PATH."cap.cgi", $_POST['cap']);
 }
 $cap = implode('', file($PATH."cap.cgi"));
+$bbs = basename($_REQUEST['bbs']);
+$safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -16,10 +18,13 @@ $cap = implode('', file($PATH."cap.cgi"));
 </head>
 <body>
 <div class="main">
+<form action="?bbs=<?= $safeBbs; ?>" method="post" style="margin-bottom: 16px;">
+  <input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+  <button type="submit">← 管理ページへ戻る</button>
+</form>
 <form method="post" action="/test/admin.php?bbs=<?=$_REQUEST['bbs']?>&mode=cap">
 <input type="hidden" name="password" value="<?=$_REQUEST['password']?>">
 <input type="hidden" name="edit" value="yes">
-<div class="back"><a href="./admin.php">← 管理ページへ戻る</a></div>
 <div><b>キャップ</b></div><div><small class="notice mt5">掲示板TOP画面に表示されます</small></div>
 <div class="notice mt5">
 ・&lt;&gt;が区切り文字、<b>名前</b>&lt;&gt;<b>パスワード</b>&lt;&gt;<b>権限</b>&lt;&gt;<b>ID</b><br>

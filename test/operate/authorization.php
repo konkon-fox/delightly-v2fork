@@ -3,6 +3,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['edit'] == "yes") {
  file_put_contents($PATH."authorize.cgi", $_POST['authorize']);
 }
 $authorize = implode('', file($PATH."authorize.cgi"));
+$bbs = basename($_REQUEST['bbs']);
+$safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -16,10 +18,13 @@ $authorize = implode('', file($PATH."authorize.cgi"));
 </head>
 <body>
 <div class="main">
+<form action="?bbs=<?= $safeBbs; ?>" method="post" style="margin-bottom: 16px;">
+  <input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+  <button type="submit">← 管理ページへ戻る</button>
+</form>
 <form method="post" action="?bbs=<?=$_REQUEST['bbs']?>&mode=authorization">
 <input type="hidden" name="password" value="<?=$_REQUEST['password']?>">
 <input type="hidden" name="edit" value="yes">
-<div class="back"><a href="<?=$_SERVER['HTTP_REFERER']?>">← 管理ページへ戻る</a></div>
 <div><b>承認済ユーザ</b></div><div><small class="notice mt5">掲示板TOP画面に表示されます</small></div>
 <div class="notice mt5">
 ・自動承認に関する設定は基本設定にあります<br>

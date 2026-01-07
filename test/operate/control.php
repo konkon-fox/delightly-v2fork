@@ -1,4 +1,6 @@
 <?php
+$bbs = basename($_REQUEST['bbs']);
+$safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
 if (!$_REQUEST['key']) {
     ?><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 	<html lang="ja">
@@ -15,6 +17,10 @@ if (!$_REQUEST['key']) {
 	</head>
 	<body>
 		<div id="container"><section>
+            <form action="?bbs=<?= $safeBbs; ?>" method="post" style="margin-bottom: 16px;">
+            <input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+            <button type="submit">← 管理ページへ戻る</button>
+            </form>
 			<h1 class="section-title">スレッド・レス管理</h1>
 			<h3>スレッド番号を直接入力</h3>
 			<form class="form-basic" method="POST" accept-charset="UTF-8" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=control">
@@ -235,6 +241,10 @@ if ($_POST['del']) {
 	</style>
 </head>
 <body>
+<form action="?bbs=<?= $safeBbs; ?>" method="post" style="margin-bottom: 16px;">
+<input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+<button type="submit">← 管理ページへ戻る</button>
+</form>
 <b><?=$result;?></b>
 <?php
 if (!is_file($THREADFILE)) {

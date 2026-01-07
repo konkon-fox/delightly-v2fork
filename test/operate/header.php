@@ -9,6 +9,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['edit'] == "yes") {
 $headText = file_get_contents($PATH."head.txt");
 $headText = mb_convert_encoding($headText, 'UTF-8', 'SJIS-win');
 $kokutiText = file_get_contents($PATH."kokuti.txt");
+$bbs = basename($_REQUEST['bbs']);
+$safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -22,10 +24,13 @@ $kokutiText = file_get_contents($PATH."kokuti.txt");
 </head>
 <body>
 <div class="main">
+<form action="?bbs=<?= $safeBbs; ?>" method="post" style="margin-bottom: 16px;">
+  <input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+  <button type="submit">← 管理ページへ戻る</button>
+</form>
 <form method="post" action="/test/admin.php?bbs=<?=$_REQUEST['bbs']?>&mode=header">
 <input type="hidden" name="password" value="<?=$_REQUEST['password']?>">
 <input type="hidden" name="edit" value="yes">
-<div class="back"><a href="./admin.php">← 管理ページへ戻る</a></div>
 <p>
   htmlタグが利用可能です。
 </p>

@@ -91,6 +91,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['edit'] === 'yes') {
     file_put_contents($setfile, json_encode($SETTING, JSON_UNESCAPED_UNICODE), LOCK_EX);
     file_put_contents($settxt, mb_convert_encoding($SET, 'SJIS-win', 'UTF-8'), LOCK_EX);
 }
+$bbs = basename($_REQUEST['bbs']);
+$safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -104,10 +106,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['edit'] === 'yes') {
 </head>
 <body>
 <div class="main">
+<form action="?bbs=<?= $safeBbs; ?>" method="post" style="margin-bottom: 4px;">
+  <input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+  <button type="submit">← 管理ページへ戻る</button>
+</form>
+<form action="?bbs=<?= $safeBbs; ?>&mode=boardsetting" method="post" style="margin-bottom: 16px;">
+  <input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+  <button type="submit">← 掲示板設定へ戻る</button>
+</form>
 <form method="post" action="/test/admin.php?bbs=<?=$_REQUEST['bbs'];?>&mode=main">
 <input type="hidden" name="password" value="<?=$_REQUEST['password'];?>">
 <input type="hidden" name="edit" value="yes">
-<div class="back"><a href="./admin.php">← 管理ページへ戻る</a></div>
 <div><b>指定Lv(鍵発行からの経過日数)以上の場合自動承認</b><small class="notice mt5">無記入で無効化</small></div>
 <div><input type="text" value="<?=$SETTING['auto_authorize_lv'];?>" name="auto_authorize_lv">Lv以上</div>
 <div><b>アイコンを強制非表示</b></div>

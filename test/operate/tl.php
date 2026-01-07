@@ -24,6 +24,8 @@ if ($_POST['del']) {
         $result = '確認画面(削除されるレスにチェックが入っています。宜しければ「実行」をクリック)';
     }
 }
+$bbs = basename($_REQUEST['bbs']);
+$safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
 ?><!DOCTYPE HTML>
 <html lang="ja">
 <head>
@@ -44,6 +46,10 @@ if ($_POST['del']) {
 	</style>
 </head>
 <body>
+<form action="?bbs=<?= $safeBbs; ?>" method="post" style="margin-bottom: 16px;">
+  <input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+  <button type="submit">← 管理ページへ戻る</button>
+</form>
 <b><?=$result;?></b>
 <form class="form-basic" method="POST" accept-charset="UTF-8" action=""><input type="hidden" name="password" value="<?=$_REQUEST['password'];?>"><input type="hidden" name="bbs" value="<?=$_REQUEST['bbs'];?>"><input type="hidden" name="del" value="true"><div class="contents"><button type="submit" class="btn btn-primary btn-block">実行</button></div>
 <?php
