@@ -389,15 +389,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     # 記録ファイルが設置された場所。
     $HAP_PATH = './HAP/';
 
+    // ユーザー環境を生成
     $ipReverse = preg_replace('/[0-9]+/', '', $area['reverse'] ?? '');
     $fingerprint =
         $ipNetworkPart .
         $area['asname']
         . $ipReverse;
-    // 以下を混ぜると範囲が狭くなる
-    // $os
-    // $CH_UA
-    // $ACCEPT
+
+    // ユーザー環境にブラウザ情報を追加
+    if (isset($settings['use-browser-fingerprint']) && $settings['use-browser-fingerprint'] === 'checked') {
+        $fingerprint .= $CH_UA . $ACCEPT;
+    }
 
     // ユーザー環境のハッシュ
     $environmentHash = hash('sha256', $fingerprint);
