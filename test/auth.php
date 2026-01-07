@@ -287,7 +287,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'method' => 'GET',
                     ],
             ];
-    $url = 'http://ip-api.com/json/' . $IP . '?fields=countryCode,regionName,city,isp,asname,mobile,proxy,hosting&lang=ja';
+    $url = 'http://ip-api.com/json/' . $IP . '?fields=countryCode,regionName,city,isp,asname,reverse,mobile,proxy,hosting&lang=ja';
     $cp = curl_init();
     /*オプション:リダイレクトされたらリダイレクト先のページを取得する*/
     curl_setopt($cp, CURLOPT_RETURNTRANSFER, 1);
@@ -389,9 +389,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     # 記録ファイルが設置された場所。
     $HAP_PATH = './HAP/';
 
+    $ipReverse = preg_replace('/[0-9]+/', '', $area['reverse'] ?? '');
     $fingerprint =
         $ipNetworkPart .
-        $area['asname'];
+        $area['asname']
+        . $ipReverse;
     // 以下を混ぜると範囲が狭くなる
     // $os
     // $CH_UA
