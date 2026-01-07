@@ -739,3 +739,7 @@ textarea {
   margin-top: 0;
   margin-bottom: 0;
 }
+.name {
+  display: inline-block;
+  overflow: clip;
+}

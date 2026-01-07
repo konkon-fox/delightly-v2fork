@@ -7,6 +7,11 @@ if (!$_REQUEST['key']) {
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 		<title>スレッド・レス管理</title>
 		<link href="/static/a.css" rel="stylesheet" type="text/css">
+        <style>
+            .overflow-clip{
+                overflow: clip;
+            }
+        </style>
 	</head>
 	<body>
 		<div id="container"><section>
@@ -24,7 +29,7 @@ if (!$_REQUEST['key']) {
 			</form>
 			<h3>スレッド一覧から探す</h3>
 			<div id="threadlist" class="contents"><?php
-            $subjectHandle = fopen('../'.$_REQUEST['bbs'].'/subject.json', 'r');
+            $subjectHandle = fopen('../' . $_REQUEST['bbs'] . '/subject.json', 'r');
     if ($subjectHandle !== false) {
         if (flock($subjectHandle, LOCK_SH)) {
             $Threads = json_decode(stream_get_contents($subjectHandle), true);
@@ -34,7 +39,7 @@ if (!$_REQUEST['key']) {
                 foreach ($Threads as $thread) {
                     ?><div><form class="form-basic" method="POST" accept-charset="UTF-8" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=control">
 								<div>スレッド番号:<a href="/#<?=$_REQUEST['bbs'];?>/<?=$thread['thread'];?>/"><?=$thread['thread'];?></a></div>
-								<div>タイトル:<?=$thread['title'];?></div>
+								<div class="overflow-clip">タイトル:<?=$thread['title'];?></div>
 								<div>レス数:<?=$thread['number'];?></div>
 								<div>作成時刻:<?php echo date('Y-m-d H:i:s', $thread['thread']); ?></div>
 								<div>最終更新時刻:<?php echo date('Y-m-d H:i:s', $thread['date']); ?></div>
@@ -85,7 +90,7 @@ function removeFromCurrentSubjects($subjectfile)
     $targetThread = false;
     if ($Threads) {
         foreach ($Threads as $thread) {
-            if ((int)$thread['thread'] === (int)$_REQUEST['key']) {
+            if ((int) $thread['thread'] === (int) $_REQUEST['key']) {
                 $targetThread = $thread;
             } else {
                 array_push($PAGEFILE, $thread);
@@ -104,16 +109,16 @@ function removeFromCurrentSubjects($subjectfile)
 }
 //
 include './utils/get-json-file.php';
-$PATH = '../'.$_REQUEST['bbs'].'/';
-$KAKOLOGLIST = $PATH.'kakolog-subject.txt';
-$KAKOLOGLISTINDEX = $PATH.'kakolog-subject.idx';
-$THREAD_STATES_PATH = $PATH.'threads-states';
-$threadStatesFile = $THREAD_STATES_PATH.'/'.$_REQUEST['key'].'.json';
+$PATH = '../' . $_REQUEST['bbs'] . '/';
+$KAKOLOGLIST = $PATH . 'kakolog-subject.txt';
+$KAKOLOGLISTINDEX = $PATH . 'kakolog-subject.idx';
+$THREAD_STATES_PATH = $PATH . 'threads-states';
+$threadStatesFile = $THREAD_STATES_PATH . '/' . $_REQUEST['key'] . '.json';
 // dat
-$THREADFILE = '../'.$_REQUEST['bbs'].'/thread/'.substr($_REQUEST['key'], 0, 4).'/'.$_REQUEST['key'].'.dat';
-$DATFILE = '../'.$_REQUEST['bbs'].'/dat/'.$_REQUEST['key'].'.dat';
-$KFILE = '../'.$_REQUEST['bbs'].'/dat/'.$_REQUEST['key'].'_kisei.cgi';
-$subjectfile = '../'.$_REQUEST['bbs'].'/subject.json';
+$THREADFILE = '../' . $_REQUEST['bbs'] . '/thread/' . substr($_REQUEST['key'], 0, 4) . '/' . $_REQUEST['key'] . '.dat';
+$DATFILE = '../' . $_REQUEST['bbs'] . '/dat/' . $_REQUEST['key'] . '.dat';
+$KFILE = '../' . $_REQUEST['bbs'] . '/dat/' . $_REQUEST['key'] . '_kisei.cgi';
+$subjectfile = '../' . $_REQUEST['bbs'] . '/subject.json';
 // スレッドが存在しない場合
 if (!is_file($THREADFILE)) {
     Finish('<b>該当するスレッドがありません</b>');
@@ -180,7 +185,7 @@ if ($_POST['del']) {
             // >>1保存
             $AUTHOR = $LOG[0];
             // 削除後の文字列
-            $REPLACE_TEXT = '</b>'.$SETTING['DELETED_TEXT'].'<b><>'.str_repeat($SETTING['DELETED_TEXT'].'<>', 3);
+            $REPLACE_TEXT = '</b>' . $SETTING['DELETED_TEXT'] . '<b><>' . str_repeat($SETTING['DELETED_TEXT'] . '<>', 3);
 
             for ($i = 0, $LOG_COUNT = count($LOG) - 1; $i < $LOG_COUNT; ++$i) {
                 if ($_POST[$i] === 'checked' // レス個別
@@ -224,6 +229,9 @@ if ($_POST['del']) {
 		clear: both;
 		font-size: 16px;
 	}
+    .overflow-clip{
+        overflow: clip;
+    }
 	</style>
 </head>
 <body>
@@ -283,9 +291,9 @@ foreach ($LOG as $tmp) {
     list($name, $mail, $dateid, $comment, $subject) = explode('<>', $LOG[$i]);
     $name = str_replace(['<b>', '</b>'], '', $name);
     if ($subject) {
-        echo 'タイトル:'.$subject;
+        echo '<div class="overflow-clip">タイトル:' . $subject . '</div>';
     }
-    echo '<dt>レス削除<input type="checkbox" name="'.$i.'" value="checked"'.$d.'> '.$n.'：'.$name.'['.$mail.']：'.$dateid.'</dt><dd>'.$comment.'</dd>';
+    echo '<dt class="overflow-clip">レス削除<input type="checkbox" name="' . $i . '" value="checked"' . $d . '> ' . $n . '：' . $name . '[' . $mail . ']：' . $dateid . '</dt><dd class="overflow-clip">' . $comment . '</dd>';
     $i++;
 }
 echo '<div>確認(削除が実行されるレスを確認できます。一括削除用)<input type="checkbox" name="kakunin" value="checked"></div>';

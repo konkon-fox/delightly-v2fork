@@ -38,6 +38,9 @@ if ($_POST['del']) {
 		clear: both;
 		font-size: 16px;
 	}
+	.overflow-clip{
+			overflow: clip;
+	}
 	</style>
 </head>
 <body>
@@ -54,7 +57,7 @@ foreach ($LOG as $tmp) {
     }
     $tmp['name'] = str_replace(['<b>', '</b>'], '', $tmp['name']);
     if ($tmp['title']) {
-        echo 'スレッドタイトル:' . $tmp['title'];
+        echo '<div class="overflow-clip">スレッドタイトル:' . $tmp['title'] . '</div>';
     }
     if ($tmp['key']) {
         echo 'スレッド番号:' . $tmp['key'];
@@ -65,7 +68,7 @@ foreach ($LOG as $tmp) {
     $comment = $tmp['comment'];
     $key = $tmp['thread'];
     $title = $tmp['title'];
-    echo '<dt>削除<input type="checkbox" name="' . $i . '" value="checked"' . $d . '> ' . $n . '：' . $name . '[' . $mail . ']：' . $dateid . '</dt><dd>' . $comment . '</dd><hr>';
+    echo '<dt class="overflow-clip">削除<input type="checkbox" name="' . $i . '" value="checked"' . $d . '> ' . $n . '：' . $name . '[' . $mail . ']：' . $dateid . '</dt><dd class="overflow-clip">' . $comment . '</dd><hr>';
     $i++;
 }
 echo '<div>確認(削除が実行されるレスを確認できます。一括削除用)<input type="checkbox" name="kakunin" value="checked"></div>';
