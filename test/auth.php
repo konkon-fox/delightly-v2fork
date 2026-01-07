@@ -1,8 +1,29 @@
 <?php
 error_reporting(E_COMPILE_ERROR | E_RECOVERABLE_ERROR | E_ERROR | E_CORE_ERROR | E_PARSE);
+
+include './utils/get-json-file.php';
+include './utils/safe-file-get-contents.php';
+
+$settingFile = './operate/auth-settings.json';
+if (is_file($settingFile)) {
+    $settings = getJsonFile($settingFile);
+} else {
+    $settings = [];
+}
+if ($settings === false) {
+    exit('認証設定の取得に失敗しました。');
+}
+
 # Cloudflare Turnstile sitekey,secretkey
+# コード内での編集は非推奨化。システム総管理ページで編集してください。
 $sitekey = '1x00000000000000000000AA';
 $SECRET_KEY = '1x0000000000000000000000000000000AA';
+if (isset($settings['turnstile-sitekey']) && !empty($settings['turnstile-sitekey'])) {
+    $sitekey = $settings['turnstile-sitekey'];
+}
+if (isset($settings['turnstile-secretkey']) && !empty($settings['turnstile-secretkey'])) {
+    $SECRET_KEY = $settings['turnstile-secretkey'];
+}
 
 $FORCESSL = true; #https未対応の場合はfalseにすること
 if (getenv('SKIP_VERIFICATION')) {
@@ -10,16 +31,17 @@ if (getenv('SKIP_VERIFICATION')) {
     $FORCESSL = false;
 }
 $NOWTIME = time();
-if (file_exists(__DIR__ . '/.use_cloudflare') && isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+// cloudflare使用チェック
+$useCloudflare = !isset($settings['use-cloudflare']) || $settings['use-cloudflare'] === 'checked';
+if ($useCloudflare && isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
     $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_CF_CONNECTING_IP'];
 }
+
 $IP = $_SERVER['REMOTE_ADDR'];
 $HOST = gethostbyaddr($IP);
 $area = [];
 $area['district'] = $area['proxy'] = $area['hosting'] = $area['regionName'] = $area['city'] = $area['countryCode'] = $area['mobile'] = $area['asname'] = '';
 $authStatus = 'failed';
-
-include './utils/safe-file-get-contents.php';
 
 /**
  * 認証ログを記録する関数
@@ -129,7 +151,7 @@ if ($isIpv6) {
     // 先頭3バイト (24bit) を抽出して16進数に戻す
     $ipNetworkPart = bin2hex(substr($binaryIp, 0, 3));
     // 先頭1バイト (8bit) を抽出して16進数に戻す
-    $range = bin2hex(substr($binaryIp, 0, 2));
+    $range = bin2hex(substr($binaryIp, 0, 1));
 }
 
 // httpsの確認
@@ -265,7 +287,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'method' => 'GET',
                     ],
             ];
-    $url = 'http://ip-api.com/json/' . $IP . '?fields=countryCode,regionName,city,isp,asname,mobile,proxy,hosting&lang=ja';
+    $url = 'http://ip-api.com/json/' . $IP . '?fields=countryCode,regionName,city,isp,asname,reverse,mobile,proxy,hosting&lang=ja';
     $cp = curl_init();
     /*オプション:リダイレクトされたらリダイレクト先のページを取得する*/
     curl_setopt($cp, CURLOPT_RETURNTRANSFER, 1);
@@ -362,18 +384,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $slip = 'H';
     }
 
-    # 鍵を生成する(uuid上8桁の英数字)
-    $WrtAgreementKey = substr(uniqid(), 0, 8);
+    # 新規鍵を生成する
+    $WrtAgreementKey = bin2hex(random_bytes(4));
     # 記録ファイルが設置された場所。
     $HAP_PATH = './HAP/';
 
+    // ユーザー環境を生成
+    $ipReverse = preg_replace('/[0-9]+/', '', $area['reverse'] ?? '');
     $fingerprint =
         $ipNetworkPart .
-        $area['asname'];
-    // 以下を混ぜると範囲が狭くなる
-    // $os
-    // $CH_UA
-    // $ACCEPT
+        $area['asname']
+        . $ipReverse;
+
+    // ユーザー環境にブラウザ情報を追加
+    if (isset($settings['use-browser-fingerprint']) && $settings['use-browser-fingerprint'] === 'checked') {
+        $fingerprint .= $CH_UA . $ACCEPT;
+    }
 
     // ユーザー環境のハッシュ
     $environmentHash = hash('sha256', $fingerprint);
@@ -383,7 +409,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ホスティング判定された回線からの認証を拒否
     if (!getenv('SKIP_VERIFICATION')) {
-        if (file_exists(__DIR__ . '/.use_strict_auth') && $slip === 'H') {
+        $useStrictAuth = !isset($settings['use-strict-auth']) || $settings['use-strict-auth'] === 'checked';
+        if ($useStrictAuth && $slip === 'H') {
             recordLog(
                 $authStatus,
                 'null', // $WrtAgreementKey
@@ -436,6 +463,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           'comment' => '',
           'HOST' => $HOST,
           'REMOTE_ADDR' => $IP,
+          'ip_network_part' => $ipNetworkPart,
           'USER_AGENT' => $_SERVER['HTTP_USER_AGENT'],
           'CH_UA' => $CH_UA,
           'ACCEPT' => $ACCEPT,

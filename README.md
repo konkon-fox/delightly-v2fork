@@ -25,12 +25,6 @@ PHP を使えることが必須条件です。旧仕様では PHP 7.4 - PHP 8.2 
 `/test/createcode.cgi`に任意のパスワードを入力し、保存します。
 このパスワードは掲示板を作成する時に必要となります。
 
-### Cloudflare Turnstile
-
-v2-fork 版では認証に Cloudflare Turnstile を使用しています。  
-Cloudflare に登録し、Turnstile ウィジェットを作成します。  
-`/test/auth.php`を開き、`$sitekey`を上記で取得したサイトキーに、`$SECRET_KEY`を上記で取得したシークレットキーに、それぞれ変更します。
-
 ### index2.html
 
 トップページの HTML ファイルです。
@@ -40,16 +34,6 @@ Cloudflare に登録し、Turnstile ウィジェットを作成します。
 
 .htaccess を利用可能な場合はこの項目を飛ばしてください。  
 nginx サーバーを使用する場合は[nginx.conf の設定例](./nginx.conf.example)を参考に設定ファイルを変更してください。
-
-## Cloudflare
-
-Cloudflare を導入しない場合は`/test/.use_cloudflare`を削除してください。
-
-## 認証の厳格モード
-
-デフォルトでは認証の厳格モード（VPN・海外回線等の拒否）が有効です。 制限を緩めたい場合は、以下のファイルを削除してください。
-
-- 対象ファイル: `/test/.use_strict_auth`
 
 ## スクリプトのアップロード
 
@@ -79,6 +63,27 @@ Cloudflare を導入しない場合は`/test/.use_cloudflare`を削除してく�
 `/test/master.php`よりシステム全体の管理を行うことができます。  
 認証時には設置時に`/test/createcode.cgi`で設定したパスワードを入力してください。  
 なお、本ページは簡易的なパスワード認証がありますが、セキュリティ向上のため Basic 認証等も併用することを推奨します。
+
+## システム設定
+
+### Turnstile
+
+v2-fork 版では認証に Cloudflare Turnstile を使用しています。  
+Cloudflare に登録し、Turnstile ウィジェットを作成します。
+
+Turnstile の`Sitekey`と`Secret key`を入力してください。
+
+### Cloudflare を使用する
+
+使用しない場合はチェックを外してください。
+
+### VPN 等での認証を禁止する
+
+許可する場合はチェックを外してください。
+
+### 認証時の環境チェックにブラウザ情報を使用する
+
+使用する場合はチェックを入れてください。
 
 # 過去ログについて
 

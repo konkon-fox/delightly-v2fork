@@ -786,7 +786,8 @@ if (!$provider) {
 }
 
 // KOROKORO
-$SLIP_IP = substr(crypt(md5($HAP['range'] . $SLIP_SERV), md5($HAP['range'] . $SLIP_SERV)), 2, 2); #IPの一部
+$ipPart = isset($HAP['ip_network_part']) ? $HAP['ip_network_part'] : $HAP['range'];
+$SLIP_IP = substr(crypt(md5($ipPart . $SLIP_SERV), md5($ipPart . $SLIP_SERV)), 2, 2); #IPの一部
 $SLIP_ID = substr(crypt(md5($HAP['provider'] . $SLIP_SERV), md5($HAP['provider'] . $SLIP_SERV)), 2, 2); #プロバイダ
 $SLIP_AC = substr(crypt(md5($HAP['CH_UA'] . $SLIP_SERV), md5($HAP['CH_UA'] . $SLIP_SERV)), 2, 2);	#ブラウザ
 $SLIP_TE = substr(crypt(md5($HAP['ACCEPT'] . $SLIP_SERV), md5($HAP['ACCEPT'] . $SLIP_SERV)), 2, 2); #ACCEPTヘッダー
