@@ -151,7 +151,7 @@ if ($isIpv6) {
     // 先頭3バイト (24bit) を抽出して16進数に戻す
     $ipNetworkPart = bin2hex(substr($binaryIp, 0, 3));
     // 先頭1バイト (8bit) を抽出して16進数に戻す
-    $range = bin2hex(substr($binaryIp, 0, 2));
+    $range = bin2hex(substr($binaryIp, 0, 1));
 }
 
 // httpsの確認
@@ -463,6 +463,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           'comment' => '',
           'HOST' => $HOST,
           'REMOTE_ADDR' => $IP,
+          'ip_network_part' => $ipNetworkPart,
           'USER_AGENT' => $_SERVER['HTTP_USER_AGENT'],
           'CH_UA' => $CH_UA,
           'ACCEPT' => $ACCEPT,
