@@ -1,21 +1,24 @@
 <?php
 error_reporting(E_COMPILE_ERROR | E_RECOVERABLE_ERROR | E_ERROR | E_CORE_ERROR | E_PARSE);
+
+include './utils/safe-file-get-contents.php';
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('HTTP/1.1 403 Forbidden');
     exit('403 Forbidden');
 }
 header('Content-Type: text/html; charset=UTF-8');
-if (!isset($_POST['directory'])) {
-    $_POST['directory'] = '';
+
+$_POST['directory'] = basename($_POST['directory'] ?? '');
+$_POST['password'] = $_POST['password'] ?? '';
+$_POST['code'] = $_POST['code'] ?? '';
+
+$masterPasswordfile = './operate/master-password.txt';
+$code = safe_file_get_contents($masterPasswordfile);
+if ($code === false) {
+    Finish('パスワードファイルの取得に失敗しました。');
 }
-if (!isset($_POST['password'])) {
-    $_POST['password'] = '';
-}
-if (!isset($_POST['code'])) {
-    $_POST['code'] = '';
-}
-$file = 'createcode.cgi';
-$code = @file_get_contents($file);
+
 if (strlen($_POST['directory']) === 0) {
     Finish('ディレクトリ名が記入されていません');
 }
@@ -31,13 +34,11 @@ if (preg_match('/[^a-z0-9]/', $_POST['directory'])) {
 if (strlen($_POST['password']) === 0) {
     Finish('パスワードが記入されていません');
 }
-if (strlen($code) > 0) {
-    if (strlen($_POST['code']) === 0) {
-        Finish('作成コードが記入されていません');
-    }
-    if ($_POST['code'] !== $code) {
-        Finish('作成コードが無効です');
-    }
+if (strlen($_POST['code']) === 0) {
+    Finish('本パスワードが記入されていません');
+}
+if (!password_verify($_POST['code'], $code)) {
+    Finish('本パスワードが間違っています');
 }
 $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 

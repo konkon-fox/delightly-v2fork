@@ -1,8 +1,7 @@
 <?php
 error_reporting(E_COMPILE_ERROR | E_RECOVERABLE_ERROR | E_ERROR | E_CORE_ERROR | E_PARSE);
 header('Content-Type: text/html; charset=UTF-8');
-$file = 'createcode.cgi';
-$code = @file_get_contents($file);
+
 ?><!DOCTYPE HTML>
 <html lang="ja">
   <head>
@@ -50,7 +49,7 @@ $code = @file_get_contents($file);
             />
             <p class="notice mt5">掲示板の管理画面で使用するパスワードを入力してください。</p>
           </div>
-          <h2 class="section-subtitle">作成コード</h2>
+          <h2 class="section-subtitle">本パスワード（システムパスワード）</h2>
           <div class="contents">
             <input
               type="text"
@@ -59,7 +58,8 @@ $code = @file_get_contents($file);
               name="code"
             />
             <p class="notice mt5 mt20">
-              掲示板を作成するためには作成コードを記入する必要があります
+              掲示板を作成するためには本パスワードを記入する必要があります<br />
+              <a href="/test/master.php">システム総管理ページ</a>から発行してください。
             </p>
           </div>
           <div class="contents">
