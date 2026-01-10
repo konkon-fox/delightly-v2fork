@@ -669,7 +669,7 @@ if ($SETTING['cap_only'] === 'checked' && !$admin) {
 }
 
 // 認証必須
-if ($SETTING['Authentication_required'] === '1' && !$authorized) {
+if ($SETTING['Authentication_required'] === 'checked' && !$authorized) {
     Error('この掲示板・スレッドは承認済ユーザーのみ投稿することができます');
 }
 
