@@ -25,6 +25,7 @@ $SETTING['commands-ARR'] ??= 'checked';
 $SETTING['commands-stop'] ??= 'checked';
 $SETTING['commands-noid'] ??= 'checked';
 $SETTING['commands-add'] ??= 'checked';
+$SETTING['commands-idchange-first-res'] ??= 'checked';
 
 if ($SETTING['commands'] === 'checked') {
     if ($SETTING['commands-sage'] === 'checked' && str_contains($message, '!sage')) {
@@ -142,10 +143,11 @@ if ($SETTING['commands'] === 'checked') {
                 $message = implode('<hr>', $messageParts);
             }
         }
-        // idchange
+        // idchange >>1からの適用
         if (
             $newthread &&
             $SETTING['commands-idchange'] === 'checked' &&
+            $SETTING['commands-idchange-first-res'] === 'checked' &&
             (
                 str_contains($_POST['comment'], '!idchange') ||
                 str_contains($_POST['comment'], '!changeid') ||
@@ -154,10 +156,11 @@ if ($SETTING['commands'] === 'checked') {
         ) {
             $SETTING['BBS_ID_CHANGE'] = 'checked';
         }
-        // noid
+        // noid >>1からの適用
         if (
             $newthread &&
             $SETTING['commands-noid'] === 'checked' &&
+            $SETTING['commands-idchange-first-res'] === 'checked' &&
             str_contains($_POST['comment'], '!noid')
         ) {
             $SETTING['id'] = '';
