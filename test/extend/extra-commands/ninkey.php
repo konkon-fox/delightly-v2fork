@@ -19,10 +19,10 @@ function applyMykeyCommand($SETTING, $NOWTIME)
     if (isset($SETTING['commands-ninkey']) && $SETTING['commands-ninkey'] !== 'checked') {
         return;
     }
-    if (strpos($_POST['name'], '!nocmd') !== false) {
+    if (str_contains($_POST['name'], '!nocmd')) {
         return;
     }
-    if (strpos($_POST['comment'], '!ninkey') === false) {
+    if (!str_contains($_POST['comment'], '!ninkey')) {
         return;
     }
     $backtrace = debug_backtrace();

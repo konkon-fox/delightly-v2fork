@@ -11,7 +11,10 @@ function applyDiceCommand($SETTING)
     if (isset($SETTING['commands-dice']) && $SETTING['commands-dice'] !== 'checked') {
         return;
     }
-    if (strpos($_POST['name'], '!nocmd') !== false) {
+    if (str_contains($_POST['name'], '!nocmd')) {
+        return;
+    }
+    if (!str_contains($_POST['comment'], '!')) {
         return;
     }
     if (!preg_match('/\![1-9]+[0-9]*[dD][1-9]+[0-9]*/', $_POST['comment'])) {

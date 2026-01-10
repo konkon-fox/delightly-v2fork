@@ -1,89 +1,89 @@
 <?php
 
 if ($SETTING['commands'] === 'checked') {
-    if (strpos($message, '!sage') !== false) {
+    if (str_contains($message, '!sage')) {
         $sage = true;
     }
-    if (strpos($message, '!nopic') !== false) {
+    if (str_contains($message, '!nopic')) {
         $SETTING['NOPIC'] = 'checked';
     }
-    if (strpos($message, '!jien') !== false) {
+    if (str_contains($message, '!jien')) {
         $SETTING['id'] = 'checked';
         $SETTING['slip'] = 'checked';
         $SETTING['disp_slipname'] = 'checked';
         $SETTING['BBS_JP_CHECK'] = 'checked';
         $SETTING['ID_RESET'] = 'year';
     }
-    if (strpos($message, '!live') !== false) {
+    if (str_contains($message, '!live')) {
         $SETTING['threadcheck'] = '';
         $SETTING['timecheck'] = '';
         if ($SETTING['BBS_SAMBA24'] > 0) {
             $SETTING['BBS_SAMBA24'] = $SETTING['BBS_SAMBA24'] / 2;
         }
     }
-    if (strpos($message, '!slip') !== false) {
+    if (str_contains($message, '!slip')) {
         $SETTING['slip'] = 'checked';
     }
-    if (strpos($message, '!slipname') !== false) {
+    if (str_contains($message, '!slipname')) {
         $SETTING['disp_slipname'] = 'checked';
     }
-    if (strpos($message, '!ken') !== false) {
+    if (str_contains($message, '!ken')) {
         $SETTING['BBS_JP_CHECK'] = 'checked';
     }
-    if (strpos($message, '!id') !== false) {
+    if (str_contains($message, '!id')) {
         $SETTING['id'] = 'checked';
     }
-    if (strpos($message, '!siberia') !== false) {
+    if (str_contains($message, '!siberia')) {
         $SETTING['id'] = 'siberia';
     }
-    if (strpos($message, '!day') !== false) {
+    if (str_contains($message, '!day')) {
         $SETTING['ID_RESET'] = 'day';
     }
-    if (strpos($message, '!month') !== false) {
+    if (str_contains($message, '!month')) {
         $SETTING['ID_RESET'] = 'month';
     }
-    if (strpos($message, '!year') !== false) {
+    if (str_contains($message, '!year')) {
         $SETTING['ID_RESET'] = 'year';
     }
-    if (strpos($message, '!host') !== false) {
+    if (str_contains($message, '!host')) {
         $SETTING['fusianasan'] = 'name';
     }
-    if (strpos($message, '!clientid') !== false) {
+    if (str_contains($message, '!clientid')) {
         $SETTING['fusianasan'] = 'id';
     }
-    if (strpos($message, '!nolink') !== false) {
+    if (str_contains($message, '!nolink')) {
         $SETTING['DISABLE_LINK'] = 'checked';
     }
     if (
-        strpos($message, '!idchange') !== false ||
-        strpos($message, '!changeid') !== false ||
-        strpos($message, '!chid') !== false
+        str_contains($message, '!idchange') ||
+        str_contains($message, '!changeid') ||
+        str_contains($message, '!chid')
     ) {
         $SETTING['BBS_ID_CHANGE'] = 'checked';
     }
-    if (strpos($message, '!cap') !== false) {
+    if (str_contains($message, '!cap')) {
         $SETTING['cap_only'] = 'checked';
     }
-    if (strpos($message, '!auth') !== false) {
+    if (str_contains($message, '!auth')) {
         $SETTING['Authentication_required'] = 'checked';
     }
-    if (strpos($message, '!NO') !== false) {
+    if (str_contains($message, '!NO')) {
         $SETTING['disable_supervisor'] = 'checked';
     }
-    if (strpos($message, '!AA') !== false) {
+    if (str_contains($message, '!AA')) {
         $SETTING['BBS_AA'] = 'checked';
     }
-    if (strpos($message, '!ARR') !== false) {
+    if (str_contains($message, '!ARR')) {
         $SETTING['NAME_ARR'] = 'checked';
     }
     if (
-        strpos($message, '!stop') !== false &&
+        str_contains($message, '!stop') &&
         isset($number) &&
         !$admin
     ) {
         Error('このスレッドは停止しました');
     }
-    if (strpos($message, '!noid') !== false) {
+    if (str_contains($message, '!noid')) {
         $SETTING['id'] = '';
         $SETTING['slip'] = '';
         $SETTING['disp_slipname'] = '';
@@ -96,7 +96,7 @@ if ($SETTING['commands'] === 'checked') {
         }
     }
     if ($supervisor || $admin) {
-        if (strpos($_POST['comment'], '!stop') !== false) {
+        if (str_contains($_POST['comment'], '!stop')) {
             $stop = true;
         }
         // 追記
@@ -104,7 +104,7 @@ if ($SETTING['commands'] === 'checked') {
             $commentMax = $authorized ? $SETTING['BBS_MESSAGE_COUNT'] * 3 : $SETTING['BBS_MESSAGE_COUNT'];
             $addComment = $addMatches[1];
             if (mb_strlen($message, 'UTF-8') + mb_strlen($addComment, 'UTF-8') > $commentMax) {
-                if (strpos($_POST['comment'], '<hr>') === false) {
+                if (!str_contains($_POST['comment'], '<hr>')) {
                     $_POST['comment'] .= '<hr>';
                 }
                 $_POST['comment'] .= '★追記できる文字数を超えています。<br>';
@@ -125,9 +125,9 @@ if ($SETTING['commands'] === 'checked') {
         if (
             $newthread &&
             (
-                strpos($_POST['comment'], '!idchange') !== false ||
-      strpos($_POST['comment'], '!changeid') !== false ||
-      strpos($_POST['comment'], '!chid') !== false
+                str_contains($_POST['comment'], '!idchange') ||
+                str_contains($_POST['comment'], '!changeid') ||
+                str_contains($_POST['comment'], '!chid')
             )
         ) {
             $SETTING['BBS_ID_CHANGE'] = 'checked';

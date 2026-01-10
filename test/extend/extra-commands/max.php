@@ -34,7 +34,10 @@ function setMaxCommand(
     if (!($supervisor || $admin)) {
         return;
     }
-    if (strpos($_POST['name'], '!nocmd') !== false) {
+    if (str_contains($_POST['name'], '!nocmd')) {
+        return;
+    }
+    if (!str_contains($_POST['comment'], '!max:')) {
         return;
     }
     // !max:数値 を探す

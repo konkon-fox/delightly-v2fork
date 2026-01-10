@@ -36,10 +36,10 @@ function applyChttCommand(
     if (!($supervisor || $admin)) {
         return;
     }
-    if (strpos($_POST['name'], '!nocmd') !== false) {
+    if (str_contains($_POST['name'], '!nocmd')) {
         return;
     }
-    if (strpos($_POST['comment'], '!chtt:') === false) {
+    if (!str_contains($_POST['comment'], '!chtt:')) {
         return;
     }
     $commentParts = explode('<hr>', $_POST['comment']);

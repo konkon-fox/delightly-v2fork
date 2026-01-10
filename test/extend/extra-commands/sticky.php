@@ -30,13 +30,13 @@ function applyStickyCommand(
     if (!$admin) {
         return;
     }
-    if (strpos($_POST['name'], '!nocmd') !== false) {
+    if (str_contains($_POST['name'], '!nocmd')) {
         return;
     }
-    if (strpos($_POST['comment'], '!sticky') === false) {
+    if (!str_contains($_POST['comment'], '!sticky')) {
         return;
     }
-    if (strpos($_POST['comment'], '!sticky:kaijo') === false) {
+    if (!str_contains($_POST['comment'], '!sticky:kaijo')) {
         // ピン留め
         $threadStates['sticky'] = true;
         $systemMessage = '★スレッドをピン留めしました。<br>';

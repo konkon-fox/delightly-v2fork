@@ -21,7 +21,7 @@ function applyGobiCommand(
     if ($tlonly) {
         return;
     }
-    if (strpos($_POST['name'], '!nocmd') !== false) {
+    if (str_contains($_POST['name'], '!nocmd')) {
         return;
     }
     if (empty($threadStates)) {

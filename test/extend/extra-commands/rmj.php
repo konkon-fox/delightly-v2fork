@@ -115,10 +115,10 @@ function applyRmjCommand($SETTING, $LV)
     if (isset($SETTING['commands-rmj']) && $SETTING['commands-rmj'] !== 'checked') {
         return;
     }
-    if (strpos($_POST['name'], '!nocmd') !== false) {
+    if (str_contains($_POST['name'], '!nocmd')) {
         return;
     }
-    if (strpos($_POST['name'], '!rmj') === false && strpos($_POST['comment'], '!rmj') === false) {
+    if (!str_contains($_POST['name'], '!rmj') && !str_contains($_POST['comment'], '!rmj')) {
         return;
     }
     // レベル制限
@@ -127,11 +127,11 @@ function applyRmjCommand($SETTING, $LV)
         Error("レベルが{$MIN_LV}未満のユーザーは!rmjコマンドを使えません。");
     }
     // 名前欄置換
-    if (strpos($_POST['name'], '!rmj') !== false) {
+    if (str_contains($_POST['name'], '!rmj')) {
         $_POST['name'] = replaceRmj($_POST['name']);
     }
     // 本文置換
-    if (strpos($_POST['comment'], '!rmj') !== false) {
+    if (str_contains($_POST['comment'], '!rmj')) {
         $commentParts = explode('<hr>', $_POST['comment']);
         $commentParts[0] = replaceRmj($commentParts[0]);
         if ($commentParts[0] === '') {
