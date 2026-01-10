@@ -56,6 +56,7 @@ button.link-style-btn:hover{
 <div class="list"><form method="post" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=kisei"><button class="link-style-btn">規制設定</button><input type="hidden" name="password" value="<?=$_REQUEST['password'];?>"></form></div>
 <div class="list"><form method="post" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=kisei2"><button class="link-style-btn">投稿規制</button><input type="hidden" name="password" value="<?=$_REQUEST['password'];?>"></form></div>
 <div class="list"><form method="post" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=kisei3"><button class="link-style-btn">スレッド作成規制</button><input type="hidden" name="password" value="<?=$_REQUEST['password'];?>"></form></div>
+<div class="list"><form method="post" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=default-commands"><button class="link-style-btn">基本コマンドのオンオフ設定</button><input type="hidden" name="password" value="<?=$_REQUEST['password'];?>"></form></div>
 <div class="list"><form method="post" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=extra-commands"><button class="link-style-btn">追加コマンドのオンオフ設定</button><input type="hidden" name="password" value="<?=$_REQUEST['password'];?>"></form></div>
 </div>
 </body>
@@ -89,6 +90,8 @@ button.link-style-btn:hover{
     require './operate/kisei2.php';
 } elseif ($_GET['mode'] === 'kisei3') {
     require './operate/kisei3.php';
+} elseif ($_GET['mode'] === 'default-commands') {
+    require './operate/default-commands.php';
 } elseif ($_GET['mode'] === 'extra-commands') {
     require './operate/extra-commands.php';
 } elseif ($_GET['mode'] === 'error') {

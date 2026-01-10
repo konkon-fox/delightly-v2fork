@@ -1,106 +1,133 @@
 <?php
 
+// 初期化
+$SETTING['commands-sage'] ??= 'checked';
+$SETTING['commands-nopic'] ??= 'checked';
+$SETTING['commands-jien'] ??= 'checked';
+$SETTING['commands-live'] ??= 'checked';
+$SETTING['commands-slip'] ??= 'checked';
+$SETTING['commands-slipname'] ??= 'checked';
+$SETTING['commands-ken'] ??= 'checked';
+$SETTING['commands-id'] ??= 'checked';
+$SETTING['commands-siberia'] ??= 'checked';
+$SETTING['commands-day'] ??= 'checked';
+$SETTING['commands-month'] ??= 'checked';
+$SETTING['commands-year'] ??= 'checked';
+$SETTING['commands-host'] ??= 'checked';
+$SETTING['commands-clientid'] ??= 'checked';
+$SETTING['commands-nolink'] ??= 'checked';
+$SETTING['commands-idchange'] ??= 'checked';
+$SETTING['commands-cap'] ??= 'checked';
+$SETTING['commands-auth'] ??= 'checked';
+$SETTING['commands-NO'] ??= 'checked';
+$SETTING['commands-AA'] ??= 'checked';
+$SETTING['commands-ARR'] ??= 'checked';
+$SETTING['commands-stop'] ??= 'checked';
+$SETTING['commands-noid'] ??= 'checked';
+$SETTING['commands-add'] ??= 'checked';
+
 if ($SETTING['commands'] === 'checked') {
-    if (str_contains($message, '!sage')) {
+    if ($SETTING['commands-sage'] === 'checked' && str_contains($message, '!sage')) {
         $sage = true;
     }
-    if (str_contains($message, '!nopic')) {
+    if ($SETTING['commands-nopic'] === 'checked' && str_contains($message, '!nopic')) {
         $SETTING['NOPIC'] = 'checked';
     }
-    if (str_contains($message, '!jien')) {
+    if ($SETTING['commands-jien'] === 'checked' && str_contains($message, '!jien')) {
         $SETTING['id'] = 'checked';
         $SETTING['slip'] = 'checked';
         $SETTING['disp_slipname'] = 'checked';
         $SETTING['BBS_JP_CHECK'] = 'checked';
         $SETTING['ID_RESET'] = 'year';
     }
-    if (str_contains($message, '!live')) {
+    if ($SETTING['commands-live'] === 'checked' && str_contains($message, '!live')) {
         $SETTING['threadcheck'] = '';
         $SETTING['timecheck'] = '';
         if ($SETTING['BBS_SAMBA24'] > 0) {
             $SETTING['BBS_SAMBA24'] = $SETTING['BBS_SAMBA24'] / 2;
         }
     }
-    if (str_contains($message, '!slip')) {
+    if ($SETTING['commands-slip'] === 'checked' && str_contains($message, '!slip')) {
         $SETTING['slip'] = 'checked';
     }
-    if (str_contains($message, '!slipname')) {
+    if ($SETTING['commands-slipname'] === 'checked' && str_contains($message, '!slipname')) {
         $SETTING['disp_slipname'] = 'checked';
     }
-    if (str_contains($message, '!ken')) {
+    if ($SETTING['commands-ken'] === 'checked' && str_contains($message, '!ken')) {
         $SETTING['BBS_JP_CHECK'] = 'checked';
     }
-    if (str_contains($message, '!id')) {
+    if ($SETTING['commands-id'] === 'checked' && str_contains($message, '!id')) {
         $SETTING['id'] = 'checked';
     }
-    if (str_contains($message, '!siberia')) {
+    if ($SETTING['commands-siberia'] === 'checked' && str_contains($message, '!siberia')) {
         $SETTING['id'] = 'siberia';
     }
-    if (str_contains($message, '!day')) {
+    if ($SETTING['commands-day'] === 'checked' && str_contains($message, '!day')) {
         $SETTING['ID_RESET'] = 'day';
     }
-    if (str_contains($message, '!month')) {
+    if ($SETTING['commands-month'] === 'checked' && str_contains($message, '!month')) {
         $SETTING['ID_RESET'] = 'month';
     }
-    if (str_contains($message, '!year')) {
+    if ($SETTING['commands-year'] === 'checked' && str_contains($message, '!year')) {
         $SETTING['ID_RESET'] = 'year';
     }
-    if (str_contains($message, '!host')) {
+    if ($SETTING['commands-host'] === 'checked' && str_contains($message, '!host')) {
         $SETTING['fusianasan'] = 'name';
     }
-    if (str_contains($message, '!clientid')) {
+    if ($SETTING['commands-clientid'] === 'checked' && str_contains($message, '!clientid')) {
         $SETTING['fusianasan'] = 'id';
     }
-    if (str_contains($message, '!nolink')) {
+    if ($SETTING['commands-nolink'] === 'checked' && str_contains($message, '!nolink')) {
         $SETTING['DISABLE_LINK'] = 'checked';
     }
     if (
-        str_contains($message, '!idchange') ||
-        str_contains($message, '!changeid') ||
-        str_contains($message, '!chid')
+        $SETTING['commands-idchange'] === 'checked' &&
+        (
+            str_contains($message, '!idchange') ||
+            str_contains($message, '!changeid') ||
+            str_contains($message, '!chid')
+        )
     ) {
         $SETTING['BBS_ID_CHANGE'] = 'checked';
     }
-    if (str_contains($message, '!cap')) {
+    if ($SETTING['commands-cap'] === 'checked' && str_contains($message, '!cap')) {
         $SETTING['cap_only'] = 'checked';
     }
-    if (str_contains($message, '!auth')) {
+    if ($SETTING['commands-auth'] === 'checked' && str_contains($message, '!auth')) {
         $SETTING['Authentication_required'] = 'checked';
     }
-    if (str_contains($message, '!NO')) {
+    if ($SETTING['commands-NO'] === 'checked' && str_contains($message, '!NO')) {
         $SETTING['disable_supervisor'] = 'checked';
     }
-    if (str_contains($message, '!AA')) {
+    if ($SETTING['commands-AA'] === 'checked' && str_contains($message, '!AA')) {
         $SETTING['BBS_AA'] = 'checked';
     }
-    if (str_contains($message, '!ARR')) {
+    if ($SETTING['commands-ARR'] === 'checked' && str_contains($message, '!ARR')) {
         $SETTING['NAME_ARR'] = 'checked';
     }
     if (
-        str_contains($message, '!stop') &&
+        $SETTING['commands-stop'] === 'checked' && str_contains($message, '!stop') &&
         isset($number) &&
         !$admin
     ) {
         Error('このスレッドは停止しました');
     }
-    if (str_contains($message, '!noid')) {
+    if ($SETTING['commands-noid'] === 'checked' && str_contains($message, '!noid')) {
         $SETTING['id'] = '';
         $SETTING['slip'] = '';
         $SETTING['disp_slipname'] = '';
         $SETTING['BBS_JP_CHECK'] = '';
     }
-    // !SETTING
-    if (preg_match_all("/!SETTING:(.*?):(.*?)(\s|　|<br>)/", $_POST['comment'], $SETS, PREG_SET_ORDER)) {
-        foreach ($SETS as $SET) {
-            $SETTING[$SET[1]] = $SET[2];
-        }
-    }
     if ($supervisor || $admin) {
-        if (str_contains($_POST['comment'], '!stop')) {
+        if ($SETTING['commands-stop'] === 'checked' && str_contains($_POST['comment'], '!stop')) {
             $stop = true;
         }
         // 追記
-        if (preg_match("/\!add(.*)/", $_POST['comment'], $addMatches) && isset($number)) {
+        if (
+            $SETTING['commands-add'] === 'checked' && str_contains($_POST['comment'], '!add') &&
+            preg_match("/\!add(.*)/", $_POST['comment'], $addMatches) &&
+            $number > 1
+        ) {
             $commentMax = $authorized ? $SETTING['BBS_MESSAGE_COUNT'] * 3 : $SETTING['BBS_MESSAGE_COUNT'];
             $addComment = $addMatches[1];
             if (mb_strlen($message, 'UTF-8') + mb_strlen($addComment, 'UTF-8') > $commentMax) {
@@ -115,15 +142,10 @@ if ($SETTING['commands'] === 'checked') {
                 $message = implode('<hr>', $messageParts);
             }
         }
-        // 部分削除
-        if (preg_match_all("/!saku:(.*?)(\s|　|<br>)/", $_POST['comment'], $sakus, PREG_SET_ORDER)) {
-            foreach ($sakus as $sakujyo) {
-                $message = str_replace($sakujyo[1], '', $message);
-            }
-        }
         // idchange
         if (
             $newthread &&
+            $SETTING['commands-idchange'] === 'checked' &&
             (
                 str_contains($_POST['comment'], '!idchange') ||
                 str_contains($_POST['comment'], '!changeid') ||
@@ -133,7 +155,11 @@ if ($SETTING['commands'] === 'checked') {
             $SETTING['BBS_ID_CHANGE'] = 'checked';
         }
         // noid
-        if ($newthread && strpos($_POST['comment'], '!noid') !== false) {
+        if (
+            $newthread &&
+            $SETTING['commands-noid'] === 'checked' &&
+            str_contains($_POST['comment'], '!noid')
+        ) {
             $SETTING['id'] = '';
             $SETTING['slip'] = '';
             $SETTING['disp_slipname'] = '';
