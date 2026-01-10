@@ -826,13 +826,6 @@ $SLIP_ID = substr(crypt(md5($HAP['provider'] . $SLIP_SERV), md5($HAP['provider']
 $SLIP_AC = substr(crypt(md5($HAP['CH_UA'] . $SLIP_SERV), md5($HAP['CH_UA'] . $SLIP_SERV)), 2, 2);	#ブラウザ
 $SLIP_TE = substr(crypt(md5($HAP['ACCEPT'] . $SLIP_SERV), md5($HAP['ACCEPT'] . $SLIP_SERV)), 2, 2); #ACCEPTヘッダー
 
-// モバイル等
-if ($HAP['slip'] !== '0') {
-    $temp = substr($SLIP_ID, 0, 1);
-    $SLIP_ID = $SLIP_IP;
-    $SLIP_IP = $HAP['slip'] . $temp;
-}
-
 // IDの種類
 $rawID = $SLIP_IP . $SLIP_ID . $SLIP_AC . $SLIP_TE;
 $rawID = str_replace(['.', '/', '+'], '0', $rawID);
