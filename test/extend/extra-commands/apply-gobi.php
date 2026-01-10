@@ -10,7 +10,7 @@
 function applyGobiCommand(
     $SETTING,
     $tlonly,
-    $threadStates,
+    $threadStates
 ) {
     if ($SETTING['commands'] !== 'checked') {
         return;
@@ -47,5 +47,5 @@ function applyGobiCommand(
 applyGobiCommand(
     $SETTING,
     $tlonly,
-    $threadStates,
+    $threadStates
 );

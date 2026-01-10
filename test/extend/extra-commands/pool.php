@@ -30,7 +30,7 @@ function applyPoolCommand(
     $KAKOLOGLIST,
     $KAKOLOGLISTINDEX,
     $subject,
-    $number,
+    $number
 ) {
     if ($SETTING['commands'] !== 'checked') {
         return;
@@ -84,5 +84,5 @@ applyPoolCommand(
     $KAKOLOGLIST,
     $KAKOLOGLISTINDEX,
     $subject,
-    $number,
+    $number
 );

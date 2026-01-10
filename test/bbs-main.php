@@ -1819,7 +1819,7 @@ if (!$tlonly) {
                         $PAGEFILE[$start]['thread'],
                         $PAGEFILE[$start]['title'],
                         $PAGEFILE[$start]['number'],
-                        $PATH . 'dat/' . $PAGEFILE[$start]['thread'] . '_kisei.cgi',
+                        $PATH . 'dat/' . $PAGEFILE[$start]['thread'] . '_kisei.cgi'
                     );
                 }
                 $PAGEFILE = array_slice($PAGEFILE, 0, $SETTING['BBS_THREADS_LIMIT']);

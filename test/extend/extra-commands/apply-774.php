@@ -14,7 +14,7 @@ function apply774Command(
     $tlonly,
     $admin,
     $CAPID,
-    $threadStates,
+    $threadStates
 ) {
     if ($SETTING['commands'] !== 'checked') {
         return;
@@ -49,5 +49,5 @@ apply774Command(
     $tlonly,
     $admin,
     $CAPID,
-    $threadStates,
+    $threadStates
 );

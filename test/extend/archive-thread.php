@@ -24,12 +24,12 @@ function archiveThread(
     $thread,
     $title,
     $resNumber,
-    $datlog,
+    $datlog
 ) {
     // 現行スレッドから削除
     @unlink($threadStatesFile);
     // 過去ログを保持しない場合
-    if ($SETTING['disable_kakolog'] == "checked") {
+    if ($SETTING['disable_kakolog'] === 'checked') {
         @unlink($threadFile);
         @unlink($datFile);
     } else {
@@ -40,13 +40,13 @@ function archiveThread(
             fseek($kakologListHandle, 0, SEEK_END);
             $endOffset = ftell($kakologListHandle);
             // 追記
-            $kakologLine = $thread.".dat<>".$title." (".$resNumber.")\n";
-            fwrite($kakologListHandle, mb_convert_encoding($kakologLine, "SJIS-win", "UTF-8"));
+            $kakologLine = $thread . '.dat<>' . $title . ' (' . $resNumber . ")\n";
+            fwrite($kakologListHandle, mb_convert_encoding($kakologLine, 'SJIS-win', 'UTF-8'));
         }
         fclose($kakologListHandle);
         // 過去ログインデックスへ追記
         if (isset($endOffset)) {
-            file_put_contents($KAKOLOGLISTINDEX, $endOffset."\n", FILE_APPEND | LOCK_EX);
+            file_put_contents($KAKOLOGLISTINDEX, $endOffset . "\n", FILE_APPEND | LOCK_EX);
         }
     }
     // datlog削除
