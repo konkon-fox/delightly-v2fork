@@ -820,14 +820,19 @@ if (!$provider) {
 }
 
 // KOROKORO
-$ipPart = isset($HAP['ip_network_part']) ? $HAP['ip_network_part'] : $HAP['range'];
-$SLIP_IP = substr(crypt(md5($ipPart . $SLIP_SERV), md5($ipPart . $SLIP_SERV)), 2, 2); #IPの一部
-$SLIP_ID = substr(crypt(md5($HAP['provider'] . $SLIP_SERV), md5($HAP['provider'] . $SLIP_SERV)), 2, 2); #プロバイダ
-$SLIP_AC = substr(crypt(md5($HAP['CH_UA'] . $SLIP_SERV), md5($HAP['CH_UA'] . $SLIP_SERV)), 2, 2);	#ブラウザ
-$SLIP_TE = substr(crypt(md5($HAP['ACCEPT'] . $SLIP_SERV), md5($HAP['ACCEPT'] . $SLIP_SERV)), 2, 2); #ACCEPTヘッダー
+$ipPart = $HAP['ip_network_part'] ?? $HAP['range'];
+$SLIP_IP = substr(hash('sha256', $ipPart . $SLIP_SERV), 0, 2); // IPの一部
+$HAPParts = [
+    $HAP['REMOTE_ADDR'] ?? '',
+    $HAP['provider'] ?? '',
+    $HAP['USER_AGENT'] ?? '',
+    $HAP['CH_UA'] ?? '',
+    $HAP['ACCEPT'] ?? '',
+];
+$SLIP_REST = substr(hash('sha256', implode('|', $HAPParts) . $SLIP_SERV), 0, 6);
 
 // IDの種類
-$rawID = $SLIP_IP . $SLIP_ID . $SLIP_AC . $SLIP_TE;
+$rawID = $SLIP_IP . $SLIP_REST;
 $rawID = str_replace(['.', '/', '+'], '0', $rawID);
 // chidにプレフィックス
 if ($SETTING['BBS_ID_CHANGE'] === 'checked') {
@@ -1434,7 +1439,7 @@ $_POST['name'] = str_replace('!clientid', ' </b>(' . $WrtAgreementKey . ')<b>', 
 // 県名表示
 $_POST['name'] = str_replace('!ken', ' </b>(' . $HAP['region'] . ')<b>', $_POST['name']);
 // ID表示
-$_POST['name'] = str_replace('!id', ' </b>(' . $SLIP_IP . $SLIP_ID . $SLIP_AC . $SLIP_TE . ')<b>', $_POST['name']);
+$_POST['name'] = str_replace('!id', ' </b>(' . $rawID . ')<b>', $_POST['name']);
 
 // ワッチョイ等を表示
 if ($M) {
