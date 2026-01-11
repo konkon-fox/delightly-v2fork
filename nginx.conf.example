@@ -40,6 +40,7 @@ server {
     
     rewrite ^/test/read\.cgi/([^/]+)/([0-9]+)/(.*)$ /#$1/$2/$3 permanent;
     rewrite ^/test/bbs\.cgi$ /test/bbs.php last;
+    rewrite ^/([^/]+)/dat/([0-9]+)\.dat$ /test/dat.php?bbs=$1&thread=$2 last;
 
     location ~ /test/bbs\.php$ {
         # 標準的なFastCGI設定（パラメータ群）を読み込み

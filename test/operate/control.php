@@ -182,7 +182,8 @@ if ($_POST['del']) {
                     $targetThread['thread'],
                     $targetThread['title'],
                     $targetThread['number'],
-                    $KFILE
+                    $KFILE,
+                    $bbs
                 );
             }
 
