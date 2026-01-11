@@ -13,6 +13,7 @@
  * @param string $title スレッドタイトル
  * @param int $resNumber レス数
  * @param string $datlog datlogへのパス
+ * @param string $bbs 板ディレクトリ
  */
 function archiveThread(
     $SETTING,
@@ -24,8 +25,10 @@ function archiveThread(
     $thread,
     $title,
     $resNumber,
-    $datlog
+    $datlog,
+    $bbs
 ) {
+    $isSuccess = true;
     // 現行スレッドから削除
     @unlink($threadStatesFile);
     // 過去ログを保持しない場合
@@ -33,6 +36,23 @@ function archiveThread(
         @unlink($threadFile);
         @unlink($datFile);
     } else {
+        // 過去ログフォルダへ移動
+        // 現行dat
+        $root = dirname(__DIR__, 2);
+        $bbsPath = $root . '/' . $bbs;
+        // 過去ログdat
+        $dir1 = substr($thread, 0, 4);
+        $dir2 = substr($thread, 0, 5);
+        $kakoDir = "{$bbsPath}/kako/{$dir1}/{$dir2}";
+        $kakoFile = "{$kakoDir}/{$thread}.dat";
+        // 過去ログフォルダがなければ作成
+        if (!is_dir($kakoDir)) {
+            @mkdir($kakoDir, 0775, true);
+        }
+        // 現行フォルダにあれば過去ログフォルダへ移動
+        if (is_file($datFile) && is_dir($kakoDir)) {
+            @rename($datFile, $kakoFile);
+        }
         // 過去ログリストへ追記
         $kakologListHandle = fopen($KAKOLOGLIST, 'a+');
         if (flock($kakologListHandle, LOCK_EX)) {
@@ -43,6 +63,7 @@ function archiveThread(
             $kakologLine = $thread . '.dat<>' . $title . ' (' . $resNumber . ")\n";
             fwrite($kakologListHandle, mb_convert_encoding($kakologLine, 'SJIS-win', 'UTF-8'));
         }
+        flock($kakologListHandle, LOCK_UN);
         fclose($kakologListHandle);
         // 過去ログインデックスへ追記
         if (isset($endOffset)) {

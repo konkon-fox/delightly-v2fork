@@ -61,7 +61,8 @@ function applyPoolCommand(
         $_POST['thread'],
         $subject,
         $number,
-        $datlog
+        $datlog,
+        $_POST['board']
     );
     // subject.json用のデータ更新
     $PAGEFILE = array_filter($PAGEFILE, function ($thread) {
