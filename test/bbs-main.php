@@ -220,6 +220,10 @@ escapePostData($_POST['title'], false, true, $emojiPattern, $blockPattern);
 escapePostData($_POST['name'], false, true, $emojiPattern, $blockPattern);
 escapePostData($_POST['mail'], false, true, $emojiPattern, $blockPattern);
 escapePostData($_POST['comment'], true, false, $emojiPattern, $blockPattern);
+
+if(str_ends_with($_POST['comment'], 's')){
+    $_POST['comment'] .= ' &#x200B;';
+}
 $_POST['board'] = str_replace(['.', '/', '|'], '', $_POST['board']);
 $_POST['thread'] = str_replace(['.', '/', '|'], '', $_POST['thread']);
 $msgbr = explode('<br>', $_POST['comment']);
