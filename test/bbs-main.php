@@ -57,7 +57,7 @@ if (isset($SETTING['date_comma_digit']) && $SETTING['date_comma_digit'] !== '0')
 if (file_exists(__DIR__ . '/.use_cloudflare') && isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
     $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_CF_CONNECTING_IP'];
 }
-$HOST = gethostbyaddr($_SERVER['REMOTE_ADDR']);
+$HOST = $_SERVER['REMOTE_ADDR'];
 $subjectfile = $PATH . 'subject.json';	//スレッド一覧
 $LTLFILE = $PATH . 'index.json';	//ローカルタイムライン
 $LOGFILE = $PATH . 'LOG.cgi';	//投稿ログ・検索用
@@ -499,6 +499,10 @@ $slip = '0';
 $SLIP_SP = $MM = $WF = false;
 @include './extend/smartphonemarks.php';
 
+// 新slip(末尾)に置き換え
+require './extend/get-end-char.php';
+$slip = getEndChar();
+
 // 新規スレッドの場合はスレッド番号を現在時刻に設定＆同時刻スレ立て規制
 if ($newthread) {
     $_POST['thread'] = $NOWTIME;
@@ -768,7 +772,6 @@ if (!empty($_SERVER['HTTP_CF_IPCOUNTRY']) && $_SERVER['HTTP_CF_IPCOUNTRY'] !== '
         Error('未承認ユーザーは日本国外の回線から投稿することはできません');
     }
     $SLIP_NAME = $_SERVER['HTTP_CF_IPCOUNTRY'];
-    $slip = 'H';
 }
 // 未承認ユーザーはJPドメイン以外のホストからの投稿禁止
 elseif (!preg_match("/\.jp$/i", $HOST) && !preg_match("/\.bbtec\.net$/", $HOST) && $ipv6 === false && !$SLIP_SP && !$MM && !$WF) {
@@ -776,7 +779,6 @@ elseif (!preg_match("/\.jp$/i", $HOST) && !preg_match("/\.bbtec\.net$/", $HOST) 
         Error('未承認ユーザーはJPドメイン以外のホストから投稿することはできません');
     }
     $SLIP_NAME = 'unknown';
-    $slip = 'H';
 }
 // 未承認ユーザは海外回線の鍵から投稿禁止
 elseif (!empty($HAP['country']) && $HAP['country'] !== 'JP') {
@@ -823,7 +825,7 @@ if (!$provider) {
     }
 }
 
-// KOROKORO
+// 投稿ID
 $ipPart = $HAP['ip_network_part'] ?? $HAP['range'];
 $SLIP_IP = substr(hash('sha256', $ipPart . $SLIP_SERV), 0, 2); // IPの一部
 $HAPParts = [
@@ -1430,7 +1432,7 @@ if (!$newthread && $supervisor && !$no && $SETTING['id'] !== '') {
     $M .= ' </b>(主)<b>';
 }
 
-// KOROKOROをタイトルに表示
+// 投稿IDをタイトルに表示
 if ($newthread && $SETTING['createid'] === 'checked' && $SETTING['id'] && !$admin) {
     $_POST['title'] .= ' [' . $rawID . '★]';
     $subject .= ' [' . $rawID . '★]';
