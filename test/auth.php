@@ -39,7 +39,7 @@ if ($useCloudflare && isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
 }
 
 $IP = $_SERVER['REMOTE_ADDR'];
-$HOST = gethostbyaddr($IP);
+$HOST = $IP;
 $area = [];
 $area['district'] = $area['proxy'] = $area['hosting'] = $area['regionName'] = $area['city'] = $area['countryCode'] = $area['mobile'] = $area['asname'] = '';
 $authStatus = 'failed';
@@ -136,7 +136,6 @@ if (!isset($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'])) {
 
 // POSTデータを取得
 $token = isset($_POST['cf-turnstile-response']) ? $_POST['cf-turnstile-response'] : '';
-$HOST = gethostbyaddr($IP);
 
 // IPv6かIPv4か判定
 $binaryIp = inet_pton($IP);
@@ -273,13 +272,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit('認証に成功しました。Web版をご利用の場合はそのまま投稿できます<br>2ch専用ブラウザでの投稿時やCookie失効時は以下のキーをE-mail欄に入力してご利用ください<br>※E-mail欄は外部には表示されません<input name="mcode" onfocus="this.select()" value="#' . $WrtAgreementKey . '" style="display:block;margin:auto;width:95%;" readonly=""><hr><a href="#" onclick="window.history.go(-1);">前ページに戻る</a><br><a href="#" onclick="window.history.go(-2);">2つ前のページに戻る</a>');
     }
 
-    // smart phone marks
-    $admin = false;
-    $SLIP_NAME = 'JP';
-    $slip = '0';
-    $SLIP_SP = $MM = $WF = false;
-    @include './extend/smartphonemarks.php';
-
     // --------------------------------------------
     // ip-api.comのAPIへアクセス　始まり
     // --------------------------------------------
@@ -307,6 +299,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = substr($source, $headerSize);
     curl_close($cp);
 
+    // --------------------------------------------
+    // ip-api.comのAPIへアクセス　ここまで
+    // --------------------------------------------
+
     // ヘッダーを解析して配列に格納
     $HTTP = [];
     $headLines = explode("\n", str_replace(["\r\n", "\r"], "\n", $head));
@@ -325,6 +321,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // $areaに結果を格納
     $area = json_decode($data, true);
 
+    // HOST
+    $HOST = $area['reverse'] ?? $HOST;
+
     // 国名取得(CFを通さないサーバの場合)
     if (empty($_SERVER['HTTP_CF_IPCOUNTRY'])) {
         if ($area['countryCode']) {
@@ -333,6 +332,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SERVER['HTTP_CF_IPCOUNTRY'] = 'JP';
         }
     }
+
+    // smart phone marks
+    $admin = false;
+    $SLIP_NAME = 'JP';
+    $slip = '0';
+    $SLIP_SP = $MM = $WF = false;
+    @include './extend/smartphonemarks.php';
+
     // モバイルを検出
     if (
         $area['mobile'] === true &&
@@ -341,13 +348,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         strpos($HOST, 'ocn.ne.jp') === false &&
         strpos($HOST, 'dion.ne.jp') === false
     ) {
-        $slip = 'S';
         $SLIP_SP = true;
         $SLIP_NAME = $area['asname'];
     }
-    // --------------------------------------------
-    // ip-api.comのAPIへアクセス　ここまで
-    // --------------------------------------------
+
+    // 新slip(末尾)に置き換え
+    require './extend/get-end-char.php';
+    $slip = getEndChar();
 
     // User-Agent Client Hints
     if ($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST']) {
