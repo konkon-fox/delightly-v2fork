@@ -18,10 +18,10 @@ if ($settings === false) {
 # コード内での編集は非推奨化。システム総管理ページで編集してください。
 $sitekey = '1x00000000000000000000AA';
 $SECRET_KEY = '1x0000000000000000000000000000000AA';
-if (isset($settings['turnstile-sitekey']) && !empty($settings['turnstile-sitekey'])) {
+if (!empty($settings['turnstile-sitekey'] ?? '')) {
     $sitekey = $settings['turnstile-sitekey'];
 }
-if (isset($settings['turnstile-secretkey']) && !empty($settings['turnstile-secretkey'])) {
+if (!empty($settings['turnstile-secretkey'] ?? '')) {
     $SECRET_KEY = $settings['turnstile-secretkey'];
 }
 
@@ -398,7 +398,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         . $ipReverse;
 
     // ユーザー環境にブラウザ情報を追加
-    if (isset($settings['use-browser-fingerprint']) && $settings['use-browser-fingerprint'] === 'checked') {
+    if ($settings['use-browser-fingerprint'] ?? '' === 'checked') {
         $fingerprint .= $CH_UA . $ACCEPT;
     }
 
@@ -409,23 +409,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $enPath = $HAP_PATH . $enFile;
 
     // ホスティング判定された回線からの認証を拒否
-    if (!getenv('SKIP_VERIFICATION')) {
-        $useStrictAuth = !isset($settings['use-strict-auth']) || $settings['use-strict-auth'] === 'checked';
-        if ($useStrictAuth && $slip === 'H') {
-            recordLog(
-                $authStatus,
-                'null', // $WrtAgreementKey
-                $IP,
-                $HOST,
-                $area['isp'],
-                $area['asname'],
-                $_SERVER['HTTP_USER_AGENT'],
-                $CH_UA,
-                'null', // $clientId
-                'null' // $enFile
-            );
-            exit('【認証エラー】ご使用の回線（海外/VPN/データセンター等）からの認証は現在制限されています。家庭用回線またはモバイル回線からお試しください。');
-        }
+    $useStrictAuth = $settings['use-strict-auth'] ?? 'checked' === 'checked';
+    if ($useStrictAuth && $slip === 'H') {
+        recordLog(
+            $authStatus,
+            'null', // $WrtAgreementKey
+            $IP,
+            $HOST,
+            $area['isp'],
+            $area['asname'],
+            $_SERVER['HTTP_USER_AGENT'],
+            $CH_UA,
+            'null', // $clientId
+            'null' // $enFile
+        );
+        exit('【認証エラー】ご使用の回線（海外/VPN/データセンター等）からの認証は現在制限されています。家庭用回線またはモバイル回線からお試しください。');
     }
 
     // 環境控えファイル更新が30日間以内なら同一キーを返す
