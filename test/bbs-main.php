@@ -54,9 +54,27 @@ if (isset($SETTING['date_comma_digit']) && $SETTING['date_comma_digit'] !== '0')
     $DATE = date('Y/m/d', $NOWTIME);
     $TIME = date('H:i:s', $NOWMICROTIME);
 }
-if (file_exists(__DIR__ . '/.use_cloudflare') && isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+
+require './utils/get-json-file.php';
+require './utils/safe-file-get-contents.php';
+require './utils/safe-file.php';
+
+$settingFile = './operate/auth-settings.json';
+if (is_file($settingFile)) {
+    $settings = getJsonFile($settingFile);
+} else {
+    $settings = [];
+}
+if ($settings === false) {
+    Error('設定ファイルの取得に失敗しました。');
+}
+
+// cloudflare使用チェック
+$useCloudflare = $settings['use-cloudflare'] ?? 'checked' === 'checked';
+if ($useCloudflare && isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
     $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_CF_CONNECTING_IP'];
 }
+
 $HOST = $_SERVER['REMOTE_ADDR'];
 $subjectfile = $PATH . 'subject.json';	//スレッド一覧
 $LTLFILE = $PATH . 'index.json';	//ローカルタイムライン
@@ -72,9 +90,6 @@ mb_substitute_character('entity');
 $M = $ken = $ncolor = $Cookmail = $LV = $CAPID = $accountid = $supervisorID = '';
 $stop = $admin = $sage = $supervisor = $authorized = $PROXY = $threadStatesReload = $isMax = false;
 
-include './utils/safe-file-get-contents.php';
-include './utils/safe-file.php';
-include './utils/get-json-file.php';
 
 // GETメソッド
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

@@ -1,8 +1,8 @@
 <?php
 error_reporting(E_COMPILE_ERROR | E_RECOVERABLE_ERROR | E_ERROR | E_CORE_ERROR | E_PARSE);
 
-include './utils/get-json-file.php';
-include './utils/safe-file-get-contents.php';
+require './utils/get-json-file.php';
+require './utils/safe-file-get-contents.php';
 
 $settingFile = './operate/auth-settings.json';
 if (is_file($settingFile)) {
@@ -31,8 +31,9 @@ if (getenv('SKIP_VERIFICATION')) {
     $FORCESSL = false;
 }
 $NOWTIME = time();
+
 // cloudflare使用チェック
-$useCloudflare = !isset($settings['use-cloudflare']) || $settings['use-cloudflare'] === 'checked';
+$useCloudflare = $settings['use-cloudflare'] ?? 'checked' === 'checked';
 if ($useCloudflare && isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
     $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_CF_CONNECTING_IP'];
 }
