@@ -1,5 +1,8 @@
 <?php
 
+// gzip圧縮を無効化
+ini_set('zlib.output_compression', 'Off');
+
 if (!isset($_GET['bbs'])) {
     http_response_code(403);
     exit('bbsが指定されていません。');
@@ -59,10 +62,23 @@ if (!is_file($currentFile)) {
 
 // レスポンスヘッダー設定
 header('Content-Type: text/plain; charset=Shift_JIS');
-header('Accept-Ranges: none');
+header('Accept-Ranges: bytes');
 
-// 304
+// etag
 $fileTime = filemtime($currentFile);
+$fileSize = filesize($currentFile);
+$etag = md5($fileTime . $fileSize);
+header('ETag: "' . $etag . '"');
+
+// 304 etag
+if (isset($_SERVER['HTTP_IF_NONE_MATCH'])) {
+    if (trim($_SERVER['HTTP_IF_NONE_MATCH'], '"') === $etag) {
+        http_response_code(304);
+        exit;
+    }
+}
+
+// 304 lastmodified
 $lastModified = gmdate('D, d M Y H:i:s', $fileTime) . ' GMT';
 if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
     $ifModifiedSince = trim($_SERVER['HTTP_IF_MODIFIED_SINCE']);
@@ -74,6 +90,24 @@ if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
 }
 header('Last-Modified: ' . $lastModified);
 
+// Range要求に対応
+$rangeEnd = $fileSize - 1;
+$rangeStart = 0;
+$rangeSize = null;
+if (isset($_SERVER['HTTP_RANGE'])) {
+    preg_match('/bytes=([0-9]+)-/', $_SERVER['HTTP_RANGE'], $matches);
+    $rangeStart = (int) ($matches[1] ?? 0);
+    if ($rangeStart <= $rangeEnd) {
+        $rangeSize = $fileSize - $rangeStart;
+        http_response_code(206);
+        header("Content-Range: bytes {$rangeStart}-{$rangeEnd}/{$fileSize}");
+    } else {
+        $rangeStart = 0;
+    }
+}
+$contentLength = $rangeSize ?? $fileSize;
+header('Content-Length: ' . $contentLength);
+
 // 現行datを返却
 $fp = fopen($currentFile, 'rb');
 if (!$fp) {
@@ -84,6 +118,9 @@ if (!flock($fp, LOCK_SH)) {
     fclose($fp);
     http_response_code(503);
     exit;
+}
+if ($rangeStart > 0) {
+    fseek($fp, $rangeStart);
 }
 fpassthru($fp);
 flock($fp, LOCK_UN);
