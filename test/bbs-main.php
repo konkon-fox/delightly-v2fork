@@ -874,9 +874,13 @@ if (!$provider) {
     }
 }
 
-// 投稿ID
+// 投稿ID 上2桁 IPの一部
 $ipPart = $HAP['ip_network_part'] ?? $HAP['range'];
-$SLIP_IP = substr(hash('sha256', $ipPart . $SLIP_SERV), 0, 2); // IPの一部
+$ipBinary = hash('md5', $ipPart . $SLIP_SERV, true);
+$ipHash = str_replace(['+', '/', '='], ['d', 'e', 'f'], base64_encode($ipBinary));
+$SLIP_IP = substr($ipHash, 0, 2);
+
+// 投稿ID 下6桁 HAP
 $HAPParts = [
     $HAP['REMOTE_ADDR'] ?? '',
     $HAP['provider'] ?? '',
@@ -884,9 +888,11 @@ $HAPParts = [
     $HAP['CH_UA'] ?? '',
     $HAP['ACCEPT'] ?? '',
 ];
-$SLIP_REST = substr(hash('sha256', implode('|', $HAPParts) . $SLIP_SERV), 0, 6);
+$restBinary = hash('md5', implode('|', $HAPParts) . $SLIP_SERV, true);
+$restHash = str_replace(['+', '/', '='], ['a', 'b', 'c'], base64_encode($restBinary));
+$SLIP_REST = substr($restHash, 0, 6);
 
-// IDの種類
+// 投稿ID
 $rawID = $SLIP_IP . $SLIP_REST;
 $rawID = str_replace(['.', '/', '+'], '0', $rawID);
 // chidにプレフィックス
