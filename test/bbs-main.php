@@ -90,7 +90,6 @@ mb_substitute_character('entity');
 $M = $ken = $ncolor = $Cookmail = $LV = $CAPID = $accountid = $supervisorID = '';
 $stop = $admin = $sage = $supervisor = $authorized = $PROXY = $threadStatesReload = $isMax = false;
 
-
 // GETメソッド
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     Error2('invalid:GET');
@@ -168,6 +167,34 @@ if ($ipv6 === true) {
 // U+FEFF 幅ゼロの改行なしスペース ZWNBSP
 // 等
 
+// \p{C}で消えてしまう文字をホワイトリスト化
+$whiteList = [
+    // ZWJ
+    '\x{200D}',
+    // Unicode 15.0 絵文字
+    '\x{1FAE8}',
+    '\x{1FA75}-\x{1FA77}',
+    '\x{1FAF7}-\x{1FAF8}',
+    '\x{1FACE}-\x{1FACF}',
+    '\x{1FABB}-\x{1FABD}',
+    '\x{1FABF}',
+    '\x{1FADA}-\x{1FADB}',
+    '\x{1FA87}-\x{1FA88}',
+    '\x{1FAAD}-\x{1FAAF}',
+    '\x{1F6DC}',
+    // Unicode 16.0 絵文字
+    '\x{1FAE9}',
+    '\x{1FAC6}',
+    '\x{1FABE}',
+    '\x{1FADC}',
+    '\x{1FA89}',
+    '\x{1FA8F}',
+    // other
+    '\x{06DD}',
+];
+$whiteRange = implode('', $whiteList);
+$ccPattern = '/(?![' . $whiteRange . ']|[\h\v])\p{C}/u';
+
 // https://www.unicode.org/charts/
 $emojiBlocks = [
     '\x{2700}-\x{27BF}', // Dingbats
@@ -177,6 +204,12 @@ $emojiBlocks = [
     '\x{1F900}-\x{1F9FF}',   // Supplemental Symbols and Pictographs
     '\x{1FA70}-\x{1FAFF}',   // Symbols and Pictographs Extended-A
     '\x{1F680}-\x{1F6FF}',   // Transport and Map Symbols
+    // other
+    '\x{2B1B}',
+    '\x{2194}-\x{2195}',
+    '\x{FE0F}',
+    '\x{1F7E9}',
+    '\x{1F7EB}',
 ];
 $emojiRange = implode('', $emojiBlocks);
 $emojiPattern = '/(?<![' . $emojiRange . '])\x{200D}|\x{200D}(?![' . $emojiRange . '])/u';
@@ -199,10 +232,11 @@ $blockPattern = '/[' . implode('', $blockList) . ']/u';
  * @param bool $trimAll 前後全てをtrimするか
  * @param string $emojiPattern 絵文字で挟まれていないZWJの正規表現
  * @param string $blockPattern 個別に削除する文字の正規表現
+ * @param string $ccPattern ホワイトリスト以外の制御文字にマッチする正規表現
  *
  */
 
-function escapePostData(&$postData, $keepNewLine, $trimAll, $emojiPattern, $blockPattern)
+function escapePostData(&$postData, $keepNewLine, $trimAll, $emojiPattern, $blockPattern, $ccPattern)
 {
     // &#10;(LF) &#13;(CR) をエスケープ
     $postData = preg_replace('/&#0*1[03];/', ' ', $postData);
@@ -211,7 +245,7 @@ function escapePostData(&$postData, $keepNewLine, $trimAll, $emojiPattern, $bloc
     // 数値文字参照を生文字に変換
     $postData = html_entity_decode($postData, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     // 制御文字等を削除
-    $postData = preg_replace('/(?!\x{200D}|[\h\v])\p{C}/u', '', $postData);
+    $postData = preg_replace($ccPattern, '', $postData);
     // 個別削除
     $postData = preg_replace($blockPattern, '', $postData);
     // 絵文字に挟まれていないZWJを削除
@@ -231,12 +265,12 @@ function escapePostData(&$postData, $keepNewLine, $trimAll, $emojiPattern, $bloc
     $newLineChar = $keepNewLine ? '<br>' : ' ';
     $postData = str_replace(["\r\n", "\r", "\n"], $newLineChar, $postData);
 }
-escapePostData($_POST['title'], false, true, $emojiPattern, $blockPattern);
-escapePostData($_POST['name'], false, true, $emojiPattern, $blockPattern);
-escapePostData($_POST['mail'], false, true, $emojiPattern, $blockPattern);
-escapePostData($_POST['comment'], true, false, $emojiPattern, $blockPattern);
+escapePostData($_POST['title'], false, true, $emojiPattern, $blockPattern, $ccPattern);
+escapePostData($_POST['name'], false, true, $emojiPattern, $blockPattern, $ccPattern);
+escapePostData($_POST['mail'], false, true, $emojiPattern, $blockPattern, $ccPattern);
+escapePostData($_POST['comment'], true, false, $emojiPattern, $blockPattern, $ccPattern);
 
-if(str_ends_with($_POST['comment'], 's')){
+if (str_ends_with($_POST['comment'], 's')) {
     $_POST['comment'] .= ' &#x200B;';
 }
 $_POST['board'] = str_replace(['.', '/', '|'], '', $_POST['board']);
