@@ -1683,6 +1683,8 @@ if (!$tlonly) {
     addNewResToDat($THREADFILE, $newRes);
 }
 
+@include './extend/over-the-thread.php';
+
 // 新規スレッドの場合、過去ログ用スレッド一覧(subject.json)に追加
 if ($newthread) {
     $kakoSubjectFile = $PATH . 'thread/' . substr($_POST['thread'], 0, 4) . '/subject.json';
