@@ -42,6 +42,7 @@ if (!isset($_SERVER['HTTP_SEC_CH_UA_MOBILE'])) {
 if (!isset($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'])) {
     $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'] = '';
 }
+$commaTime = '';
 if (isset($SETTING['date_comma_digit']) && $SETTING['date_comma_digit'] !== '0') {
     $NOWMICROTIME = microtime(true);
     $microTime = $NOWMICROTIME - floor($NOWMICROTIME);
@@ -658,8 +659,6 @@ if (!$newthread && !$tlonly) {
 
 // システムメッセージ用関数
 include './extend/extra-commands/utilities/add-system-message.php';
-// スレ状態ファイル読み込み用関数 => $threadStatesUpdater に統合
-// include './extend/extra-commands/utilities/get-threads-states.php';
 // !ninkeyコマンド
 @include './extend/extra-commands/ninkey.php';
 // !stickyコマンド
@@ -674,10 +673,15 @@ include './extend/extra-commands/utilities/add-system-message.php';
 @include './extend/extra-commands/set-774.php';
 // !gobi設定
 @include './extend/extra-commands/set-gobi.php';
+// !comma設定
+@include './extend/extra-commands/set-comma.php';
+
 // !ngk適用
 @include './extend/extra-commands/apply-ngk.php';
 // !774適用
 @include './extend/extra-commands/apply-774.php';
+// !comma適用
+@include './extend/extra-commands/apply-comma.php';
 // !rmjコマンド
 @include './extend/extra-commands/rmj.php';
 // !gobi適用
