@@ -74,6 +74,17 @@ function showThreadStates(
     if (isset($threadStates['sticky'])) {
         $commentParts[2] .= '<font color="red">※ピン留め中</font><br>';
     }
+    // コンマ追加
+    if (isset($threadStates['comma']) && count($threadStates['comma']) > 0) {
+        ksort($threadStates['comma']);
+        foreach ($threadStates['comma'] as $comma => $commaComment) {
+            if ($isValidRmj) {
+                $commaComment = replaceRmj($commaComment);
+            }
+            $commentParts[2] .= 'コンマ<font color="red">.' . $comma . '</font>　' . $commaComment . '<br>';
+        }
+
+    }
     // 分割された本文を統合
     $comment = implode('<hr>', $commentParts);
     $comment = preg_replace('/(<hr>)+$/', '', $comment);
