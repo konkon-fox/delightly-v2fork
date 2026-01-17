@@ -1683,6 +1683,8 @@ if (!$tlonly) {
     addNewResToDat($THREADFILE, $newRes);
 }
 
+@include './extend/over-the-thread.php';
+
 // 新規スレッドの場合、過去ログ用スレッド一覧(subject.json)に追加
 if ($newthread) {
     $kakoSubjectFile = $PATH . 'thread/' . substr($_POST['thread'], 0, 4) . '/subject.json';
@@ -1795,8 +1797,8 @@ include './extend/archive-thread.php';
 
 // スレッド一覧 (subject.json)
 if (!$tlonly) {
-    // ピン留めスレッド
     if (isset($threadStates['sticky'])) {
+        // ピン留めスレッド
         $subject = '[📌] ' . $subject;
     }
     if ($isMax) {
@@ -1815,6 +1817,10 @@ if (!$tlonly) {
     ];
     if (isset($threadStates['sticky'])) {
         $posted['sticky'] = true;
+    }
+    if ($isMax) {
+        $posted['max'] = true;
+        $posted['number']++;
     }
     // subject.json更新
     $fileExists = is_file($subjectfile);
@@ -1852,7 +1858,23 @@ if (!$tlonly) {
             }
             // 他のスレッド
             if (isset($thread['sticky'])) {
+                // ピン留めスレ配列へ
                 $stickyThreads[] = $thread;
+            } elseif (isset($thread['max'])) {
+                // maxのスレは落とす
+                archiveThread(
+                    $SETTING,
+                    $KAKOLOGLIST,
+                    $KAKOLOGLISTINDEX,
+                    $THREAD_STATES_PATH . "/{$thread['thread']}.json",
+                    $PATH . 'thread/' . substr($thread['thread'], 0, 4) . '/' . $thread['thread'] . '.dat',
+                    $PATH . 'dat/' . $thread['thread'] . '.dat',
+                    $thread['thread'],
+                    $thread['title'],
+                    $thread['number'],
+                    $PATH . 'dat/' . $thread['thread'] . '_kisei.cgi',
+                    $_POST['board']
+                );
             } else {
                 // 順番そのまま
                 $PAGEFILE[] = $thread;

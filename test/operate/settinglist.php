@@ -13,7 +13,7 @@ if (!$_GET['mode']) {
 <body>
 <div id="lists">
 <div class="list"><form method="post" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=boardsetting"><button class="link-style-btn">掲示板設定</button><input type="hidden" name="password" value="<?=$_REQUEST['password'];?>"></form></div>
-<div class="list"><form method="post" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=header"><button class="link-style-btn">ヘッダー・告知欄</button><input type="hidden" name="password" value="<?=$_REQUEST['password'];?>"></form></div>
+<div class="list"><form method="post" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=header"><button class="link-style-btn">ヘッダー・告知欄等</button><input type="hidden" name="password" value="<?=$_REQUEST['password'];?>"></form></div>
 <div class="list"><form method="post" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=authorization"><button class="link-style-btn">承認済ユーザ</button><input type="hidden" name="password" value="<?=$_REQUEST['password'];?>"></form></div>
 <div class="list"><form method="post" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=cap"><button class="link-style-btn">キャップ</button><input type="hidden" name="password" value="<?=$_REQUEST['password'];?>"></form></div>
 <div class="list"><form method="post" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=log"><button class="link-style-btn">投稿ログ閲覧</button><input type="hidden" name="password" value="<?=$_REQUEST['password'];?>"></form></div>
