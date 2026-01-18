@@ -4,6 +4,10 @@ if (isset($_GET['mode'])) {
         require './operate/update-password.php';
         exit;
     }
+    if ($_GET['mode'] === 'system-settings') {
+        require './operate/system-settings.php';
+        exit;
+    }
     if ($_GET['mode'] === 'auth-settings') {
         require './operate/auth-settings.php';
         exit;
@@ -36,6 +40,10 @@ if (isset($_GET['mode'])) {
         <form action="?mode=update-password" method="POST" class="list-group-item list-group-item-action">
           <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
           <button class="btn stretched-link">本パスワード更新</button>
+        </form>
+        <form action="?mode=system-settings" method="POST" class="list-group-item list-group-item-action">
+          <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
+          <button class="btn stretched-link">システム設定</button>
         </form>
         <form action="?mode=auth-settings" method="POST" class="list-group-item list-group-item-action">
           <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
