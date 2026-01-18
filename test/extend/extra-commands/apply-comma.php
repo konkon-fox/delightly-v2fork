@@ -5,16 +5,12 @@
  *
  * @param array $SETTING 板の設定
  * @param boolean $tlonly TL判定
- * @param boolean $admin 管理者判定(管理人or常時コマンド権限を持つCAP)
- * @param string $CAPID 投稿者がCAPの場合のID
  * @param array $threadState スレ状態
  * @param string $commaTime コンマの文字列
  */
 function applyCommaCommand(
     $SETTING,
     $tlonly,
-    $admin,
-    $CAPID,
     $threadStates,
     $commaTime
 ) {
@@ -28,9 +24,6 @@ function applyCommaCommand(
         return;
     }
     if ($tlonly) {
-        return;
-    }
-    if ($admin || $CAPID) {
         return;
     }
     if ($_POST['name'] !== '') {
@@ -51,8 +44,6 @@ function applyCommaCommand(
 applyCommaCommand(
     $SETTING,
     $tlonly,
-    $admin,
-    $CAPID,
     $threadStates,
     $commaTime
 );
