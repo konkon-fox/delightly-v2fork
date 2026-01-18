@@ -19,7 +19,7 @@ if (!$_GET['mode']) {
 <div class="list"><form method="post" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=log"><button class="link-style-btn">投稿ログ閲覧</button><input type="hidden" name="password" value="<?=$_REQUEST['password'];?>"></form></div>
 <div class="list"><form method="post" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=control"><button class="link-style-btn">スレッド・レス管理</button><input type="hidden" name="password" value="<?=$_REQUEST['password'];?>"></form></div>
 <div class="list"><form method="post" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=tl"><button class="link-style-btn">タイムライン管理</button><input type="hidden" name="password" value="<?=$_REQUEST['password'];?>"></form></div>
-<div class="list"><form method="post" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=error"><button class="link-style-btn">エラーログ</button><input type="hidden" name="password" value="<?=$_REQUEST['password'];?>"></form></div>
+<div class="list"><form method="post" action="?bbs=<?=$_REQUEST['bbs'];?>&mode=error"><button class="link-style-btn">エラーログ閲覧</button><input type="hidden" name="password" value="<?=$_REQUEST['password'];?>"></form></div>
 </div>
 </body>
 </html>
