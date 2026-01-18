@@ -36,7 +36,7 @@ if ($_POST['edit'] === 'true') {
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<meta name="description" content>
 	<meta name="author" content>
-	<title>システム設定</title>
+	<title>認証設定</title>
 	<link
 		href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
 		rel="stylesheet"
@@ -52,9 +52,9 @@ if ($_POST['edit'] === 'true') {
 				<button type="submit" class="btn btn-sm btn-secondary">← 管理ページへ戻る</button>
 			</form>
 		</header>
-		<h1>システム設定</h1>
+		<h1>認証設定</h1>
 		<main>
-			<form action="?mode=system-settings" method="post">
+			<form action="?mode=auth-settings" method="post">
 				<input
 					type="hidden"
 					name="code"
