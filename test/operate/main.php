@@ -1,4 +1,11 @@
 <?php
+// 追加設定 初期値
+$SETTING['id_9th_char'] ??= '';
+$SETTING['res_decoration'] ??= '';
+$SETTING['date_comma_digit'] ??= '0';
+$SETTING['is_valid_TL'] ??= 'checked';
+$SETTING['commands_idchange_first_res'] ??= 'checked';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['edit'] === 'yes') {
     // チェックボックスのキャンセル値
     if (!isset($_POST['ip_geolocation'])) {
@@ -74,13 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['edit'] === 'yes') {
     $_POST['id_9th_char'] ??= '';
     $_POST['res_decoration'] ??= '';
     $_POST['is_valid_TL'] ??= '';
-    $_POST['commands-idchange-first-res'] ??= '';
-    // 追加設定 初期値
-    $SETTING['id_9th_char'] ??= '';
-    $SETTING['res_decoration'] ??= '';
-    $SETTING['date_comma_digit'] ??= '0';
-    $SETTING['is_valid_TL'] ??= 'checked';
-    $SETTING['commands-idchange-first-res'] ??= 'checked';
+    $_POST['commands_idchange_first_res'] ??= '';
 
     foreach ($SETTING as $name => $value) {
         if (isset($_POST[$name])) {
@@ -220,7 +221,7 @@ $safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
     echo ' checked';
 } ?>>する</div>
 <div><b>!idchange, !noidコマンドを>>1から有効にする</b></div>
-<div><input type="checkbox" value="checked" name="commands-idchange-first-res"<?php if ($SETTING['commands-idchange-first-res'] === 'checked') {
+<div><input type="checkbox" value="checked" name="commands_idchange_first_res"<?php if ($SETTING['commands_idchange_first_res'] === 'checked') {
     echo ' checked';
 } ?>>する</div>
 <!--  -->
