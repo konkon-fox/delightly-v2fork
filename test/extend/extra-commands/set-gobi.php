@@ -49,15 +49,15 @@ function setGobiCommand(
     $gobi = trim($commandMatches[1]);
     // 例外処理
     if (mb_strlen($gobi, 'UTF-8') > $MAX_GOBI_LENGTH) {
-        addSystemMessage("★語尾の最大文字数は{$MAX_GOBI_LENGTH}です。<br>");
+        addSystemMessage("★語尾の最大文字数は{$MAX_GOBI_LENGTH}です。");
         return;
     }
     // スレッド状態を更新
     $threadStates['gobi'] = $gobi;
-    $systemMessage = "★語尾を「{$gobi}」に設定しました。<br>";
+    $systemMessage = "★語尾を「{$gobi}」に設定しました。";
     if ($gobi === '') {
         unset($threadStates['gobi']);
-        $systemMessage = '★語尾を取り消しました。<br>';
+        $systemMessage = '★語尾を取り消しました。';
     }
     // 成功メッセージ出力(本文)
     if (!$newthread) {

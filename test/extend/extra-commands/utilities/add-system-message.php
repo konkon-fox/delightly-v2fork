@@ -1,4 +1,5 @@
 <?php
+
 /**
  * コマンド処理でのシステムメッセージを本文に追加する関数定義
  *
@@ -8,8 +9,11 @@
 function addSystemMessage($text)
 {
     $commentParts = explode('<hr>', $_POST['comment']);
-    if(count($commentParts) < 2) {
+    if (count($commentParts) < 2) {
         array_push($commentParts, '');
+    }
+    if (!empty($commentParts[1])) {
+        $commentParts[1] .= '<br>';
     }
     $commentParts[1] .= $text;
     $_POST['comment'] = implode('<hr>', $commentParts);

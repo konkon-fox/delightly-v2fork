@@ -51,7 +51,7 @@ function set774Command(
     $name = trim($commandMatches[1]);
     // 例外処理
     if (mb_strlen($name, 'UTF-8') > $MAX_774_LENGTH) {
-        addSystemMessage("★デフォ名無しの最大文字数は{$MAX_774_LENGTH}です。<br>");
+        addSystemMessage("★デフォ名無しの最大文字数は{$MAX_774_LENGTH}です。");
         return;
     }
     /* --置換処理ここから-- */
@@ -71,10 +71,10 @@ function set774Command(
     /* --置換処理ここまで-- */
     // スレッド状態を更新
     $threadStates['774'] = $name;
-    $systemMessage = "★デフォ名無しを「{$name}」に設定しました。<br>";
+    $systemMessage = "★デフォ名無しを「{$name}」に設定しました。";
     if ($name === '') {
         unset($threadStates['774']);
-        $systemMessage = '★デフォ名無しを取り消しました。<br>';
+        $systemMessage = '★デフォ名無しを取り消しました。';
     }
     // 成功メッセージ出力(本文)
     if (!$newthread) {

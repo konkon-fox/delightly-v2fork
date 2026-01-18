@@ -50,13 +50,13 @@ function setMaxCommand(
 
     // 4000を超えている場合は設定不可
     if ($newMax > 4000) {
-        addSystemMessage('★レス上限数は最大4000までです。<br>');
+        addSystemMessage('★レス上限数は最大4000までです。');
         return;
     }
 
     // 現在のレス数より低い数値は設定不可
     if ($newMax < $number) {
-        addSystemMessage("★現在のレス数({$number})より低い数値は指定できません。<br>");
+        addSystemMessage("★現在のレス数({$number})より低い数値は指定できません。");
         return;
     }
 
@@ -64,7 +64,7 @@ function setMaxCommand(
     $threadStates['max'] = $newMax;
 
     // 成功メッセージ出力(スレ立て時は省略)
-    $systemMessage = "★レス数上限を {$newMax} に設定<br>";
+    $systemMessage = "★レス数上限を {$newMax} に設定";
     if (!$newthread) {
         addSystemMessage($systemMessage);
     }

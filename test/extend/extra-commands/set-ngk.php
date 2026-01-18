@@ -42,10 +42,10 @@ function setngkCommand(
     $threadStates['ngk'] = true;
     // スレ立て時はメッセージ省略
     if (!$newthread) {
-        $systemMessage = '★ngk（名前入力禁止）モードを発動しました。<br>';
+        $systemMessage = '★ngk（名前入力禁止）モードを発動しました。';
         if (strpos($_POST['comment'], '!ngk:kaijo') !== false) {
             unset($threadStates['ngk']);
-            $systemMessage = '★ngk（名前入力禁止）モードを解除しました。<br>';
+            $systemMessage = '★ngk（名前入力禁止）モードを解除しました。';
         }
         // 成功メッセージ出力(本文)
         addSystemMessage($systemMessage);

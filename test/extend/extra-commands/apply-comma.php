@@ -38,7 +38,7 @@ function applyCommaCommand(
     if (!isset($threadStates['comma'][$commaTime])) {
         return;
     }
-    addSystemMessage('★<font color="red">.' . $commaTime . '</font>　' . $threadStates['comma'][$commaTime] . '<br>');
+    addSystemMessage('★<font color="red">.' . $commaTime . '</font>　' . $threadStates['comma'][$commaTime]);
 }
 
 applyCommaCommand(

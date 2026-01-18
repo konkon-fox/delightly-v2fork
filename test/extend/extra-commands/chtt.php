@@ -50,12 +50,12 @@ function applyChttCommand(
     $newThreadTitle = trim($commandMatches[1]);
     // 空欄エラー
     if ($newThreadTitle === '') {
-        addSystemMessage('★新スレタイが空欄です。<br>');
+        addSystemMessage('★新スレタイが空欄です。');
         return;
     }
     // スレタイ長すぎエラー
     if (mb_strlen($newThreadTitle, 'UTF-8') > $SETTING['BBS_SUBJECT_COUNT']) {
-        addSystemMessage('★新スレタイが長すぎます。<br>');
+        addSystemMessage('★新スレタイが長すぎます。');
         return;
     }
     // スレタイにIDが存在するかを判定
@@ -63,7 +63,7 @@ function applyChttCommand(
     $titleHasId = $SETTING['createid'] === 'checked' && $IDMatches;
     // 成功メッセージ出力(本文)
     $oldThreadTitle = $titleHasId ? preg_replace('/\s\[[^\[]+?★\]$/', '', $subject) : $subject;
-    $changeMessage = "★スレタイ変更【{$oldThreadTitle}】→【{$newThreadTitle}】<br>";
+    $changeMessage = "★スレタイ変更【{$oldThreadTitle}】→【{$newThreadTitle}】";
     addSystemMessage($changeMessage);
     // 成功メッセージ出力(>>1) datへの反映はbbs-main.phpで行われる
     $messageParts = explode('<hr>', $message);

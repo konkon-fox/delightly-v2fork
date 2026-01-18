@@ -55,31 +55,31 @@ function setCommaCommand(
     }
 
     // スレッド状態を更新
-    $systemMessage = '';
+    $systemMessages = [];
     foreach ($commandMatches as $matches) {
         if ($matches[2] === 'kaijo') {
             if (isset($threadStates['comma'][$matches[1]])) {
                 unset($threadStates['comma'][$matches[1]]);
-                $systemMessage .= "★.{$matches[1]}を解除しました。<br>";
+                $systemMessages[] = "★.{$matches[1]}を解除しました。";
             }
             continue;
         }
         if (!isset($threadStates['comma'][$matches[1]]) && count($threadStates['comma']) >= $COMMA_LIMIT) {
-            $systemMessage .= "★コンマに設定可能なのは{$COMMA_LIMIT}個までです。<br>";
+            $systemMessages[] = "★コンマに設定可能なのは{$COMMA_LIMIT}個までです。";
             break;
         }
         if (mb_strlen($matches[2]) > $COMMA_COMMENT_LIMIT) {
-            $systemMessage .= "★コンマに設定可能な文字数は{$COMMA_COMMENT_LIMIT}までです。<br>";
+            $systemMessages[] = "★コンマに設定可能な文字数は{$COMMA_COMMENT_LIMIT}までです。";
             continue;
         }
         $comment = trim($matches[2]);
         $threadStates['comma'][$matches[1]] = $comment;
-        $systemMessage .= "★.{$matches[1]}に「{$comment}」を設定しました。<br>";
+        $systemMessages[] = "★.{$matches[1]}に「{$comment}」を設定しました。";
     }
 
     // 成功メッセージ出力(本文)
-    if (!$newthread && !empty($systemMessage)) {
-        addSystemMessage($systemMessage);
+    if (!$newthread && !empty($systemMessages)) {
+        addSystemMessage(implode('<br>', $systemMessages));
     }
     // >>1更新判定
     if (!empty($systemMessage)) {

@@ -39,11 +39,11 @@ function applyStickyCommand(
     if (!str_contains($_POST['comment'], '!sticky:kaijo')) {
         // ピン留め
         $threadStates['sticky'] = true;
-        $systemMessage = '★スレッドをピン留めしました。<br>';
+        $systemMessage = '★スレッドをピン留めしました。';
     } else {
         // ピン留めを解除
         unset($threadStates['sticky']);
-        $systemMessage = '★スレッドのピン留めを解除しました。<br>';
+        $systemMessage = '★スレッドのピン留めを解除しました。';
     }
     // 成功メッセージ出力(本文)
     if (!$newthread) {
