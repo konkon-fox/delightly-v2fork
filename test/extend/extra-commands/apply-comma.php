@@ -26,7 +26,7 @@ function applyCommaCommand(
     if ($tlonly) {
         return;
     }
-    if ($_POST['name'] !== '') {
+    if (str_contains($_POST['name'], '!nocmd')) {
         return;
     }
     if (empty($threadStates)) {

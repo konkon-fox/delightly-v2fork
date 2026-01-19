@@ -82,9 +82,7 @@ function setCommaCommand(
         addSystemMessage(implode('<br>', $systemMessages));
     }
     // >>1更新判定
-    if (!empty($systemMessage)) {
-        $threadStatesReload = true;
-    }
+    $threadStatesReload = true;
 
 }
 setCommaCommand(
