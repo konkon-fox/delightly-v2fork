@@ -60,14 +60,15 @@ require './utils/get-json-file.php';
 require './utils/safe-file-get-contents.php';
 require './utils/safe-file.php';
 
+// 認証設定
 $settingFile = './operate/auth-settings.json';
 if (is_file($settingFile)) {
     $settings = getJsonFile($settingFile);
+    if ($settings === false) {
+        Error('認証設定ファイルの取得に失敗しました。');
+    }
 } else {
     $settings = [];
-}
-if ($settings === false) {
-    Error('設定ファイルの取得に失敗しました。');
 }
 
 // cloudflare使用チェック
@@ -76,7 +77,27 @@ if ($useCloudflare && isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
     $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_CF_CONNECTING_IP'];
 }
 
-$HOST = $_SERVER['REMOTE_ADDR'];
+// システム設定
+$systemSettingsFile = './operate/system-settings.json';
+if (is_file($systemSettingsFile)) {
+    $systemSettings = getJsonFile($systemSettingsFile);
+    if ($systemSettings === false) {
+        Error('システム設定ファイルの取得に失敗しました。');
+    }
+} else {
+    $systemSettings = [];
+}
+// システム設定初期値
+$systemSettings['enable_host_lookup'] ??= '';
+
+// ホストチェック
+if ($systemSettings['enable_host_lookup'] === 'checked') {
+    require './extend/get-host-by-ip.php';
+    $HOST = getHostByIp($NOWTIME);
+} else {
+    $HOST = $_SERVER['REMOTE_ADDR'];
+}
+
 $subjectfile = $PATH . 'subject.json';	//スレッド一覧
 $LTLFILE = $PATH . 'index.json';	//ローカルタイムライン
 $LOGFILE = $PATH . 'LOG.cgi';	//投稿ログ・検索用
@@ -549,9 +570,11 @@ $slip = '0';
 $SLIP_SP = $MM = $WF = false;
 @include './extend/smartphonemarks.php';
 
-// 新slip(末尾)に置き換え
-require './extend/get-end-char.php';
-$slip = getEndChar();
+// ホストを逆引きしていない場合新slip(末尾)に置き換え
+if ($systemSettings['enable_host_lookup'] !== 'checked') {
+    require './extend/get-end-char.php';
+    $slip = getEndChar();
+}
 
 // 新規スレッドの場合はスレッド番号を現在時刻に設定＆同時刻スレ立て規制
 if ($newthread) {

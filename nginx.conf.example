@@ -22,6 +22,14 @@ server {
         deny all;
     }
 
+    # システムフォルダの保護
+    location ^~ /test/libs/ {
+        deny all;
+    }
+    location ^~ /test/hosts/ {
+        deny all;
+    }
+
     # rootの.htaccessに相当
     location ~* \.html$ {
         charset UTF-8;

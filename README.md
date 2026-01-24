@@ -115,6 +115,14 @@ Turnstile の`Sitekey`と`Secret key`を入力してください。
 1. [ip-api.com](https://ip-api.com/) の有料プランに加入し、必要に応じて認証ロジックを修正する。
 2. 認証処理内の `ip-api.com` を利用している箇所を無効化、または別の判定ロジックへ差し替える。
 
+# 使用ライブラリ
+
+このプロジェクトは以下のライブラリを使用しています。
+
+- [NetDNS2](https://github.com/mikepultz/netdns2)
+  - 用途: IPアドレスからホスト名への逆引き
+  - ライセンス: [MIT License](./test/libs/NetDNS2/LICENSE)
+
 # Lisence
 
 The license in the LICENSE.txt file applies, unless a separate license is listed in the source code.
