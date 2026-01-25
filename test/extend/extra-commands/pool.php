@@ -15,6 +15,7 @@
  * @param string $KAKOLOGLISTINDEX 過去ログリストインデックスへのパス
  * @param string $subject スレタイ
  * @param int $number レス数
+ * @param int $NOWTIME 投稿日時
  */
 function applyPoolCommand(
     $SETTING,
@@ -30,7 +31,8 @@ function applyPoolCommand(
     $KAKOLOGLIST,
     $KAKOLOGLISTINDEX,
     $subject,
-    $number
+    $number,
+    $NOWTIME
 ) {
     if ($SETTING['commands'] !== 'checked') {
         return;
@@ -62,7 +64,8 @@ function applyPoolCommand(
         $subject,
         $number,
         $datlog,
-        $_POST['board']
+        $_POST['board'],
+        $NOWTIME
     );
     // subject.json用のデータ更新
     $PAGEFILE = array_filter($PAGEFILE, function ($thread) {
@@ -85,5 +88,6 @@ applyPoolCommand(
     $KAKOLOGLIST,
     $KAKOLOGLISTINDEX,
     $subject,
-    $number
+    $number,
+    $NOWTIME
 );

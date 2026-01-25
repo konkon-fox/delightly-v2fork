@@ -1820,7 +1820,7 @@ if (!$sage) {
     fclose($tlDatHandle);
 }
 
-require_once './extend/kakologDB.php';
+require_once './extend/KakologDB.php';
 require_once './extend/archive-thread.php';
 
 // スレッド一覧 (subject.json)
@@ -1901,7 +1901,8 @@ if (!$tlonly) {
                     $thread['title'],
                     $thread['number'],
                     $PATH . 'dat/' . $thread['thread'] . '_kisei.cgi',
-                    $_POST['board']
+                    $_POST['board'],
+                    $NOWTIME
                 );
             } else {
                 // 順番そのまま
@@ -1929,7 +1930,8 @@ if (!$tlonly) {
                         $PAGEFILE[$start]['title'],
                         $PAGEFILE[$start]['number'],
                         $PATH . 'dat/' . $PAGEFILE[$start]['thread'] . '_kisei.cgi',
-                        $_POST['board']
+                        $_POST['board'],
+                        $NOWTIME
                     );
                 }
                 $PAGEFILE = array_slice($PAGEFILE, 0, $SETTING['BBS_THREADS_LIMIT']);

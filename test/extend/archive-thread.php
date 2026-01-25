@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__.'/KakologDB.php';
 
 /**
  * 該当スレッドを過去ログ送りにする関数
@@ -14,6 +15,7 @@
  * @param int $resNumber レス数
  * @param string $datlog datlogへのパス
  * @param string $bbs 板ディレクトリ
+ * @param int $NOWTIME アーカイブ時刻
  */
 function archiveThread(
     $SETTING,
@@ -26,9 +28,9 @@ function archiveThread(
     $title,
     $resNumber,
     $datlog,
-    $bbs
+    $bbs,
+    $NOWTIME
 ) {
-    $isSuccess = true;
     // 現行スレッドから削除
     @unlink($threadStatesFile);
     // 過去ログを保持しない場合
@@ -53,22 +55,37 @@ function archiveThread(
         if (is_file($datFile) && is_dir($kakoDir)) {
             @rename($datFile, $kakoFile);
         }
-        // 過去ログリストへ追記
-        $kakologListHandle = fopen($KAKOLOGLIST, 'a+');
-        if (flock($kakologListHandle, LOCK_EX)) {
-            // 末尾位置取得
-            fseek($kakologListHandle, 0, SEEK_END);
-            $endOffset = ftell($kakologListHandle);
-            // 追記
-            $kakologLine = $thread . '.dat<>' . $title . ' (' . $resNumber . ")\n";
-            fwrite($kakologListHandle, mb_convert_encoding($kakologLine, 'SJIS-win', 'UTF-8'));
+
+        // SQLite使うか判定
+        $db = new KakologDB($bbsPath);
+        if ($db->isSQLiteMode()) {
+            // SQLite形式
+            $db->add(
+                (int) $thread,
+                $title,
+                $resNumber,
+                $NOWTIME
+            );
+        } else {
+            // ファイル形式
+            // 過去ログリストへ追記
+            $kakologListHandle = fopen($KAKOLOGLIST, 'a+');
+            if (flock($kakologListHandle, LOCK_EX)) {
+                // 末尾位置取得
+                fseek($kakologListHandle, 0, SEEK_END);
+                $endOffset = ftell($kakologListHandle);
+                // 追記
+                $kakologLine = $thread . '.dat<>' . $title . ' (' . $resNumber . ")\n";
+                fwrite($kakologListHandle, mb_convert_encoding($kakologLine, 'SJIS-win', 'UTF-8'));
+            }
+            flock($kakologListHandle, LOCK_UN);
+            fclose($kakologListHandle);
+            // 過去ログインデックスへ追記
+            if (isset($endOffset)) {
+                file_put_contents($KAKOLOGLISTINDEX, $endOffset . "\n", FILE_APPEND | LOCK_EX);
+            }
         }
-        flock($kakologListHandle, LOCK_UN);
-        fclose($kakologListHandle);
-        // 過去ログインデックスへ追記
-        if (isset($endOffset)) {
-            file_put_contents($KAKOLOGLISTINDEX, $endOffset . "\n", FILE_APPEND | LOCK_EX);
-        }
+
     }
     // datlog削除
     if (is_file($datlog)) {
