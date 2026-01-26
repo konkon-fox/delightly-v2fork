@@ -1,19 +1,19 @@
 <?php
 if (isset($_GET['mode'])) {
     if ($_GET['mode'] === 'update-password') {
-        require './operate/update-password.php';
+        require './operate/master/update-password.php';
         exit;
     }
     if ($_GET['mode'] === 'system-settings') {
-        require './operate/system-settings.php';
+        require './operate/master/system-settings.php';
         exit;
     }
     if ($_GET['mode'] === 'auth-settings') {
-        require './operate/auth-settings.php';
+        require './operate/master/auth-settings.php';
         exit;
     }
     if ($_GET['mode'] === 'auth-logs') {
-        require './operate/auth-logs.php';
+        require './operate/master/auth-logs.php';
         exit;
     }
 }
