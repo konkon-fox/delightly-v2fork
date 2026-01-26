@@ -56,9 +56,9 @@ if (isset($SETTING['date_comma_digit']) && $SETTING['date_comma_digit'] !== '0')
     $TIME = date('H:i:s', $NOWMICROTIME);
 }
 
-require './utils/get-json-file.php';
-require './utils/safe-file-get-contents.php';
-require './utils/safe-file.php';
+require_once './utils/get-json-file.php';
+require_once './utils/safe-file-get-contents.php';
+require_once './utils/safe-file.php';
 
 // 認証設定
 $settingFile = './operate/auth-settings.json';
@@ -92,7 +92,7 @@ $systemSettings['enable_host_lookup'] ??= '';
 
 // ホストチェック
 if ($systemSettings['enable_host_lookup'] === 'checked') {
-    require './extend/get-host-by-ip.php';
+    require_once './extend/get-host-by-ip.php';
     $HOST = getHostByIp($NOWTIME);
 } else {
     $HOST = $_SERVER['REMOTE_ADDR'];
@@ -572,7 +572,7 @@ $SLIP_SP = $MM = $WF = false;
 
 // ホストを逆引きしていない場合新slip(末尾)に置き換え
 if ($systemSettings['enable_host_lookup'] !== 'checked') {
-    require './extend/get-end-char.php';
+    require_once './extend/get-end-char.php';
     $slip = getEndChar();
 }
 
@@ -651,7 +651,7 @@ if ($SETTING['timeinterval'] && !$tlonly && !$newthread) {
  */
 // $THREAD_STATES_FILE = $PATH.'threads-states.cgi'; 廃止
 $THREAD_STATES_FILE = "{$THREAD_STATES_PATH}/{$_POST['thread']}.json";
-include './extend/extra-commands/utilities/ThreadStatesUpdater.php';
+require_once './extend/extra-commands/utilities/ThreadStatesUpdater.php';
 $threadStatesUpdater = new ThreadStatesUpdater($THREAD_STATES_FILE);
 $threadStates = $threadStatesUpdater->get();
 if ($threadStates === false) {
@@ -681,7 +681,7 @@ if (!$newthread && !$tlonly) {
 }
 
 // システムメッセージ用関数
-include './extend/extra-commands/utilities/add-system-message.php';
+require_once './extend/extra-commands/utilities/add-system-message.php';
 // !ninkeyコマンド
 @include './extend/extra-commands/ninkey.php';
 // !stickyコマンド
@@ -1820,7 +1820,8 @@ if (!$sage) {
     fclose($tlDatHandle);
 }
 
-include './extend/archive-thread.php';
+require_once './extend/kakologDB.php';
+require_once './extend/archive-thread.php';
 
 // スレッド一覧 (subject.json)
 if (!$tlonly) {
