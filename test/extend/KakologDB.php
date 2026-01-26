@@ -400,4 +400,18 @@ class KakologDB
         }
     }
 
+    /**
+     * DBの更新日時を取得するメソッド
+     *
+     * @return int|false
+     */
+    public function getFileTime()
+    {
+        // DBファイルが存在しなければfalse
+        if (!is_file($this->dbFile)) {
+            return false;
+        }
+
+        return filemtime($this->dbFile);
+    }
 }
