@@ -1,9 +1,12 @@
 <?php
 
 require_once dirname(__FILE__, 2) . '/utils/normalize-string.php';
+require_once dirname(__FILE__, 2) . '/utils/safe-file-get-contents.php';
+
 class KakologDB
 {
     private $db = null;
+    private $dbDir;
     private $dbFile;
     private $txtFile;
     private $errorFile;
@@ -15,6 +18,7 @@ class KakologDB
         if (!is_dir($dbDir)) {
             @mkdir($dbDir, 0775, true);
         }
+        $this->dbDir = $dbDir;
         $this->dbFile = $dbDir . '/kakolog.db';
         $this->txtFile = $bbsPath . '/kakolog-subject.txt';
         $this->errorFile = $dbDir . '/kakolog-error.log';
@@ -50,11 +54,11 @@ class KakologDB
      * @param int $thread スレキー
      * @param string $title スレタイ
      * @param int $number レス数
-     * @param int $NOWTIME アーカイブ時間
+     * @param int|null $archivedAt アーカイブ時間
      *
      * @return bool 成功判定
      */
-    public function add($thread, $title, $number, $NOWTIME)
+    public function add($thread, $title, $number, $archivedAt)
     {
         try {
             $db = $this->getDB();
@@ -70,15 +74,16 @@ class KakologDB
                 $title,
                 normalizeString($title),
                 $number,
-                $NOWTIME,
+                $archivedAt,
             ]);
 
             return true;
         } catch (Exception $e) {
+            $date = $archivedAt === null ? 'null' : date('Y-m-d H:i:s', $archivedAt);
             $error = sprintf(
                 "%s<>%s<>%d<>%s<>%d\n",
                 $e->getMessage(),
-                date('Y-m-d H:i:s', $NOWTIME),
+                $date,
                 $thread,
                 $title,
                 $number
@@ -125,6 +130,7 @@ class KakologDB
 
             // スレタイ検索
             if (isset($options['keywords'])) {
+                $keywords = preg_split('/[\s　]+/u', trim($options['keywords']), -1, PREG_SPLIT_NO_EMPTY);
                 if (!empty($keywords)) {
                     // WHERE, パラメータへ追加
                     $keywordsWhere = [];
@@ -205,7 +211,7 @@ class KakologDB
                 title TEXT NOT NULL,
                 normalized_title TEXT NOT NULL,
                 res INTEGER NOT NULL,
-                archived_at INTEGER NOT NULL
+                archived_at INTEGER
             )
         ');
 
@@ -232,6 +238,166 @@ class KakologDB
         }
         // どちらもなければ、SQLiteが使えるならSQLiteモード
         return extension_loaded('pdo_sqlite');
+    }
+
+    /**
+     * 過去ログ一覧をファイル形式からDBへ移行するメソッド
+     *
+     * @return array{alertType:string, message:string}
+     */
+    public function migrate3to4()
+    {
+        // SQLiteが使えるか確認
+        if (extension_loaded('pdo_sqlite') === false) {
+            return [
+                'alertType' => 'danger',
+                'message' => 'SQLiteが使えない環境です。',
+            ];
+        }
+
+        // 進行状況を取得
+        $stateFile = $this->dbDir . '/migrate3to4.state';
+        if (is_file($stateFile)) {
+            $state = safe_file_get_contents($stateFile);
+            if ($state === false) {
+                return [
+                    'alertType' => 'danger',
+                    'message' => '進行状況の取得に失敗しました。',
+                ];
+            }
+            if ($state === 'done') {
+                return [
+                    'alertType' => 'info',
+                    'message' => '既に移行完了済みです。',
+                ];
+            }
+            $offset = (int) $state;
+        } else {
+            $offset = 0;
+        }
+
+        // 過去ログファイルが無い場合
+        if (!is_file($this->txtFile)) {
+            return [
+                'alertType' => 'info',
+                'message' => '移行処理は不要です。',
+            ];
+        }
+
+        // 移行処理
+
+        // ファイルを開く
+        $CHUNK_SIZE = 1000;
+        $subjectHandle = @fopen($this->txtFile, 'r');
+        if ($subjectHandle === false) {
+            return [
+                'alertType' => 'danger',
+                'message' => '過去ログファイルが開けませんでした。',
+            ];
+        }
+        if (!flock($subjectHandle, LOCK_SH)) {
+            fclose($subjectHandle);
+            return [
+                'alertType' => 'danger',
+                'message' => '過去ログファイルへのロック取得に失敗しました。',
+            ];
+        }
+
+        // ポインタ移動
+        if ($offset > 0) {
+            fseek($subjectHandle, $offset, SEEK_SET);
+        }
+
+        // チャンク処理
+        $processedLines = 0;
+        $logs = [];
+        while (!feof($subjectHandle) && $processedLines < $CHUNK_SIZE) {
+            // 1行読み込む
+            $line = fgets($subjectHandle);
+            // utf-8に変換
+            $line = mb_convert_encoding($line, 'UTF-8', 'SJIS-win');
+
+            // 終端の場合
+            if ($line === false) {
+                break;
+            }
+
+            // 正しいデータなら配列に追加
+            if (preg_match('/^([0-9]+)\.dat<>(.+)\s\(([0-9]+)\)$/', trim($line), $matches)) {
+                $logs[] = [
+                    'thread' => (int) $matches[1],
+                    'title' => $matches[2],
+                    'res' => (int) $matches[3],
+                ];
+            }
+
+            // 次の行へ
+            $processedLines++;
+        }
+
+        // ポインタ位置を進行状態ファイルへ記録
+        $nextOffset = ftell($subjectHandle);
+        // ファイル閉じる
+        flock($subjectHandle, LOCK_UN);
+        fclose($subjectHandle);
+
+        // 取得したデータをDBへ追加
+        try {
+            $db = $this->getDB();
+            $db->beginTransaction();
+
+            $stmt = $db->prepare('
+                INSERT OR REPLACE INTO kakolog 
+                (thread, title, normalized_title, res, archived_at)
+                VALUES (?, ?, ?, ?, ?)
+            ');
+
+            $insertedCount = 0;
+            foreach ($logs as $log) {
+                $stmt->execute([
+                    $log['thread'],
+                    $log['title'],
+                    normalizeString($log['title']),
+                    $log['res'],
+                    null,
+                ]);
+                $insertedCount++;
+            }
+            $db->commit();
+        } catch (Exception $e) {
+            // エラー時はロールバック
+            if (isset($db)) {
+                $db->rollBack();
+            }
+            return [
+                'alertType' => 'danger',
+                'message' => '移行中にエラーが発生しました: ' . $e->getMessage(),
+            ];
+        }
+
+        // ポインタ位置がファイルサイズ以上なら完了
+        $subjectSize = filesize($this->txtFile);
+        if ($nextOffset >= $subjectSize) {
+            $nextOffset = 'done';
+            rename($this->txtFile, $this->txtFile . '.old');
+        }
+        // 進行状況を記録
+        if ($processedLines > 0) {
+            file_put_contents($stateFile, $nextOffset);
+        }
+        // 完了メッセージ
+        if ($nextOffset === 'done') {
+            return [
+                'alertType' => 'success',
+                'message' => "{$insertedCount}件移行。<br>DBへの移行が完了しました。",
+            ];
+        } else {
+            $percent = round(($nextOffset / $subjectSize) * 100, 2);
+            return [
+                'alertType' => 'success',
+                'message' => "{$insertedCount}件移行。<br>進捗: {$percent}% 完了 ({$nextOffset} / {$subjectSize} バイト)",
+            ];
+        }
     }
 
 }
