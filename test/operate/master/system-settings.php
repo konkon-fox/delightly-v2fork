@@ -1,6 +1,6 @@
 <?php
 
-include './utils/get-json-file.php';
+require_once './utils/get-json-file.php';
 
 $settingFile = './operate/system-settings.json';
 if (is_file($settingFile)) {

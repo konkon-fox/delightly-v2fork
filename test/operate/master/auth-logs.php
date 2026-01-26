@@ -45,7 +45,7 @@
 				    $page = 0;
 				}
 
-				include './utils/safe-file.php';
+				require_once './utils/safe-file.php';
 
 				// ログデータ取得
 				$LOGFILE = './HAP/log.cgi';
