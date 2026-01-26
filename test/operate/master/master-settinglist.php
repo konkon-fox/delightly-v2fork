@@ -16,6 +16,16 @@ if (isset($_GET['mode'])) {
         require './operate/master/auth-logs.php';
         exit;
     }
+    if ($_GET['mode'] === 'migration-list') {
+        require './operate/master/migration-list.php';
+        exit;
+    }
+
+    // migration-list
+    if ($_GET['mode'] === 'migration3to4') {
+        require './operate/master/migration3to4.php';
+        exit;
+    }
 }
 ?><!DOCTYPE html>
 <html>
@@ -52,6 +62,10 @@ if (isset($_GET['mode'])) {
         <form action="?mode=auth-logs" method="POST" class="list-group-item list-group-item-action">
           <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
           <button class="btn stretched-link">認証ログ閲覧</button>
+        </form>
+        <form action="?mode=migration-list" method="POST" class="list-group-item list-group-item-action">
+          <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
+          <button class="btn stretched-link">システム移行</button>
         </form>
       </div>
     </main>
