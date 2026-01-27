@@ -26,6 +26,10 @@ if (isset($_GET['mode'])) {
         require './operate/master/migration3to4.php';
         exit;
     }
+    if ($_GET['mode'] === 'migration2to4') {
+        require './operate/master/migration2to4.php';
+        exit;
+    }
 }
 ?><!DOCTYPE html>
 <html>
