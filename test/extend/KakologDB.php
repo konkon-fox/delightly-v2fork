@@ -2,10 +2,13 @@
 
 require_once dirname(__FILE__, 2) . '/utils/normalize-string.php';
 require_once dirname(__FILE__, 2) . '/utils/safe-file-get-contents.php';
+require_once dirname(__FILE__, 2) . '/utils/safe-file.php';
+require_once dirname(__FILE__, 2) . '/utils/get-json-file.php';
 
 class KakologDB
 {
     private $db = null;
+    private $bbsPath;
     private $dbDir;
     private $dbFile;
     private $txtFile;
@@ -18,6 +21,7 @@ class KakologDB
         if (!is_dir($dbDir)) {
             @mkdir($dbDir, 0775, true);
         }
+        $this->bbsPath = $bbsPath;
         $this->dbDir = $dbDir;
         $this->dbFile = $dbDir . '/kakolog.db';
         $this->txtFile = $bbsPath . '/kakolog-subject.txt';
@@ -383,7 +387,7 @@ class KakologDB
         }
         // 進行状況を記録
         if ($processedLines > 0) {
-            file_put_contents($stateFile, $nextOffset);
+            file_put_contents($stateFile, $nextOffset, LOCK_EX);
         }
         // 完了メッセージ
         if ($nextOffset === 'done') {
@@ -398,6 +402,199 @@ class KakologDB
                 'message' => "{$insertedCount}件移行。<br>進捗: {$percent}% 完了 ({$nextOffset} / {$subjectSize} バイト)",
             ];
         }
+    }
+
+    /**
+     * v2の過去ログを専ブラ用に変換してDB化するメソッド
+     *
+     * @return array{alertType:string, message:string}
+     */
+    public function migrate2to4()
+    {
+        // SQLiteが使えるか確認
+        if (extension_loaded('pdo_sqlite') === false) {
+            return [
+                'alertType' => 'danger',
+                'message' => 'SQLiteが使えない環境です。',
+            ];
+        }
+
+        // 進行状況を取得
+        $stateFile = $this->dbDir . '/migrate2to4.state';
+        if (is_file($stateFile)) {
+            $state = safe_file_get_contents($stateFile);
+            if ($state === false) {
+                return [
+                    'alertType' => 'danger',
+                    'message' => '進行状況の取得に失敗しました。',
+                ];
+            }
+            if ($state === 'done') {
+                return [
+                    'alertType' => 'info',
+                    'message' => '既に移行完了済みです。',
+                ];
+            }
+            $prevThread = $state;
+        } else {
+            $prevThread = '1000000000';
+        }
+        $prevThreadKey = (int) substr($prevThread, 0, 4);
+        $prevThread = (int) $prevThread;
+        $thread = $prevThread;
+
+        // 対象フォルダを検索
+        $threadPath = $this->bbsPath . '/thread';
+        $dirList = glob($threadPath . '/*', GLOB_ONLYDIR);
+        if ($dirList === false || empty($dirList)) {
+            return [
+                    'alertType' => 'danger',
+                    'message' => 'threadフォルダの取得に失敗しました。',
+                ];
+        }
+
+        $dirList = array_filter($dirList, function ($path) use ($prevThreadKey) {
+            return (int) basename($path) >= $prevThreadKey;
+        });
+        sort($dirList);
+
+        // 対象フォルダ内から
+        $CHUNK_SIZE = 1000;
+        $logCount = 0;
+        $logs = [];
+        $errors = [];
+        // 4桁キーに対してループ
+        foreach ($dirList as $path) {
+            $subjectJson = $path . '/subject.json';
+            /** @var array{thread:int|string, title:string} $subjectList スレの中身 */
+            $subjectList = getJsonFile($subjectJson);
+            if ($subjectList === false) {
+                return [
+                    'alertType' => 'danger',
+                    'message' => 'subject.jsonの取得に失敗しました。' . $subjectJson,
+                ];
+            }
+            usort($subjectList, function ($a, $b) {
+                return (int) $a['thread'] - (int) $b['thread'];
+            });
+
+            // subject.jsonの中身でループ
+            foreach ($subjectList as $data) {
+                $thread = (int) $data['thread'];
+                // 通過済みをスキップ
+                if ($thread <= $prevThread) {
+                    continue;
+                }
+                // 現行スレはスキップ
+                $currentDat = $this->bbsPath . '/dat/' . $thread . '.dat';
+                if (is_file($currentDat)) {
+                    continue;
+                }
+
+                // kakoフォルダ
+                $threadKey4 = substr((string) $thread, 0, 4);
+                $threadKey5 = substr((string) $thread, 0, 5);
+                $kakoDir = $this->bbsPath . '/kako/' . $threadKey4 . '/' . $threadKey5;
+                if (!is_dir($kakoDir)) {
+                    @mkdir($kakoDir, 0775, true);
+                }
+                $kakoFile = $kakoDir . '/' . $thread . '.dat';
+
+                // thread datを取得
+                $threadDat = $path . '/' . $thread . '.dat';
+                $lines = safe_file($threadDat);
+                if ($lines === false) {
+                    $errors[] = 'THREADDAT取得失敗: ' . $threadDat;
+                    continue;
+                }
+
+                // kako datが無い場合変換して書き込み
+                if (!is_file($kakoFile)) {
+                    $utf8Dat = implode("\n", $lines) . "\n";
+                    $shiftjisDat = mb_convert_encoding($utf8Dat, 'SJIS-win', 'UTF-8');
+                    file_put_contents($kakoFile, $shiftjisDat, LOCK_EX);
+                }
+
+                // DB用のログ配列へ追加
+                $resNumber = count($lines);
+                $logs[] = [
+                    'thread' => $thread,
+                    'title' => $data['title'],
+                    'res' => $resNumber,
+                ];
+
+                // 進行数カウント
+                $logCount++;
+                if ($logCount >= $CHUNK_SIZE) {
+                    break 2;
+                }
+            }
+        }
+
+        // エラーメッセージ
+        $errorMessage = '';
+        if (!empty($errors)) {
+            $errorMessage = '<br>' . implode('<br>', $errors);
+        }
+
+        // ログの数チェック
+        if (count($logs) === 0) {
+            @file_put_contents($stateFile, 'done', LOCK_EX);
+            $result = [
+                'alertType' => 'info',
+                'message' => '移行完了。' . $errorMessage,
+            ];
+            if (!empty($errorMessage)) {
+                $result['alertType'] = 'warning';
+            }
+            return $result;
+        }
+
+        // 取得したデータをDBへ追加
+        try {
+            $db = $this->getDB();
+            $db->beginTransaction();
+
+            $stmt = $db->prepare('
+                INSERT OR IGNORE INTO kakolog 
+                (thread, title, normalized_title, res, archived_at)
+                VALUES (?, ?, ?, ?, ?)
+            ');
+
+            $insertedCount = 0;
+            foreach ($logs as $log) {
+                $stmt->execute([
+                    $log['thread'],
+                    $log['title'],
+                    normalizeString($log['title']),
+                    $log['res'],
+                    null,
+                ]);
+                $insertedCount++;
+            }
+            $db->commit();
+        } catch (Exception $e) {
+            // エラー時はロールバック
+            if (isset($db)) {
+                $db->rollBack();
+            }
+            return [
+                'alertType' => 'danger',
+                'message' => '移行中にエラーが発生しました: ' . $e->getMessage() . $errorMessage,
+            ];
+        }
+
+        // 進行状況書き込み
+        file_put_contents($stateFile, $thread, LOCK_EX);
+        // 完了メッセージ
+        $result = [
+            'alertType' => 'success',
+            'message' => "{$insertedCount}件移行。<br>{$thread}.datまで移行完了{$errorMessage}",
+        ];
+        if (!empty($errorMessage)) {
+            $result['alertType'] = 'warning';
+        }
+        return $result;
     }
 
     /**
