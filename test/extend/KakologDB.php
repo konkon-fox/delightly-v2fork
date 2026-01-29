@@ -16,11 +16,39 @@ class KakologDB
 
     public function __construct($bbsPath)
     {
-        // DB用のファイルを定義
+        // DB用のフォルダ・ファイルを作成
         $dbDir = $bbsPath . '/db';
         if (!is_dir($dbDir)) {
-            @mkdir($dbDir, 0775, true);
+            if (!mkdir($dbDir, 0775, true)) {
+                throw new Exception('dbディレクトリの作成に失敗しました');
+            }
         }
+        $htaccessFile = $dbDir . '/.htaccess';
+        if (!is_file($htaccessFile)) {
+            $htaccessContent = <<<EOM
+            # Apache 2.4+
+            <IfModule mod_authz_core.c>
+                Require all denied
+            </IfModule>
+
+            # Apache 2.2
+            <IfModule !mod_authz_core.c>
+                Order deny,allow
+                Deny from all
+            </IfModule>
+            EOM;
+            if (file_put_contents($htaccessFile, $htaccessContent, LOCK_EX) === false) {
+                throw new Exception('.htaccessの作成に失敗しました');
+            }
+        }
+        $indexFile = $dbDir . '/index.php';
+        if (!is_file($indexFile)) {
+            if (file_put_contents($indexFile, '<?php http_response_code(403); exit;', LOCK_EX) === false) {
+                throw new Exception('index.phpの作成に失敗しました');
+            }
+        }
+
+        // 変数定義
         $this->bbsPath = $bbsPath;
         $this->dbDir = $dbDir;
         $this->dbFile = $dbDir . '/kakolog.db';
