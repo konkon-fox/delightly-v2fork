@@ -43,10 +43,10 @@ $bbsOfUrl = urlencode($bbs);
 if (isset($_POST['page'])) {
     $page = (int) $_POST['page'];
 } else {
-    $page = 0;
+    $page = 1;
 }
 
-include './utils/safe-file.php';
+require_once './utils/safe-file.php';
 
 // ログデータ取得
 $LOGFILE = '../' . $bbs . '/errors.cgi';
@@ -59,10 +59,42 @@ if ($logs === false) {
     exit('<p class="fw-bold">ログファイルの取得に失敗しました。</p></div></body></html>');
 }
 $logs = array_reverse($logs);
-$maxPage = ceil(count($logs) / $ITEMS_PER_PAGE) - 1;
-$prevPage = $page - 1;
-if ($prevPage < 0) {
-    $prevPage = 0;
+$maxPage = ceil(count($logs) / $ITEMS_PER_PAGE);
+$offset = ($page - 1) * $ITEMS_PER_PAGE;
+$logs = array_slice($logs, $offset, $ITEMS_PER_PAGE);
+$logs = array_map(function($line){
+		$data = explode('<>', rtrim($line));
+		$data = array_pad($data, 20, '');
+		list($error, $name, $mail, $dateid, $comment, $title, $thread, $number, $HOST, $IP, $UA, $CH_UA, $ACCEPT, $clientId, $LV, $PORT, $CF_IPCOUNTRY, $hapIp, $area, $slip) = $data;
+		return [
+			'error' =>$error,
+			'name' =>$name,
+			'mail' =>$mail,
+			'date_id' =>$dateid,
+			'comment' =>$comment,
+			'title' =>$title,
+			'thread' =>$thread,
+			'number' =>$number,
+			'host' =>$HOST,
+			'ip' =>$IP,
+			'ua' =>$UA,
+			'ch_ua' =>$CH_UA,
+			'accept' =>$ACCEPT,
+			'client_id' =>$clientId,
+			'lv' =>$LV,
+			'port' =>$PORT,
+			'cf_ipcountry' =>$CF_IPCOUNTRY,
+			'hap_ip' =>$hapIp,
+			'hap_area' =>$area,
+			'hap_slip' =>$slip,
+			'account_id' =>'unknown',
+			'posted_at' =>'unknown'
+		];
+}, $logs);
+
+$prevPage = $page;
+if ($prevPage < 1) {
+    $prevPage = 1;
 }
 $nextPage = $page + 1;
 if ($nextPage > $maxPage) {
@@ -75,7 +107,7 @@ if ($nextPage > $maxPage) {
 						<form action="?bbs=<?= $safeBbs; ?>&mode=log" method="post">
 							<input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
 							<input type="hidden" name="page" value="<?= $prevPage; ?>">
-							<button type="submit" class="page-link<?= ($page <= 0) ? ' disabled' : ''; ?>">前へ</button>
+							<button type="submit" class="page-link<?= ($page <= 1) ? ' disabled' : ''; ?>">前へ</button>
 						</form>
 					</li>
 					<li class="page-item">
@@ -86,7 +118,7 @@ if ($nextPage > $maxPage) {
 						</form>
 					</li>
 			</ul>
-			<div>ページ: <?= $page + 1; ?></div>
+			<div>ページ: <?= $page; ?></div>
 		</nav>
 		<div>
 			<div class="d-flex flex-wrap gap-2">
@@ -144,6 +176,9 @@ if ($nextPage > $maxPage) {
 				<label>
 					<input type="checkbox" class="form-check-input"id="checkbox--slip" name="slip">SLIP(認証時)
 				</label>
+				<label>
+					<input type="checkbox" class="form-check-input"id="checkbox--hap" name="hap">HAP
+				</label>
 			</div>
 		</div>
 		<div class="overflow-x-auto overflow-y-auto" style="height:70vh;">
@@ -172,41 +207,41 @@ echo '<th class="cell--port text-nowrap">ポート番号</th>';
 echo '<th class="cell--country text-nowrap">国</th>';
 echo '<th class="cell--area text-nowrap">地域(認証時)</th>';
 echo '<th class="cell--slip text-nowrap">SLIP(認証時)</th>';
+echo "<th class=\"cell--hap text-nowrap\">HAP</th>";
 echo '</tr>';
 echo '</thead>';
 // テーブルボディ
 echo '<tbody>';
-foreach ($targetLogs as $log) {
-    $data = explode('<>', rtrim($log));
-    $data = array_pad($data, 20, '');
+foreach ($logs as $log) {
+	$log['title'] = html_entity_decode($log['title'], ENT_QUOTES);
+	$log['comment'] = html_entity_decode($log['comment'], ENT_QUOTES);
+	$log = array_map(function ($value) {
+		return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+	},$log);
+	$url = "/#{$bbsOfUrl}/{$log['thread']}/{$log['number']}";
+	$accountId = $log['account_id'] ?? 'unknown';
 
-    list($error, $name, $mail, $dateid, $comment, $title, $thread, $number, $HOST, $IP, $UA, $CH_UA, $ACCEPT, $clientId, $LV, $PORT, $CF_IPCOUNTRY, $_, $area, $slip) = $data;
-
-    $decodedTitle = html_entity_decode($title, ENT_QUOTES);
-    $title = htmlspecialchars($decodedTitle, ENT_QUOTES, 'UTF-8');
-    $decodedComment = html_entity_decode($comment, ENT_QUOTES);
-    $comment = htmlspecialchars($decodedComment, ENT_QUOTES, 'UTF-8');
-    $url = "/#{$bbsOfUrl}/{$thread}/{$number}";
-    echo '<tr>';
-    echo "<td class=\"cell--error text-nowrap\"><b>{$error}</b></td>";
-    echo "<td class=\"cell--name text-nowrap\"><b>{$name}</b></td>";
-    echo "<td class=\"cell--mail text-nowrap\">{$mail}</td>";
-    echo "<td class=\"cell--dateid text-nowrap\">{$dateid}</td>";
-    echo "<td class=\"cell--comment text-nowrap\">{$comment}</td>";
-    echo "<td class=\"cell--title text-nowrap\">{$title}</td>";
-    echo "<td class=\"cell--url text-nowrap\"><a href=\"{$url}\">{$url}</a></td>";
-    echo "<td class=\"cell--host text-nowrap\">{$HOST}</td>";
-    echo "<td class=\"cell--ip text-nowrap\">{$IP}</td>";
-    echo "<td class=\"cell--ua text-nowrap\">{$UA}</td>";
-    echo "<td class=\"cell--chua text-nowrap\">{$CH_UA}</td>";
-    echo "<td class=\"cell--accept text-nowrap\">{$ACCEPT}</td>";
-    echo "<td class=\"cell--clientid text-nowrap\">{$clientId}</td>";
-    echo "<td class=\"cell--lv text-nowrap\">{$LV}</td>";
-    echo "<td class=\"cell--port text-nowrap\">{$PORT}</td>";
-    echo "<td class=\"cell--country text-nowrap\">{$CF_IPCOUNTRY}</td>";
-    echo "<td class=\"cell--area text-nowrap\">{$area}</td>";
-    echo "<td class=\"cell--slip text-nowrap\">{$slip}</td>";
-    echo '</tr>';
+	echo '<tr>';
+	echo "<td class=\"cell--error text-nowrap\">{$log['error']}</td>";
+	echo "<td class=\"cell--name text-nowrap\"><b>{$log['name']}</b></td>";
+	echo "<td class=\"cell--mail text-nowrap\">{$log['mail']}</td>";
+	echo "<td class=\"cell--dateid text-nowrap\">{$log['date_id']}</td>";
+	echo "<td class=\"cell--comment text-nowrap\">{$log['comment']}</td>";
+	echo "<td class=\"cell--title text-nowrap\">{$log['title']}</td>";
+	echo "<td class=\"cell--url text-nowrap\"><a href=\"{$url}\">{$url}</a></td>";
+	echo "<td class=\"cell--host text-nowrap\">{$log['host']}</td>";
+	echo "<td class=\"cell--ip text-nowrap\">{$log['ip']}</td>";
+	echo "<td class=\"cell--ua text-nowrap\">{$log['ua']}</td>";
+	echo "<td class=\"cell--chua text-nowrap\">{$log['ch_ua']}</td>";
+	echo "<td class=\"cell--accept text-nowrap\">{$log['accept']}</td>";
+	echo "<td class=\"cell--clientid text-nowrap\">{$log['client_id']}</td>";
+	echo "<td class=\"cell--lv text-nowrap\">{$log['lv']}</td>";
+	echo "<td class=\"cell--port text-nowrap\">{$log['port']}</td>";
+	echo "<td class=\"cell--country text-nowrap\">{$log['cf_ipcountry']}</td>";
+	echo "<td class=\"cell--area text-nowrap\">{$log['hap_area']}</td>";
+	echo "<td class=\"cell--slip text-nowrap\">{$log['hap_slip']}</td>";
+	echo "<td class=\"cell--hap text-nowrap\">{$accountId}</td>";
+	echo '</tr>';
 }
 echo '</tbody>';
 echo '</table>';
