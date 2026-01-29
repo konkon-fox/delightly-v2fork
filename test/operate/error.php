@@ -38,82 +38,127 @@ $bbsOfUrl = urlencode($bbs);
 			</form>
 		</header>
 		<h1>エラーログ閲覧</h1>
-			<?php
-            $ITEMS_PER_PAGE = 1000;
-if (isset($_POST['page'])) {
-    $page = (int) $_POST['page'];
-} else {
-    $page = 1;
-}
+		<?php
+		$ITEMS_PER_PAGE = 1000;
 
-require_once './utils/safe-file.php';
+		if (isset($_POST['page'])) {
+				$page = (int) $_POST['page'];
+		} else {
+				$page = 1;
+		}
+		$clientId = $_POST['client-id'] ?? '';
+		$ip =  $_POST['ip'] ?? '';
 
-// ログデータ取得
-$LOGFILE = '../' . $bbs . '/errors.cgi';
-$n = 0;
-if (!is_file($LOGFILE)) {
-    exit('<p class="fw-bold">ログファイルがありません。</p></div></body></html>');
-}
-$logs = safe_file($LOGFILE);
-if ($logs === false) {
-    exit('<p class="fw-bold">ログファイルの取得に失敗しました。</p></div></body></html>');
-}
-$logs = array_reverse($logs);
-$maxPage = ceil(count($logs) / $ITEMS_PER_PAGE);
-$offset = ($page - 1) * $ITEMS_PER_PAGE;
-$logs = array_slice($logs, $offset, $ITEMS_PER_PAGE);
-$logs = array_map(function($line){
-		$data = explode('<>', rtrim($line));
-		$data = array_pad($data, 20, '');
-		list($error, $name, $mail, $dateid, $comment, $title, $thread, $number, $HOST, $IP, $UA, $CH_UA, $ACCEPT, $clientId, $LV, $PORT, $CF_IPCOUNTRY, $hapIp, $area, $slip) = $data;
-		return [
-			'error' =>$error,
-			'name' =>$name,
-			'mail' =>$mail,
-			'date_id' =>$dateid,
-			'comment' =>$comment,
-			'title' =>$title,
-			'thread' =>$thread,
-			'number' =>$number,
-			'host' =>$HOST,
-			'ip' =>$IP,
-			'ua' =>$UA,
-			'ch_ua' =>$CH_UA,
-			'accept' =>$ACCEPT,
-			'client_id' =>$clientId,
-			'lv' =>$LV,
-			'port' =>$PORT,
-			'cf_ipcountry' =>$CF_IPCOUNTRY,
-			'hap_ip' =>$hapIp,
-			'hap_area' =>$area,
-			'hap_slip' =>$slip,
-			'account_id' =>'unknown',
-			'posted_at' =>'unknown'
-		];
-}, $logs);
+		require_once './utils/safe-file.php';
+		require_once './extend/BbsDB.php';
 
-$prevPage = $page;
-if ($prevPage < 1) {
-    $prevPage = 1;
-}
-$nextPage = $page + 1;
-if ($nextPage > $maxPage) {
-    $nextPage = $maxPage;
-}
-?>
-		<nav aria-label="Page navigation example">
+		$db = new BbsDB(dirname(__FILE__,3).'/'.$bbs);
+
+		if($db->isSQLiteMode()){
+				// DBからログ取得(v4-)
+
+				$options = [
+					'page'=>$page,
+					'per_page' => $ITEMS_PER_PAGE
+				];
+				if(!empty($clientId)){
+					$options['client_id'] = $clientId;
+				}
+				if(!empty($ip)){
+					$options['ip'] = $ip;
+				}
+
+				$result = $db->searchFromErrorLog($options);
+				if ($result === false) {
+					exit ('ログの検索に失敗しました。');
+				}
+				$logs = $result['logs'];
+				$maxPage = ceil($result['total_count'] / $ITEMS_PER_PAGE);
+		}else{
+				// LOG.cgiからログ取得(-v3)
+				$LOGFILE = '../' . $bbs . '/errors.cgi';
+				$n = 0;
+				if (!is_file($LOGFILE)) {
+						exit('<p class="fw-bold">ログファイルがありません。</p></div></body></html>');
+				}
+				$logs = safe_file($LOGFILE);
+				if ($logs === false) {
+						exit('<p class="fw-bold">ログファイルの取得に失敗しました。</p></div></body></html>');
+				}
+				$logs = array_reverse($logs);
+				$maxPage = ceil(count($logs) / $ITEMS_PER_PAGE);
+				$offset = ($page - 1) * $ITEMS_PER_PAGE;
+				$logs = array_slice($logs, $offset, $ITEMS_PER_PAGE);
+				$logs = array_map(function($line){
+						$data = explode('<>', rtrim($line));
+						$data = array_pad($data, 20, '');
+						list($error, $name, $mail, $dateid, $comment, $title, $thread, $number, $HOST, $IP, $UA, $CH_UA, $ACCEPT, $clientId, $LV, $PORT, $CF_IPCOUNTRY, $hapIp, $area, $slip) = $data;
+						return [
+							'error' =>$error,
+							'name' =>$name,
+							'mail' =>$mail,
+							'date_id' =>$dateid,
+							'comment' =>$comment,
+							'title' =>$title,
+							'thread' =>$thread,
+							'number' =>$number,
+							'host' =>$HOST,
+							'ip' =>$IP,
+							'ua' =>$UA,
+							'ch_ua' =>$CH_UA,
+							'accept' =>$ACCEPT,
+							'client_id' =>$clientId,
+							'lv' =>$LV,
+							'port' =>$PORT,
+							'cf_ipcountry' =>$CF_IPCOUNTRY,
+							'hap_ip' =>$hapIp,
+							'hap_area' =>$area,
+							'hap_slip' =>$slip,
+							'account_id' =>'unknown',
+							'posted_at' =>'unknown'
+						];
+				}, $logs);
+		}
+
+		$prevPage = $page;
+		if ($prevPage < 1) {
+				$prevPage = 1;
+		}
+		$nextPage = $page + 1;
+		if ($nextPage > $maxPage) {
+				$nextPage = $maxPage;
+		}
+		?>
+		<nav aria-label="Page navigation example"  class="d-flex flex-column row-gap-2">
+			<form action="?bbs=<?= $safeBbs; ?>&mode=error" method="post" class="d-flex flex-column row-gap-2 align-items-start">
+				<input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+				<input type="hidden" name="page" value="<?= $prevPage; ?>">
+				<div class="w-100">
+					<label for="client-id" class="form-label">Client ID</label>
+					<input type="text" class="form-control" id="client-id" name="client-id" value="<?=htmlspecialchars($clientId, ENT_QUOTES, 'UTF-8'); ?>">
+				</div>
+				<div class="w-100">
+					<label for="ip" class="form-label">IPアドレス</label>
+					<input type="text" class="form-control" id="ip" name="ip" value="<?=htmlspecialchars($ip, ENT_QUOTES, 'UTF-8'); ?>">
+				</div>
+				<button class="btn btn-primary">検索</button>
+			</form>
 			<ul class="pagination">
 					<li class="page-item">
-						<form action="?bbs=<?= $safeBbs; ?>&mode=log" method="post">
+						<form action="?bbs=<?= $safeBbs; ?>&mode=error" method="post">
 							<input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
 							<input type="hidden" name="page" value="<?= $prevPage; ?>">
+							<input type="hidden" name="client-id" value="<?=htmlspecialchars($clientId, ENT_QUOTES, 'UTF-8'); ?>">
+							<input type="hidden" name="ip" value="<?=htmlspecialchars($ip, ENT_QUOTES, 'UTF-8'); ?>">
 							<button type="submit" class="page-link<?= ($page <= 1) ? ' disabled' : ''; ?>">前へ</button>
 						</form>
 					</li>
 					<li class="page-item">
-						<form action="?bbs=<?= $safeBbs; ?>&mode=log" method="post">
+						<form action="?bbs=<?= $safeBbs; ?>&mode=error" method="post">
 							<input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
 							<input type="hidden" name="page" value="<?= $nextPage; ?>">
+							<input type="hidden" name="client-id" value="<?=htmlspecialchars($clientId, ENT_QUOTES, 'UTF-8'); ?>">
+							<input type="hidden" name="ip" value="<?=htmlspecialchars($ip, ENT_QUOTES, 'UTF-8'); ?>">
 							<button type="submit" class="page-link<?= ($page >= $maxPage) ? ' disabled' : ''; ?>">次へ</button>
 						</form>
 					</li>
@@ -183,7 +228,6 @@ if ($nextPage > $maxPage) {
 		</div>
 		<div class="overflow-x-auto overflow-y-auto" style="height:70vh;">
 			<?php
-$targetLogs = array_slice($logs, $page * $ITEMS_PER_PAGE, $ITEMS_PER_PAGE);
 // ログ一覧
 echo '<table class="table table-sm table-bordered table-striped table-hover">';
 // テーブルヘッダー
