@@ -45,24 +45,87 @@ $bbsOfUrl = urlencode($bbs);
 			} else {
 					$page = 1;
 			}
+			$queryClientId = $_POST['client-id'] ?? '';
+			$queryIp =  $_POST['ip'] ?? '';
+			$queryDateId =  $_POST['date-id'] ?? '';
+			$queryComment =  $_POST['comment'] ?? '';
 
-		  require './utils/safe-file.php';
-		  require './extend/BbsDB.php';
+		  require_once './utils/safe-file.php';
+		  require_once './extend/BbsDB.php';
 
 			$db = new BbsDB(dirname(__FILE__,3).'/'.$bbs);
 
-			// ログデータ取得
-			$LOGFILE = '../'.$bbs.'/LOG.cgi';
-			$n = 0;
-			if (!is_file($LOGFILE)) {
-					exit('<p class="fw-bold">ログファイルがありません。</p></div></body></html>');
+			if($db->isSQLiteMode()){
+					// DBからログ取得(v4-)
+
+					$options = [
+						'page'=>$page,
+						'per_page' => $ITEMS_PER_PAGE
+					];
+					if ($queryClientId !== '') {
+						$options['client_id'] = $queryClientId;
+					}
+					if ($queryIp !== '') {
+						$options['ip'] = $queryIp;
+					}
+					if ($queryDateId !== '') {
+						$options['date_id'] = $queryDateId;
+					}
+					if ($queryComment !== '') {
+						$options['comment'] = $queryComment;
+					}
+
+					$result = $db->searchFromPostLog($options);
+					if ($result === false) {
+						exit ('ログの検索に失敗しました。');
+					}
+					$logs = $result['logs'];
+					$maxPage = ceil($result['total_count'] / $ITEMS_PER_PAGE);
+			}else{
+					// LOG.cgiからログ取得(-v3)
+
+					$LOGFILE = '../'.$bbs.'/LOG.cgi';
+					$n = 0;
+					if (!is_file($LOGFILE)) {
+							exit('<p class="fw-bold">ログファイルがありません。</p></div></body></html>');
+					}
+					$logs = safe_file($LOGFILE);
+					if ($logs === false) {
+							exit('<p class="fw-bold">ログファイルの取得に失敗しました。</p></div></body></html>');
+					}
+					$logs = array_reverse($logs);
+					$maxPage = ceil(count($logs) / $ITEMS_PER_PAGE);
+					$offset = ($page-1) * $ITEMS_PER_PAGE;
+					$logs = array_slice($logs, $offset, $ITEMS_PER_PAGE);
+					$logs = array_map(function($line){
+							$data = explode('<>', rtrim($line));
+							$data = array_pad($data, 19, '');
+							list($name, $mail, $dateid, $comment, $title, $thread, $number, $HOST, $IP, $UA, $CH_UA, $ACCEPT, $clientId, $LV, $PORT, $CF_IPCOUNTRY, $hapIp, $area, $slip) = $data;
+							return [
+								'name' =>$name,
+								'mail' =>$mail,
+								'date_id' =>$dateid,
+								'comment' =>$comment,
+								'title' =>$title,
+								'thread' =>$thread,
+								'number' =>$number,
+								'host' =>$HOST,
+								'ip' =>$IP,
+								'ua' =>$UA,
+								'ch_ua' =>$CH_UA,
+								'accept' =>$ACCEPT,
+								'client_id' =>$clientId,
+								'lv' =>$LV,
+								'port' =>$PORT,
+								'cf_ipcountry' =>$CF_IPCOUNTRY,
+								'hap_ip' =>$hapIp,
+								'hap_area' =>$area,
+								'hap_slip' =>$slip,
+								'account_id' =>null,
+								'posted_at' =>null
+							];
+					}, $logs);
 			}
-			$logs = safe_file($LOGFILE);
-			if ($logs === false) {
-					exit('<p class="fw-bold">ログファイルの取得に失敗しました。</p></div></body></html>');
-			}
-			$logs = array_reverse($logs);
-			$maxPage = ceil(count($logs) / $ITEMS_PER_PAGE);
 			$prevPage = $page - 1;
 			if ($prevPage < 1) {
 					$prevPage = 1;
@@ -71,43 +134,38 @@ $bbsOfUrl = urlencode($bbs);
 			if ($nextPage > $maxPage) {
 					$nextPage = $maxPage;
 			}
-			$offset = ($page-1) * $ITEMS_PER_PAGE;
-			$logs = array_slice($logs, $offset, $ITEMS_PER_PAGE);
-			$logs = array_map(function($line){
-					$data = explode('<>', rtrim($line));
-					$data = array_pad($data, 19, '');
-					list($name, $mail, $dateid, $comment, $title, $thread, $number, $HOST, $IP, $UA, $CH_UA, $ACCEPT, $clientId, $LV, $PORT, $CF_IPCOUNTRY, $hapIp, $area, $slip) = $data;
-					return [
-						'name' =>$name,
-						'mail' =>$mail,
-						'date_id' =>$dateid,
-						'comment' =>$comment,
-						'title' =>$title,
-						'thread' =>$thread,
-						'number' =>$number,
-						'host' =>$HOST,
-						'ip' =>$IP,
-						'ua' =>$UA,
-						'ch_ua' =>$CH_UA,
-						'accept' =>$ACCEPT,
-						'client_id' =>$clientId,
-						'lv' =>$LV,
-						'port' =>$PORT,
-						'cf_ipcountry' =>$CF_IPCOUNTRY,
-						'hap_ip' =>$hapIp,
-						'hap_area' =>$area,
-						'hap_slip' =>$slip,
-						'account_id' =>null,
-						'posted_at' =>null
-					];
-			}, $logs);
+			
 			?>
-		<nav aria-label="Page navigation example">
+		<nav aria-label="Page navigation example"  class="d-flex flex-column row-gap-2">
+			<form action="?bbs=<?= $safeBbs; ?>&mode=log" method="post" class="d-flex flex-column row-gap-2 align-items-start">
+				<input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+				<div class="w-100">
+					<label for="client-id" class="form-label">Client ID</label>
+					<input type="text" class="form-control" id="client-id" name="client-id" value="<?=htmlspecialchars($queryClientId, ENT_QUOTES, 'UTF-8'); ?>">
+				</div>
+				<div class="w-100">
+					<label for="ip" class="form-label">IPアドレス</label>
+					<input type="text" class="form-control" id="ip" name="ip" value="<?=htmlspecialchars($queryIp, ENT_QUOTES, 'UTF-8'); ?>">
+				</div>
+				<div class="w-100">
+					<label for="date-id" class="form-label">投稿ID</label>
+					<input type="text" class="form-control" id="date-id" name="date-id" value="<?=htmlspecialchars($queryDateId, ENT_QUOTES, 'UTF-8'); ?>">
+				</div>
+				<div class="w-100">
+					<label for="comment" class="form-label">本文</label>
+					<input type="text" class="form-control" id="comment" name="comment" value="<?=htmlspecialchars($queryComment, ENT_QUOTES, 'UTF-8'); ?>">
+				</div>
+				<button class="btn btn-primary">検索</button>
+			</form>
 			<ul class="pagination">
 					<li class="page-item">
 						<form action="?bbs=<?= $safeBbs; ?>&mode=log" method="post">
 							<input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
 							<input type="hidden" name="page" value="<?= $prevPage; ?>">
+							<input type="hidden" name="client-id" value="<?=htmlspecialchars($queryClientId, ENT_QUOTES, 'UTF-8'); ?>">
+							<input type="hidden" name="ip" value="<?=htmlspecialchars($queryIp, ENT_QUOTES, 'UTF-8'); ?>">
+							<input type="hidden" name="date-id" value="<?=htmlspecialchars($queryDateId, ENT_QUOTES, 'UTF-8'); ?>">
+							<input type="hidden" name="comment" value="<?=htmlspecialchars($queryComment, ENT_QUOTES, 'UTF-8'); ?>">
 							<button type="submit" class="page-link<?= ($page <= 1) ? ' disabled' : ''; ?>">前へ</button>
 						</form>
 					</li>
@@ -115,6 +173,10 @@ $bbsOfUrl = urlencode($bbs);
 						<form action="?bbs=<?= $safeBbs; ?>&mode=log" method="post">
 							<input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
 							<input type="hidden" name="page" value="<?= $nextPage; ?>">
+							<input type="hidden" name="client-id" value="<?=htmlspecialchars($queryClientId, ENT_QUOTES, 'UTF-8'); ?>">
+							<input type="hidden" name="ip" value="<?=htmlspecialchars($queryIp, ENT_QUOTES, 'UTF-8'); ?>">
+							<input type="hidden" name="date-id" value="<?=htmlspecialchars($queryDateId, ENT_QUOTES, 'UTF-8'); ?>">
+							<input type="hidden" name="comment" value="<?=htmlspecialchars($queryComment, ENT_QUOTES, 'UTF-8'); ?>">
 							<button type="submit" class="page-link<?= ($page >= $maxPage) ? ' disabled' : ''; ?>">次へ</button>
 						</form>
 					</li>
@@ -209,18 +271,20 @@ $bbsOfUrl = urlencode($bbs);
 			// テーブルボディ
 			echo '<tbody>';
 			foreach ($logs as $log) {
-					$decodedTitle = html_entity_decode($log['title'], ENT_QUOTES);
-					$title = htmlspecialchars($decodedTitle, ENT_QUOTES, 'UTF-8');
-					$decodedComment = html_entity_decode($log['comment'], ENT_QUOTES);
-					$comment = htmlspecialchars($decodedComment, ENT_QUOTES, 'UTF-8');
+					$log['title'] = html_entity_decode($log['title'], ENT_QUOTES);
+					$log['comment'] = html_entity_decode($log['comment'], ENT_QUOTES);
+					$log = array_map(function ($value) {
+						return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+					},$log);
 					$url = "/#{$bbsOfUrl}/{$log['thread']}/{$log['number']}";
-					$accountId = $log['account_id'] ?? 'null';
+					$accountId = $log['account_id'] ?? 'unknown';
+
 					echo '<tr>';
 					echo "<td class=\"cell--name text-nowrap\"><b>{$log['name']}</b></td>";
 					echo "<td class=\"cell--mail text-nowrap\">{$log['mail']}</td>";
 					echo "<td class=\"cell--dateid text-nowrap\">{$log['date_id']}</td>";
-					echo "<td class=\"cell--comment text-nowrap\">{$comment}</td>";
-					echo "<td class=\"cell--title text-nowrap\">{$title}</td>";
+					echo "<td class=\"cell--comment text-nowrap\">{$log['comment']}</td>";
+					echo "<td class=\"cell--title text-nowrap\">{$log['title']}</td>";
 					echo "<td class=\"cell--url text-nowrap\"><a href=\"{$url}\">{$url}</a></td>";
 					echo "<td class=\"cell--host text-nowrap\">{$log['host']}</td>";
 					echo "<td class=\"cell--ip text-nowrap\">{$log['ip']}</td>";
