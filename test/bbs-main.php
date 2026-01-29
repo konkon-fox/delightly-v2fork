@@ -1966,41 +1966,7 @@ if (!$tlonly) {
 }
 
 // 投稿ログ
-$LOG_LIMIT = 10000;
-if ($SETTING['LOG_LIMIT'] !== '') {
-    $LOG_LIMIT = min((int) $SETTING['LOG_LIMIT'], $LOG_LIMIT);
-    if ($LOG_LIMIT < 0) {
-        $LOG_LIMIT = 0;
-    }
-}
-$logFileHandle = fopen($LOGFILE, 'a+');
-if (flock($logFileHandle, LOCK_EX)) {
-    // 新規ログを追記
-    $newLog = $_POST['name'] . '<>' . $_POST['mail'] . '<>' . $DATE . ' ' . $ID . '<>' . $_POST['comment'] . '<>' . $subject . '<>' . $_POST['thread'] . '<>' . $number . '<>' . $HOST . '<>' . $_SERVER['REMOTE_ADDR'] . '<>' . $_SERVER['HTTP_USER_AGENT'] . '<>' . htmlspecialchars($CH_UA, ENT_NOQUOTES, 'UTF-8') . '<>' . htmlspecialchars($ACCEPT, ENT_NOQUOTES, 'UTF-8') . '<>' . $clientId . '<>' . $LV . '<>' . $info . "\n";
-    fwrite($logFileHandle, $newLog);
-    // ログの行数確認
-    rewind($logFileHandle);
-    for ($lineCount = 0; fgets($logFileHandle); $lineCount++);
-    if ($lineCount > $LOG_LIMIT + 100) {
-        // ログ縮小処理用にファイルを開き直す
-        flock($logFileHandle, LOCK_UN);
-        fclose($logFileHandle);
-        $logFileHandle = fopen($LOGFILE, 'c+');
-        // 古いログを削除
-        if (flock($logFileHandle, LOCK_EX)) {
-            $logLines = [];
-            while (($logLine = fgets($logFileHandle)) !== false) {
-                $logLines[] = $logLine;
-            }
-            $logLines = array_slice($logLines, $lineCount - $LOG_LIMIT);
-            ftruncate($logFileHandle, 0);
-            rewind($logFileHandle);
-            fwrite($logFileHandle, implode('', $logLines));
-        }
-    }
-}
-flock($logFileHandle, LOCK_UN);
-fclose($logFileHandle);
+require_once './extend/record-post-log.php';
 
 // 記録
 $HAP['last'] = $NOWTIME;
