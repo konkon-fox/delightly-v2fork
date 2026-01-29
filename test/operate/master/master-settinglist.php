@@ -30,6 +30,14 @@ if (isset($_GET['mode'])) {
         require './operate/master/migration2to4.php';
         exit;
     }
+    if ($_GET['mode'] === 'migration-post-log') {
+        require './operate/master/migration-post-log.php';
+        exit;
+    }
+    if ($_GET['mode'] === 'migration-error-log') {
+        require './operate/master/migration-error-log.php';
+        exit;
+    }
 }
 ?><!DOCTYPE html>
 <html>

@@ -30,6 +30,14 @@
           <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
           <button class="btn stretched-link">過去ログ一覧ファイルをDB化(v2 => v4)</button>
         </form>
+        <form action="?mode=migration-post-log" method="POST" class="list-group-item list-group-item-action">
+          <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
+          <button class="btn stretched-link">投稿ログをDB化(v2,v3 => v4)</button>
+        </form>
+        <form action="?mode=migration-error-log" method="POST" class="list-group-item list-group-item-action">
+          <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
+          <button class="btn stretched-link">エラーログをDB化(v2,v3 => v4)</button>
+        </form>
       </div>
     </main>
   </div>
