@@ -43,10 +43,13 @@ $bbsOfUrl = urlencode($bbs);
 			if (isset($_POST['page'])) {
 					$page = (int) $_POST['page'];
 			} else {
-					$page = 0;
+					$page = 1;
 			}
 
-			include './utils/safe-file.php';
+		  require './utils/safe-file.php';
+		  require './extend/BbsDB.php';
+
+			$db = new BbsDB(dirname(__FILE__,3).'/'.$bbs);
 
 			// ログデータ取得
 			$LOGFILE = '../'.$bbs.'/LOG.cgi';
@@ -59,15 +62,45 @@ $bbsOfUrl = urlencode($bbs);
 					exit('<p class="fw-bold">ログファイルの取得に失敗しました。</p></div></body></html>');
 			}
 			$logs = array_reverse($logs);
-			$maxPage = ceil(count($logs) / $ITEMS_PER_PAGE) - 1;
+			$maxPage = ceil(count($logs) / $ITEMS_PER_PAGE);
 			$prevPage = $page - 1;
-			if ($prevPage < 0) {
-					$prevPage = 0;
+			if ($prevPage < 1) {
+					$prevPage = 1;
 			}
 			$nextPage = $page + 1;
 			if ($nextPage > $maxPage) {
 					$nextPage = $maxPage;
 			}
+			$offset = ($page-1) * $ITEMS_PER_PAGE;
+			$logs = array_slice($logs, $offset, $ITEMS_PER_PAGE);
+			$logs = array_map(function($line){
+					$data = explode('<>', rtrim($line));
+					$data = array_pad($data, 19, '');
+					list($name, $mail, $dateid, $comment, $title, $thread, $number, $HOST, $IP, $UA, $CH_UA, $ACCEPT, $clientId, $LV, $PORT, $CF_IPCOUNTRY, $hapIp, $area, $slip) = $data;
+					return [
+						'name' =>$name,
+						'mail' =>$mail,
+						'date_id' =>$dateid,
+						'comment' =>$comment,
+						'title' =>$title,
+						'thread' =>$thread,
+						'number' =>$number,
+						'host' =>$HOST,
+						'ip' =>$IP,
+						'ua' =>$UA,
+						'ch_ua' =>$CH_UA,
+						'accept' =>$ACCEPT,
+						'client_id' =>$clientId,
+						'lv' =>$LV,
+						'port' =>$PORT,
+						'cf_ipcountry' =>$CF_IPCOUNTRY,
+						'hap_ip' =>$hapIp,
+						'hap_area' =>$area,
+						'hap_slip' =>$slip,
+						'account_id' =>null,
+						'posted_at' =>null
+					];
+			}, $logs);
 			?>
 		<nav aria-label="Page navigation example">
 			<ul class="pagination">
@@ -75,7 +108,7 @@ $bbsOfUrl = urlencode($bbs);
 						<form action="?bbs=<?= $safeBbs; ?>&mode=log" method="post">
 							<input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
 							<input type="hidden" name="page" value="<?= $prevPage; ?>">
-							<button type="submit" class="page-link<?= ($page <= 0) ? ' disabled' : ''; ?>">前へ</button>
+							<button type="submit" class="page-link<?= ($page <= 1) ? ' disabled' : ''; ?>">前へ</button>
 						</form>
 					</li>
 					<li class="page-item">
@@ -86,7 +119,7 @@ $bbsOfUrl = urlencode($bbs);
 						</form>
 					</li>
 			</ul>
-			<div>ページ: <?= $page + 1; ?></div>
+			<div>ページ: <?= $page; ?></div>
 		</nav>
 		<div>
 			<div class="d-flex flex-wrap gap-2">
@@ -141,14 +174,13 @@ $bbsOfUrl = urlencode($bbs);
 				<label>
 					<input type="checkbox" class="form-check-input"id="checkbox--slip" name="slip">SLIP(認証時)
 				</label>
+				<label>
+					<input type="checkbox" class="form-check-input"id="checkbox--hap" name="hap">HAP
+				</label>
 			</div>
 		</div>
 		<div class="overflow-x-auto overflow-y-auto" style="height:70vh;">
 			<?php
-			$targetLogs = array_slice($logs, $page * $ITEMS_PER_PAGE, $ITEMS_PER_PAGE);
-			// ログ行の内容
-			// $newLog = $_POST['name'].'<>'.$_POST['mail'].'<>'.$DATE.' '.$ID.'<>'.$_POST['comment'].'<>'.$_POST['title'].'<>'.$_POST['thread'].'<>'.$number.'<>'.$HOST.'<>'.$_SERVER['REMOTE_ADDR'].'<>'.$_SERVER['HTTP_USER_AGENT'].'<>'.htmlspecialchars($CH_UA, ENT_NOQUOTES, 'UTF-8').'<>'.htmlspecialchars($ACCEPT, ENT_NOQUOTES, 'UTF-8').'<>'.$WrtAgreementKey.'<>'.$LV.'<>'.$info."\n";
-			// $info = $_SERVER['REMOTE_PORT'].'<>'.htmlspecialchars($_SERVER['HTTP_CF_IPCOUNTRY'], ENT_NOQUOTES, 'UTF-8').'<>'.$HAP['REMOTE_ADDR'].'<>'.htmlspecialchars($HAP['HOST'].$HAP['country'].$HAP['region'].' '.$HAP['provider'], ENT_NOQUOTES, 'UTF-8').'<>'.htmlspecialchars($HAP['SLIP_NAME'].' '.$HAP['USER_AGENT'].$HAP['CH_UA'].$HAP['ACCEPT'], ENT_NOQUOTES, 'UTF-8').'<>';
 			// ログ一覧
 			echo '<table class="table table-sm table-bordered table-striped table-hover">';
 			// テーブルヘッダー
@@ -171,38 +203,37 @@ $bbsOfUrl = urlencode($bbs);
 			echo '<th class="cell--country text-nowrap">国</th>';
 			echo '<th class="cell--area text-nowrap">地域(認証時)</th>';
 			echo '<th class="cell--slip text-nowrap">SLIP(認証時)</th>';
+			echo '<th class="cell--hap text-nowrap">HAP</th>';
 			echo '</tr>';
 			echo '</thead>';
 			// テーブルボディ
 			echo '<tbody>';
-			foreach ($targetLogs as $log) {
-					$data = explode('<>', rtrim($log));
-					$data = array_pad($data, 19, '');
-					list($name, $mail, $dateid, $comment, $title, $thread, $number, $HOST, $IP, $UA, $CH_UA, $ACCEPT, $clientId, $LV, $PORT, $CF_IPCOUNTRY, $_, $area, $slip) = $data;
-
-					$decodedTitle = html_entity_decode($title, ENT_QUOTES);
+			foreach ($logs as $log) {
+					$decodedTitle = html_entity_decode($log['title'], ENT_QUOTES);
 					$title = htmlspecialchars($decodedTitle, ENT_QUOTES, 'UTF-8');
-					$decodedComment = html_entity_decode($comment, ENT_QUOTES);
+					$decodedComment = html_entity_decode($log['comment'], ENT_QUOTES);
 					$comment = htmlspecialchars($decodedComment, ENT_QUOTES, 'UTF-8');
-					$url = "/#{$bbsOfUrl}/{$thread}/{$number}";
+					$url = "/#{$bbsOfUrl}/{$log['thread']}/{$log['number']}";
+					$accountId = $log['account_id'] ?? 'null';
 					echo '<tr>';
-					echo "<td class=\"cell--name text-nowrap\"><b>{$name}</b></td>";
-					echo "<td class=\"cell--mail text-nowrap\">{$mail}</td>";
-					echo "<td class=\"cell--dateid text-nowrap\">{$dateid}</td>";
+					echo "<td class=\"cell--name text-nowrap\"><b>{$log['name']}</b></td>";
+					echo "<td class=\"cell--mail text-nowrap\">{$log['mail']}</td>";
+					echo "<td class=\"cell--dateid text-nowrap\">{$log['date_id']}</td>";
 					echo "<td class=\"cell--comment text-nowrap\">{$comment}</td>";
 					echo "<td class=\"cell--title text-nowrap\">{$title}</td>";
 					echo "<td class=\"cell--url text-nowrap\"><a href=\"{$url}\">{$url}</a></td>";
-					echo "<td class=\"cell--host text-nowrap\">{$HOST}</td>";
-					echo "<td class=\"cell--ip text-nowrap\">{$IP}</td>";
-					echo "<td class=\"cell--ua text-nowrap\">{$UA}</td>";
-					echo "<td class=\"cell--chua text-nowrap\">{$CH_UA}</td>";
-					echo "<td class=\"cell--accept text-nowrap\">{$ACCEPT}</td>";
-					echo "<td class=\"cell--clientid text-nowrap\">{$clientId}</td>";
-					echo "<td class=\"cell--lv text-nowrap\">{$LV}</td>";
-					echo "<td class=\"cell--port text-nowrap\">{$PORT}</td>";
-					echo "<td class=\"cell--country text-nowrap\">{$CF_IPCOUNTRY}</td>";
-					echo "<td class=\"cell--area text-nowrap\">{$area}</td>";
-					echo "<td class=\"cell--slip text-nowrap\">{$slip}</td>";
+					echo "<td class=\"cell--host text-nowrap\">{$log['host']}</td>";
+					echo "<td class=\"cell--ip text-nowrap\">{$log['ip']}</td>";
+					echo "<td class=\"cell--ua text-nowrap\">{$log['ua']}</td>";
+					echo "<td class=\"cell--chua text-nowrap\">{$log['ch_ua']}</td>";
+					echo "<td class=\"cell--accept text-nowrap\">{$log['accept']}</td>";
+					echo "<td class=\"cell--clientid text-nowrap\">{$log['client_id']}</td>";
+					echo "<td class=\"cell--lv text-nowrap\">{$log['lv']}</td>";
+					echo "<td class=\"cell--port text-nowrap\">{$log['port']}</td>";
+					echo "<td class=\"cell--country text-nowrap\">{$log['cf_ipcountry']}</td>";
+					echo "<td class=\"cell--area text-nowrap\">{$log['hap_area']}</td>";
+					echo "<td class=\"cell--slip text-nowrap\">{$log['hap_slip']}</td>";
+					echo "<td class=\"cell--hap text-nowrap\">{$accountId}</td>";
 					echo '</tr>';
 			}
 			echo '</tbody>';
