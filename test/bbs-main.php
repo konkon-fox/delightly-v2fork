@@ -438,8 +438,8 @@ if (empty($_COOKIE['WrtAgreementKey'])) {
 if (!$_COOKIE['WrtAgreementKey']) {
     Error('投稿するには同意が必要です <a href="http://' . $_SERVER['HTTP_HOST'] . '/test/auth.php">http://' . $_SERVER['HTTP_HOST'] . '/test/auth.php</a>');
 }
-$clientid = hash('sha256', hash('sha256', md5($_COOKIE['WrtAgreementKey']) . preg_replace('/[^0-9]/', '', md5($_COOKIE['WrtAgreementKey']))));
-$hapfile = $HAP_PATH . $clientid . '.cgi'; // 新方式
+$accountId = hash('sha256', hash('sha256', md5($_COOKIE['WrtAgreementKey']) . preg_replace('/[^0-9]/', '', md5($_COOKIE['WrtAgreementKey']))));
+$hapfile = $HAP_PATH . $accountId . '.cgi'; // 新方式
 if (!is_file($hapfile)) {
     $hapfile = $HAP_PATH . $_COOKIE['WrtAgreementKey'] . '.cgi';
 } // 旧方式の記録ファイル
@@ -452,7 +452,7 @@ $HAP = getJsonFile($hapfile);
 if ($HAP === false) {
     Error('ユーザーデータの取得に失敗しました。');
 }
-$WrtAgreementKey = substr(md5($HAP['range'] . $HAP['provider'] . $HAP['CH_UA'] . $HAP['ACCEPT']), 0, 7);
+$clientId = substr(md5($HAP['range'] . $HAP['provider'] . $HAP['CH_UA'] . $HAP['ACCEPT']), 0, 7);
 
 // 指定Lv以上で自動承認
 $ltime = $NOWTIME - $HAP['first'];
@@ -481,7 +481,7 @@ if (is_file($PATH . 'authorize.cgi')) {
         if (!$tmp || strpos(substr($tmp, 0, 1), '#') !== false) {
             continue;
         }
-        if ($WrtAgreementKey === $tmp || stristr($HOST, $tmp) !== false || stristr($_SERVER['REMOTE_ADDR'], $tmp) !== false) {
+        if ($clientId === $tmp || stristr($HOST, $tmp) !== false || stristr($_SERVER['REMOTE_ADDR'], $tmp) !== false) {
             $authorized = true;
             break;
         }
@@ -534,7 +534,7 @@ if (preg_match("/([^\#]*)\#(.+)/", $_POST['mail'], $ca)) {
                     $authorized = true;
                 }
                 if ($a1 === 'authorized') {
-                    $WrtAgreementKey = $name1;
+                    $clientId = $name1;
                 }
                 if ($caid) {
                     $CAPID = $caid;
@@ -1139,7 +1139,7 @@ if (!$admin) {
             if (strpos(substr($kw, 0, 1), '/') === false) {
                 $kw = '/' . $kw . '/';
             } // 規制を発動するワード
-            if (preg_match($kisei, $WrtAgreementKey)) {
+            if (preg_match($kisei, $clientId)) {
                 if ((!$kt || preg_match($kt, $subject)) && (!$kw || preg_match($kw, $_POST['name'] . $_POST['mail'] . $_POST['comment'] . $_POST['title']))) {
                     Error('BANされています');
                 }
@@ -1173,7 +1173,7 @@ if (!$tlonly && $SETTING['threadcheck'] === 'checked') {
         foreach ($IP as $tmp) {
             $tmp = trim($tmp);
             list($time1, $addr1, $c1) = explode('<>', $tmp);
-            if ($NOWTIME < $time1 + $SETTING['threadlimit'] && ($IP_ADDR === $addr1 || $WrtAgreementKey === $c1)) {
+            if ($NOWTIME < $time1 + $SETTING['threadlimit'] && ($IP_ADDR === $addr1 || $clientId === $c1)) {
                 $count++;
             }
         }
@@ -1181,7 +1181,7 @@ if (!$tlonly && $SETTING['threadcheck'] === 'checked') {
     if ($count >= $SETTING['timecover']) {
         Error('このスレッド内で一定時間内に投稿可能な上限に達しました');
     }
-    array_unshift($IP, $NOWTIME . '<>' . $IP_ADDR . '<>' . $WrtAgreementKey);
+    array_unshift($IP, $NOWTIME . '<>' . $IP_ADDR . '<>' . $clientId);
     while (count($IP) > $SETTING['threadcount']) {
         array_pop($IP);
     }
@@ -1217,7 +1217,7 @@ if ($SETTING['timecheck'] === 'checked') {
         foreach ($IP as $tmp) {
             $tmp = trim($tmp);
             list($time1, $addr1, $c1) = explode('<>', $tmp);
-            if ($NOWTIME < $time1 + $SETTING['timelimit'] && ($IP_ADDR === $addr1 || $WrtAgreementKey === $c1)) {
+            if ($NOWTIME < $time1 + $SETTING['timelimit'] && ($IP_ADDR === $addr1 || $clientId === $c1)) {
                 $count++;
             }
         }
@@ -1225,7 +1225,7 @@ if ($SETTING['timecheck'] === 'checked') {
     if ($count >= $SETTING['timeclose']) {
         Error('一定時間内に投稿可能な上限に達しました');
     }
-    array_unshift($IP, $NOWTIME . '<>' . $IP_ADDR . '<>' . $WrtAgreementKey);
+    array_unshift($IP, $NOWTIME . '<>' . $IP_ADDR . '<>' . $clientId);
     while (count($IP) > $SETTING['timecount']) {
         array_pop($IP);
     }
@@ -1378,7 +1378,7 @@ if ($newthread && !$admin) {
             if (strpos(substr($kw, 0, 1), '/') === false) {
                 $kw = '/' . $kw . '/';
             } // 規制を発動するワード
-            if (preg_match($kisei, $WrtAgreementKey)) {
+            if (preg_match($kisei, $clientId)) {
                 if ((!$kt || preg_match($kt, $_POST['title'])) && (!$kw || preg_match($kw, $_POST['name'] . $_POST['mail'] . $_POST['comment'] . $_POST['title']))) {
                     Error('あなたはスレッドを作成することができません');
                 }
@@ -1406,12 +1406,12 @@ if ($newthread) {
             foreach ($IP as $tmp) {
                 $tmp = trim($tmp);
                 list($t1, $p1, $c1) = explode('<>', $tmp);
-                if ($NOWTIME < $t1 + $SETTING['JUNBAN_LIMIT'] && ($IP_ADDR === $p1 || $WrtAgreementKey === $c1)) {
+                if ($NOWTIME < $t1 + $SETTING['JUNBAN_LIMIT'] && ($IP_ADDR === $p1 || $clientId === $c1)) {
                     Error('スレッド作成の順番待ち中です');
                 }
             }
         }
-        array_unshift($IP, $NOWTIME . '<>' . $IP_ADDR . '<>' . $WrtAgreementKey);
+        array_unshift($IP, $NOWTIME . '<>' . $IP_ADDR . '<>' . $clientId);
         while (count($IP) > $SETTING['THREAD_JUNBAN']) {
             array_pop($IP);
         }
@@ -1506,7 +1506,7 @@ if ($SETTING['fusianasan'] === 'name' && !$authorized && !$admin) {
 }
 // 強制ClientID表示
 elseif ($SETTING['fusianasan'] === 'id' && !$authorized && !$admin) {
-    $M .= " </b>($WrtAgreementKey)<b>";
+    $M .= " </b>($clientId)<b>";
 }
 
 // スレッド主表示
@@ -1523,7 +1523,7 @@ if ($newthread && $SETTING['createid'] === 'checked' && $SETTING['id'] && !$admi
 // fusianasanでホスト表示
 $_POST['name'] = str_replace('fusianasan', ' </b>(' . $HOST . ')<b>', $_POST['name']);
 // ClientID表示
-$_POST['name'] = str_replace('!clientid', ' </b>(' . $WrtAgreementKey . ')<b>', $_POST['name']);
+$_POST['name'] = str_replace('!clientid', ' </b>(' . $clientId . ')<b>', $_POST['name']);
 // 県名表示
 $_POST['name'] = str_replace('!ken', ' </b>(' . $HAP['region'] . ')<b>', $_POST['name']);
 // ID表示
@@ -1976,7 +1976,7 @@ if ($SETTING['LOG_LIMIT'] !== '') {
 $logFileHandle = fopen($LOGFILE, 'a+');
 if (flock($logFileHandle, LOCK_EX)) {
     // 新規ログを追記
-    $newLog = $_POST['name'] . '<>' . $_POST['mail'] . '<>' . $DATE . ' ' . $ID . '<>' . $_POST['comment'] . '<>' . $subject . '<>' . $_POST['thread'] . '<>' . $number . '<>' . $HOST . '<>' . $_SERVER['REMOTE_ADDR'] . '<>' . $_SERVER['HTTP_USER_AGENT'] . '<>' . htmlspecialchars($CH_UA, ENT_NOQUOTES, 'UTF-8') . '<>' . htmlspecialchars($ACCEPT, ENT_NOQUOTES, 'UTF-8') . '<>' . $WrtAgreementKey . '<>' . $LV . '<>' . $info . "\n";
+    $newLog = $_POST['name'] . '<>' . $_POST['mail'] . '<>' . $DATE . ' ' . $ID . '<>' . $_POST['comment'] . '<>' . $subject . '<>' . $_POST['thread'] . '<>' . $number . '<>' . $HOST . '<>' . $_SERVER['REMOTE_ADDR'] . '<>' . $_SERVER['HTTP_USER_AGENT'] . '<>' . htmlspecialchars($CH_UA, ENT_NOQUOTES, 'UTF-8') . '<>' . htmlspecialchars($ACCEPT, ENT_NOQUOTES, 'UTF-8') . '<>' . $clientId . '<>' . $LV . '<>' . $info . "\n";
     fwrite($logFileHandle, $newLog);
     // ログの行数確認
     rewind($logFileHandle);
