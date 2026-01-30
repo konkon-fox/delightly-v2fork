@@ -34,6 +34,9 @@ if (!isset($_POST['mail'])) {
 if (!isset($_POST['subject'])) {
     $_POST['subject'] = '';
 }
+
+require_once './utils/get-json-file.php';
+
 $PATH = '../' . $_POST['bbs'] . '/';
 $NOWTIME = time();
 
@@ -44,7 +47,10 @@ $setfile = $PATH . 'setting.json';
 if (!is_file($setfile)) {
     Error2('This board does not exist.');
 }
-$SETTING = json_decode(file_get_contents($setfile), true);
+$SETTING = getJsonFile($setfile);
+if ($SETTING === false) {
+    Error2('板設定ファイルの取得に失敗しました。');
+}
 
 // 専ブラ投稿が許可されていない場合はここで拒否
 if ($SETTING['2ch_dedicate_browsers'] !== 'enable') {

@@ -23,6 +23,8 @@ if (!isset($_POST['title'])) {
     $_POST['title'] = '';
 }
 
+require_once './utils/get-json-file.php';
+
 $PATH = '../' . $_POST['board'] . '/';
 $NOWTIME = time();
 
@@ -36,7 +38,10 @@ $setfile = $PATH . 'setting.json';
 if (!is_file($setfile)) {
     Error2('This board does not exist.');
 }
-$SETTING = json_decode(file_get_contents($setfile), true);
+$SETTING = getJsonFile($setfile);
+if ($SETTING === false) {
+    Error2('板設定ファイルの取得に失敗しました。');
+}
 
 require 'bbs-main.php';
 
