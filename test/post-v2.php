@@ -24,6 +24,7 @@ if (!isset($_POST['title'])) {
 }
 
 require_once './utils/get-json-file.php';
+require_once './extend/BbsDB.php';
 
 $PATH = '../' . $_POST['board'] . '/';
 $NOWTIME = time();
@@ -61,25 +62,59 @@ function finish()
 // エラーメッセージ表示用関数
 function Error($error)
 {
-    global $NOWTIME,$PATH,$HOST,$DATE,$ID,$WrtAgreementKey,$number,$CH_UA,$ACCEPT,$accountid,$LV,$info;
-    // エラーログに保存
-    if (is_file($PATH . 'errors.cgi')) {
-        $EROG = file($PATH . 'errors.cgi');
+    global $NOWTIME,$PATH,$HOST,$DATE,$ID,$WrtAgreementKey,$number,$CH_UA,$ACCEPT,$accountId,$LV,$info,$HAP,$subject,$clientId;
+    $HAP ??= [];
+    $bbs = basename($_POST['board']);
+    $db = new BbsDB(dirname(__FILE__, 2) . '/' . $bbs);
+    if ($db->isSQLiteMode()) {
+        // DBへ保存
+        $data = [
+            'error' => $error,
+            'name' => $_POST['name'] ?? 'unknown',
+            'mail' => $_POST['mail'] ?? 'unknown',
+            'date_id' => $DATE . ' ' . ($ID ?? 'unknown') ,
+            'comment' => $_POST['comment'] ?? 'unknown',
+            'title' => $subject ?? 'unknown',
+            'thread' => $_POST['thread'] ?? 'unknown',
+            'number' => $number ?? 0,
+            'host' => $HOST ?? 'unknown',
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            'ua' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+            'ch_ua' => $CH_UA ?? 'unknown',
+            'accept' => $ACCEPT ?? 'unknown',
+            'client_id' => $clientId ?? 'unknown',
+            'lv' => $LV ?? 0,
+            'port' => $_SERVER['REMOTE_PORT'] ?? 'unknown',
+            'cf_ipcountry' => $_SERVER['HTTP_CF_IPCOUNTRY'] ?? 'unknown',
+            'hap_ip' => $HAP['REMOTE_ADDR'] ?? 'unknown',
+            'hap_area' => ($HAP['HOST'] ?? 'unknown') . ($HAP['country'] ?? 'unknown') . ($HAP['region'] ?? 'unknown') . ' ' . ($HAP['provider'] ?? 'unknown'),
+            'hap_slip' => ($HAP['SLIP_NAME'] ?? 'unknown') . ' ' . ($HAP['USER_AGENT'] ?? 'unknown') . ($HAP['CH_UA'] ?? 'unknown') . ($HAP['ACCEPT'] ?? 'unknown'),
+            'account_id' => $accountId ?? 'unknown',
+            'posted_at' => $NOWTIME ?? time(),
+        ];
+        $db->addToErrorLog($data);
     } else {
-        $EROG = [];
+        // ファイル形式
+        // エラーログに保存
+        if (is_file($PATH . 'errors.cgi')) {
+            $EROG = file($PATH . 'errors.cgi');
+        } else {
+            $EROG = [];
+        }
+        array_unshift($EROG, $error . '<>' . $_POST['name'] . '<>' . $_POST['mail'] . '<>' . $DATE . ' ' . $ID . '<>' . $_POST['comment'] . '<>' . $_POST['title'] . '<>' . $_POST['thread'] . '<>' . $number . '<>' . $HOST . '<>' . $_SERVER['REMOTE_ADDR'] . '<>' . $_SERVER['HTTP_USER_AGENT'] . '<>' . $CH_UA . '<>' . $ACCEPT . '<>' . $WrtAgreementKey . '<>' . $LV . '<>' . $info . "\n");
+        // 500 個以内に調整して保存
+        while (count($EROG) > 500) {
+            array_pop($EROG);
+        }
+        $EROG = array_unique($EROG);
+        $fp = @fopen($PATH . 'errors.cgi', 'w');
+        foreach ($EROG as $tmp) {
+            fputs($fp, $tmp);
+        }
+        fclose($fp);
     }
-    array_unshift($EROG, $error . '<>' . $_POST['name'] . '<>' . $_POST['mail'] . '<>' . $DATE . ' ' . $ID . '<>' . $_POST['comment'] . '<>' . $_POST['title'] . '<>' . $_POST['thread'] . '<>' . $number . '<>' . $HOST . '<>' . $_SERVER['REMOTE_ADDR'] . '<>' . $_SERVER['HTTP_USER_AGENT'] . '<>' . $CH_UA . '<>' . $ACCEPT . '<>' . $WrtAgreementKey . '<>' . $LV . '<>' . $info . "\n");
-    // 500 個以内に調整して保存
-    while (count($EROG) > 500) {
-        array_pop($EROG);
-    }
-    $EROG = array_unique($EROG);
-    $fp = @fopen($PATH . 'errors.cgi', 'w');
-    foreach ($EROG as $tmp) {
-        fputs($fp, $tmp);
-    }
-    fclose($fp);
-    Header("HTTP/1.0 418 I'm a teapot");
+
+    http_response_code(403);
     setcookie('response', mb_convert_encoding($error, 'HTML-ENTITIES', 'UTF-8'), $NOWTIME + 5, '/');
     exit($error);
 }
