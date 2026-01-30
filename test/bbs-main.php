@@ -65,7 +65,7 @@ $settingFile = './operate/auth-settings.json';
 if (is_file($settingFile)) {
     $settings = getJsonFile($settingFile);
     if ($settings === false) {
-        Error('認証設定ファイルの取得に失敗しました。');
+        Error2('認証設定ファイルの取得に失敗しました。');
     }
 } else {
     $settings = [];
@@ -82,7 +82,7 @@ $systemSettingsFile = './operate/system-settings.json';
 if (is_file($systemSettingsFile)) {
     $systemSettings = getJsonFile($systemSettingsFile);
     if ($systemSettings === false) {
-        Error('システム設定ファイルの取得に失敗しました。');
+        Error2('システム設定ファイルの取得に失敗しました。');
     }
 } else {
     $systemSettings = [];
