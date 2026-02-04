@@ -38,11 +38,11 @@
 			同意鍵被りが発生した場合、該当同意鍵の環境ファイルを削除すると再認証時に新しい鍵が発行されます。
 		</p>
 			<?php
-            $ITEMS_PER_PAGE = 1000;
+        $ITEMS_PER_PAGE = 1000;
 				if (isset($_POST['page'])) {
 				    $page = (int) $_POST['page'];
 				} else {
-				    $page = 0;
+				    $page = 1;
 				}
 
 				require_once './utils/safe-file.php';
@@ -58,10 +58,33 @@
 				    exit('<p class="fw-bold">ログファイルの取得に失敗しました。</p></div></body></html>');
 				}
 				$logs = array_reverse($logs);
-				$maxPage = ceil(count($logs) / $ITEMS_PER_PAGE) - 1;
+				$maxPage = ceil(count($logs) / $ITEMS_PER_PAGE);
+				$offset = ($page - 1) * $ITEMS_PER_PAGE;
+				$logs = array_slice($logs, $offset, $ITEMS_PER_PAGE);
+				$logs = array_map(function ($line) {
+				    $data = explode('<>', rtrim($line));
+				    $data = array_pad($data, 11, '');
+				    list($date, $status, $wrtAgreementKey, $IP, $HOST, $isp, $asname, $UA, $CH_UA, $clientId, $enFile) = $data;
+				    $accountId = hash('sha256', hash('sha256', md5($wrtAgreementKey) . preg_replace('/[^0-9]/', '', md5($wrtAgreementKey))));
+				    return [
+				        'date' => $date,
+				        'status' => $status,
+				        'key' => $wrtAgreementKey,
+				        'ip' => $IP,
+				        'host' => $HOST,
+				        'isp' => $isp,
+				        'asname' => $asname,
+				        'ua' => $UA,
+				        'ch_ua' => $CH_UA,
+				        'client_id' => $clientId,
+				        'en_file' => $enFile,
+				        'account_id' => $accountId,
+				    ];
+				}, $logs);
+
 				$prevPage = $page - 1;
-				if ($prevPage < 0) {
-				    $prevPage = 0;
+				if ($prevPage < 1) {
+				    $prevPage = 1;
 				}
 				$nextPage = $page + 1;
 				if ($nextPage > $maxPage) {
@@ -72,20 +95,20 @@
 			<ul class="pagination">
 					<li class="page-item">
 						<form action="?mode=auth-logs" method="post">
-							<input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+							<input type="hidden" name="code" value="<?=htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8');?>">
 							<input type="hidden" name="page" value="<?= $prevPage; ?>">
-							<button type="submit" class="page-link<?= ($page <= 0) ? ' disabled' : ''; ?>">前へ</button>
+							<button type="submit" class="page-link<?= ($page <= 1) ? ' disabled' : ''; ?>">前へ</button>
 						</form>
 					</li>
 					<li class="page-item">
 						<form action="?mode=auth-logs" method="post">
-							<input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+							<input type="hidden" name="code" value="<?=htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8');?>">
 							<input type="hidden" name="page" value="<?= $nextPage; ?>">
 							<button type="submit" class="page-link<?= ($page >= $maxPage) ? ' disabled' : ''; ?>">次へ</button>
 						</form>
 					</li>
 			</ul>
-			<div>ページ: <?= $page + 1; ?></div>
+			<div>ページ: <?= $page; ?></div>
 		</nav>
 		<div>
 			<div class="d-flex flex-wrap gap-2">
@@ -122,11 +145,13 @@
 				<label>
 					<input type="checkbox" class="form-check-input"id="checkbox--enfile" name="enfile" checked>環境ファイル
 				</label>
+				<label>
+					<input type="checkbox" class="form-check-input"id="checkbox--hap" name="hap" checked>HAP
+				</label>
 			</div>
 		</div>
 		<div class="overflow-x-auto overflow-y-auto" style="height:70vh;">
 			<?php
-				$targetLogs = array_slice($logs, $page * $ITEMS_PER_PAGE, $ITEMS_PER_PAGE);
 				// ログ一覧
 				echo '<table class="table table-sm table-bordered table-striped table-hover">';
 				// テーブルヘッダー
@@ -143,32 +168,28 @@
 				echo '<th class="cell--chua text-nowrap">CH_UA</th>';
 				echo '<th class="cell--clientid text-nowrap">clientID</th>';
 				echo '<th class="cell--enfile text-nowrap">環境ファイル</th>';
+				echo '<th class="cell--hap text-nowrap">HAP</th>';
 				echo '</tr>';
 				echo '</thead>';
 				// テーブルボディ
 				echo '<tbody>';
-				foreach ($targetLogs as $log) {
-				    $data = explode('<>', rtrim($log));
-				    $data = array_pad($data, 11, '');
-				    list($nowDate, $authStatus, $WrtAgreementKey, $IP, $HOST, $isp, $asname, $UA, $CH_UA, $clientId, $enFile) = $data;
-
-				    $decodedTitle = html_entity_decode($title, ENT_QUOTES);
-				    $title = htmlspecialchars($decodedTitle, ENT_QUOTES, 'UTF-8');
-				    $decodedComment = html_entity_decode($comment, ENT_QUOTES);
-				    $comment = htmlspecialchars($decodedComment, ENT_QUOTES, 'UTF-8');
-				    $url = "/#{$bbsOfUrl}/{$thread}/{$number}";
+				foreach ($logs as $log) {
+				    $log = array_map(function ($value) {
+				        return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+				    }, $log);
 				    echo '<tr>';
-				    echo "<td class=\"cell--date text-nowrap\">{$nowDate}</td>";
-				    echo "<td class=\"cell--status text-nowrap\">{$authStatus}</td>";
-				    echo "<td class=\"cell--key text-nowrap\">{$WrtAgreementKey}</td>";
-				    echo "<td class=\"cell--ip text-nowrap\">{$IP}</td>";
-				    echo "<td class=\"cell--host text-nowrap\">{$HOST}</td>";
-				    echo "<td class=\"cell--host text-nowrap\">{$isp}</td>";
-				    echo "<td class=\"cell--host text-nowrap\">{$asname}</td>";
-				    echo "<td class=\"cell--ua text-nowrap\">{$UA}</td>";
-				    echo "<td class=\"cell--chua text-nowrap\">{$CH_UA}</td>";
-				    echo "<td class=\"cell--clientid text-nowrap\">{$clientId}</td>";
-				    echo "<td class=\"cell--enfile text-nowrap\">{$enFile}</td>";
+				    echo "<td class=\"cell--date text-nowrap\">{$log['date']}</td>";
+				    echo "<td class=\"cell--status text-nowrap\">{$log['status']}</td>";
+				    echo "<td class=\"cell--key text-nowrap\">{$log['key']}</td>";
+				    echo "<td class=\"cell--ip text-nowrap\">{$log['ip']}</td>";
+				    echo "<td class=\"cell--host text-nowrap\">{$log['host']}</td>";
+				    echo "<td class=\"cell--host text-nowrap\">{$log['isp']}</td>";
+				    echo "<td class=\"cell--host text-nowrap\">{$log['asname']}</td>";
+				    echo "<td class=\"cell--ua text-nowrap\">{$log['ua']}</td>";
+				    echo "<td class=\"cell--chua text-nowrap\">{$log['ch_ua']}</td>";
+				    echo "<td class=\"cell--clientid text-nowrap\">{$log['client_id']}</td>";
+				    echo "<td class=\"cell--enfile text-nowrap\">{$log['en_file']}</td>";
+				    echo "<td class=\"cell--hap text-nowrap\">{$log['account_id']}</td>";
 				    echo '</tr>';
 				}
 				echo '</tbody>';
