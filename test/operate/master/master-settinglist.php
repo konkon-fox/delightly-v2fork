@@ -16,6 +16,10 @@ if (isset($_GET['mode'])) {
         require './operate/master/auth-logs.php';
         exit;
     }
+    if ($_GET['mode'] === 'key-error-logs') {
+        require './operate/master/key-error-logs.php';
+        exit;
+    }
     if ($_GET['mode'] === 'migration-list') {
         require './operate/master/migration-list.php';
         exit;
@@ -78,6 +82,10 @@ if (isset($_GET['mode'])) {
         <form action="?mode=auth-logs" method="POST" class="list-group-item list-group-item-action">
           <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
           <button class="btn stretched-link">認証ログ閲覧</button>
+        </form>
+        <form action="?mode=key-error-logs" method="POST" class="list-group-item list-group-item-action">
+          <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
+          <button class="btn stretched-link">同意鍵エラーログ閲覧</button>
         </form>
         <form action="?mode=migration-list" method="POST" class="list-group-item list-group-item-action">
           <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
