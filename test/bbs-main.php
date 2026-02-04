@@ -151,6 +151,19 @@ if (!getenv('SKIP_VERIFICATION')) {
     }
 }
 
+// 同意鍵検証
+require_once './extend/validate-wrt-agreement-key.php';
+/** @var array{account_id:string, hap_file:string} */
+$validateKeyResult = validateWrtAgreementKey($NOWTIME);
+$accountid = $validateKeyResult['account_id'];
+$hapfile = $validateKeyResult['hap_file'];
+
+// ユーザーデータを取得
+$HAP = getJsonFile($hapfile);
+if ($HAP === false) {
+    Error('ユーザーデータの取得に失敗しました。');
+}
+
 // IPv6に対応したサーバ用
 $count_semi = substr_count($_SERVER['REMOTE_ADDR'], ':');
 $count_dot = substr_count($_SERVER['REMOTE_ADDR'], '.');
@@ -431,27 +444,6 @@ if ($SETTING['DISABLE_NAME'] === 'checked') {
     $_POST['name'] = '';
 }
 
-// 同意鍵
-if (empty($_COOKIE['WrtAgreementKey'])) {
-    $_COOKIE['WrtAgreementKey'] = str_replace('#', '', $_POST['mail']);
-}
-if (!$_COOKIE['WrtAgreementKey']) {
-    Error('投稿するには同意が必要です <a href="http://' . $_SERVER['HTTP_HOST'] . '/test/auth.php">http://' . $_SERVER['HTTP_HOST'] . '/test/auth.php</a>');
-}
-$accountId = hash('sha256', hash('sha256', md5($_COOKIE['WrtAgreementKey']) . preg_replace('/[^0-9]/', '', md5($_COOKIE['WrtAgreementKey']))));
-$hapfile = $HAP_PATH . $accountId . '.cgi'; // 新方式
-if (!is_file($hapfile)) {
-    $hapfile = $HAP_PATH . $_COOKIE['WrtAgreementKey'] . '.cgi';
-} // 旧方式の記録ファイル
-if (!is_file($hapfile)) {
-    Error('鍵が失効しています:' . $_COOKIE['WrtAgreementKey']);
-}
-setcookie('WrtAgreementKey', $_COOKIE['WrtAgreementKey'], $NOWTIME + 31536000, '/');
-// 記録されたデータを取得
-$HAP = getJsonFile($hapfile);
-if ($HAP === false) {
-    Error('ユーザーデータの取得に失敗しました。');
-}
 $clientId = substr(md5($HAP['range'] . $HAP['provider'] . $HAP['CH_UA'] . $HAP['ACCEPT']), 0, 7);
 
 // 指定Lv以上で自動承認
