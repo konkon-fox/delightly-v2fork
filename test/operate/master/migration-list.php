@@ -38,6 +38,10 @@
           <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
           <button class="btn stretched-link">エラーログをDB化(v2,v3 => v4)</button>
         </form>
+        <form action="?mode=migration-auth-log" method="POST" class="list-group-item list-group-item-action">
+          <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
+          <button class="btn stretched-link">認証ログをDB化(v3 => v4)</button>
+        </form>
       </div>
     </main>
   </div>

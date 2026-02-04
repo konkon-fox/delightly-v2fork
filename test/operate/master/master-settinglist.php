@@ -38,6 +38,10 @@ if (isset($_GET['mode'])) {
         require './operate/master/migration-error-log.php';
         exit;
     }
+    if ($_GET['mode'] === 'migration-auth-log') {
+        require './operate/master/migration-auth-log.php';
+        exit;
+    }
 }
 ?><!DOCTYPE html>
 <html>
