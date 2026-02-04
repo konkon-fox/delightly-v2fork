@@ -45,7 +45,20 @@ $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 copy_dir('./board', '../' . $_POST['directory']);
 if (file_exists('../' . $_POST['directory'])) {
     @file_put_contents('../' . $_POST['directory'] . '/passfile.cgi', $password);
-    $htaccess = '<Files ~ "\.cgi$">' . "\n" . 'deny from all' . "\n" . '</Files>';
+    $htaccess = <<<EOM
+    <Files ~ "\.cgi$">
+        # Apache 2.4+
+        <IfModule mod_authz_core.c>
+            Require all denied
+        </IfModule>
+
+        # Apache 2.2
+        <IfModule !mod_authz_core.c>
+            Order deny,allow
+            Deny from all
+        </IfModule>
+    </Files>
+    EOM;
     @file_put_contents('../' . $_POST['directory'] . '/.htaccess', $htaccess);
     // index.phpの置換
     $utf8 = $sjis = $_POST['directory'];
