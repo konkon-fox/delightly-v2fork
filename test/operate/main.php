@@ -1,49 +1,99 @@
 <?php
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['edit'] == "yes") {
- if (!isset($_POST['ip_geolocation'])) $_POST['ip_geolocation'] = '';
- if (!isset($_POST['use_capture'])) $_POST['use_capture'] = '';
- if (!isset($_POST['capture_authorize'])) $_POST['capture_authorize'] = '';
- if (!isset($_POST['use_account_lv'])) $_POST['use_account_lv'] = '';
- if (!isset($_POST['authorized_denypass'])) $_POST['authorized_denypass'] = '';
- if (!isset($_POST['cookie_enable'])) $_POST['cookie_enable'] = '';
- if (!isset($_POST['trip_enable'])) $_POST['trip_enable'] = '';
- if (!isset($_POST['trip_authorize'])) $_POST['trip_authorize'] = '';
- if (!isset($_POST['account_enable'])) $_POST['account_enable'] = '';
- if (!isset($_POST['auto_authorize'])) $_POST['auto_authorize'] = '';
- if (!isset($_POST['g_auto_authorize'])) $_POST['g_auto_authorize'] = '';
- if (!isset($_POST['DISABLE_ICON'])) $_POST['DISABLE_ICON'] = '';
- if (!isset($_POST['DISABLE_NAME'])) $_POST['DISABLE_NAME'] = '';
- if (!isset($_POST['DISABLE_TRIP'])) $_POST['DISABLE_TRIP'] = '';
- if (!isset($_POST['FORCE_DISP_TRIP'])) $_POST['FORCE_DISP_TRIP'] = '';
- if (!isset($_POST['NAME_ARR'])) $_POST['NAME_ARR'] = '';
- if (!isset($_POST['Create_Authentication_required'])) $_POST['Create_Authentication_required'] = '';
- if (!isset($_POST['Create_cap_only'])) $_POST['Create_cap_only'] = '';
- if (!isset($_POST['Authentication_required'])) $_POST['Authentication_required'] = '';
- if (!isset($_POST['cap_only'])) $_POST['cap_only'] = '';
- if (!isset($_POST['disable_kakolog'])) $_POST['disable_kakolog'] = '';
- if (!isset($_POST['thread_supervisor'])) $_POST['thread_supervisor'] = '';
- if (!isset($_POST['aa_check'])) $_POST['aa_check'] = '';
- $extraSettingsList = [
-   'id_9th_char',
-   'res_decoration',
-   'date_comma_digit'
- ];
- foreach ($SETTING as $name => $value) {
-  if(in_array($name, $extraSettingsList, true)) continue;
-  if (isset($_POST[$name])) $SETTING[$name] = $_POST[$name];
-  $SET .= $name."=".$SETTING[$name]."\n";
- }
- foreach ($extraSettingsList as $settingName) {
-   if(isset($_POST[$settingName])){
-     $SETTING[$settingName] = $_POST[$settingName];
-   }else{
-     $SETTING[$settingName] = '';
-   }
-   if(isset($SETTING[$settingName])) $SET .= $settingName."=".$SETTING[$settingName]."\n";
- }
- file_put_contents($setfile, json_encode($SETTING, JSON_UNESCAPED_UNICODE), LOCK_EX);
- file_put_contents($settxt, mb_convert_encoding($SET, "SJIS-win", "UTF-8"), LOCK_EX);
+// 追加設定 初期値
+$SETTING['id_9th_char'] ??= '';
+$SETTING['res_decoration'] ??= '';
+$SETTING['date_comma_digit'] ??= '0';
+$SETTING['is_valid_TL'] ??= 'checked';
+$SETTING['commands_idchange_first_res'] ??= 'checked';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['edit'] === 'yes') {
+    // チェックボックスのキャンセル値
+    if (!isset($_POST['ip_geolocation'])) {
+        $_POST['ip_geolocation'] = '';
+    }
+    if (!isset($_POST['use_capture'])) {
+        $_POST['use_capture'] = '';
+    }
+    if (!isset($_POST['capture_authorize'])) {
+        $_POST['capture_authorize'] = '';
+    }
+    if (!isset($_POST['use_account_lv'])) {
+        $_POST['use_account_lv'] = '';
+    }
+    if (!isset($_POST['authorized_denypass'])) {
+        $_POST['authorized_denypass'] = '';
+    }
+    if (!isset($_POST['cookie_enable'])) {
+        $_POST['cookie_enable'] = '';
+    }
+    if (!isset($_POST['trip_enable'])) {
+        $_POST['trip_enable'] = '';
+    }
+    if (!isset($_POST['trip_authorize'])) {
+        $_POST['trip_authorize'] = '';
+    }
+    if (!isset($_POST['account_enable'])) {
+        $_POST['account_enable'] = '';
+    }
+    if (!isset($_POST['auto_authorize'])) {
+        $_POST['auto_authorize'] = '';
+    }
+    if (!isset($_POST['g_auto_authorize'])) {
+        $_POST['g_auto_authorize'] = '';
+    }
+    if (!isset($_POST['DISABLE_ICON'])) {
+        $_POST['DISABLE_ICON'] = '';
+    }
+    if (!isset($_POST['DISABLE_NAME'])) {
+        $_POST['DISABLE_NAME'] = '';
+    }
+    if (!isset($_POST['DISABLE_TRIP'])) {
+        $_POST['DISABLE_TRIP'] = '';
+    }
+    if (!isset($_POST['FORCE_DISP_TRIP'])) {
+        $_POST['FORCE_DISP_TRIP'] = '';
+    }
+    if (!isset($_POST['NAME_ARR'])) {
+        $_POST['NAME_ARR'] = '';
+    }
+    if (!isset($_POST['Create_Authentication_required'])) {
+        $_POST['Create_Authentication_required'] = '';
+    }
+    if (!isset($_POST['Create_cap_only'])) {
+        $_POST['Create_cap_only'] = '';
+    }
+    if (!isset($_POST['Authentication_required'])) {
+        $_POST['Authentication_required'] = '';
+    }
+    if (!isset($_POST['cap_only'])) {
+        $_POST['cap_only'] = '';
+    }
+    if (!isset($_POST['disable_kakolog'])) {
+        $_POST['disable_kakolog'] = '';
+    }
+    if (!isset($_POST['thread_supervisor'])) {
+        $_POST['thread_supervisor'] = '';
+    }
+    if (!isset($_POST['aa_check'])) {
+        $_POST['aa_check'] = '';
+    }
+    // チェックボックスのキャンセル値
+    $_POST['id_9th_char'] ??= '';
+    $_POST['res_decoration'] ??= '';
+    $_POST['is_valid_TL'] ??= '';
+    $_POST['commands_idchange_first_res'] ??= '';
+
+    foreach ($SETTING as $name => $value) {
+        if (isset($_POST[$name])) {
+            $SETTING[$name] = $_POST[$name];
+        }
+        $SET .= $name . '=' . $SETTING[$name] . "\n";
+    }
+    file_put_contents($setfile, json_encode($SETTING, JSON_UNESCAPED_UNICODE), LOCK_EX);
+    file_put_contents($settxt, mb_convert_encoding($SET, 'SJIS-win', 'UTF-8'), LOCK_EX);
 }
+$bbs = basename($_REQUEST['bbs']);
+$safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -57,64 +107,124 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['edit'] == "yes") {
 </head>
 <body>
 <div class="main">
-<form method="post" action="/test/admin.php?bbs=<?=$_REQUEST['bbs']?>&mode=main">
-<input type="hidden" name="password" value="<?=$_REQUEST['password']?>">
+<form action="?bbs=<?= $safeBbs; ?>" method="post" style="margin-bottom: 4px;">
+  <input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+  <button type="submit">← 管理ページへ戻る</button>
+</form>
+<form action="?bbs=<?= $safeBbs; ?>&mode=boardsetting" method="post" style="margin-bottom: 16px;">
+  <input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+  <button type="submit">← 掲示板設定へ戻る</button>
+</form>
+<form method="post" action="/test/admin.php?bbs=<?=$_REQUEST['bbs'];?>&mode=main">
+<input type="hidden" name="password" value="<?=$_REQUEST['password'];?>">
 <input type="hidden" name="edit" value="yes">
-<div class="back"><a href="./admin.php">← 管理ページへ戻る</a></div>
 <div><b>指定Lv(鍵発行からの経過日数)以上の場合自動承認</b><small class="notice mt5">無記入で無効化</small></div>
-<div><input type="text" value="<?=$SETTING['auto_authorize_lv']?>" name="auto_authorize_lv">Lv以上</div>
+<div><input type="text" value="<?=$SETTING['auto_authorize_lv'];?>" name="auto_authorize_lv">Lv以上</div>
 <div><b>アイコンを強制非表示</b></div>
-<div><input type="checkbox" value="checked" name="DISABLE_ICON"<?php if ($SETTING['DISABLE_ICON']=="checked") echo " checked"; ?>>する</div>
+<div><input type="checkbox" value="checked" name="DISABLE_ICON"<?php if ($SETTING['DISABLE_ICON'] === 'checked') {
+    echo ' checked';
+} ?>>する</div>
 <div><b>名前を強制非表示</b><small class="notice mt5">(※名前欄無効の場合でも投稿ログ閲覧ページからトリップを確認できます)</small></div>
-<div><input type="checkbox" value="checked" name="DISABLE_NAME"<?php if ($SETTING['DISABLE_NAME']=="checked") echo " checked"; ?>>する</div>
+<div><input type="checkbox" value="checked" name="DISABLE_NAME"<?php if ($SETTING['DISABLE_NAME'] === 'checked') {
+    echo ' checked';
+} ?>>する</div>
 <div><b>トリップを強制非表示</b><small class="notice mt5">(※トリップ無効の場合でも投稿ログ閲覧ページからトリップを確認できます)</small></div>
-<div><input type="checkbox" value="checked" name="DISABLE_TRIP"<?php if ($SETTING['DISABLE_TRIP']=="checked") echo " checked"; ?>>する</div>
+<div><input type="checkbox" value="checked" name="DISABLE_TRIP"<?php if ($SETTING['DISABLE_TRIP'] === 'checked') {
+    echo ' checked';
+} ?>>する</div>
 <div><b>!hideによるトリップ非表示を無効化</b><small class="notice mt5">(トリップ強制表示)</small></div>
-<div><input type="checkbox" value="checked" name="FORCE_DISP_TRIP"<?php if ($SETTING['FORCE_DISP_TRIP']=="checked") echo " checked"; ?>>する</div>
+<div><input type="checkbox" value="checked" name="FORCE_DISP_TRIP"<?php if ($SETTING['FORCE_DISP_TRIP'] === 'checked') {
+    echo ' checked';
+} ?>>する</div>
 <div><b>名前欄に@転載禁止を自動的に追加</b><small class="notice mt5">転載を完全に防止するものではありません。</small></div>
-<div><input type="checkbox" value="checked" name="NAME_ARR"<?php if ($SETTING['NAME_ARR']=="checked") echo " checked"; ?>>する</div>
+<div><input type="checkbox" value="checked" name="NAME_ARR"<?php if ($SETTING['NAME_ARR'] === 'checked') {
+    echo ' checked';
+} ?>>する</div>
 <div><b>認証済ユーザーのみスレッド作成を許可</b></div>
-<div><input type="checkbox" value="checked" name="Create_Authentication_required"<?php if ($SETTING['Create_Authentication_required']=="checked") echo " checked"; ?>>する</div>
+<div><input type="checkbox" value="checked" name="Create_Authentication_required"<?php if ($SETTING['Create_Authentication_required'] === 'checked') {
+    echo ' checked';
+} ?>>する</div>
 <div><b>キャップユーザーのみスレッド作成を許可</b></div>
-<div><input type="checkbox" value="checked" name="Create_cap_only"<?php if ($SETTING['create_cap_only']=="checked") echo " checked"; ?>>する</div>
+<div><input type="checkbox" value="checked" name="Create_cap_only"<?php if ($SETTING['create_cap_only'] === 'checked') {
+    echo ' checked';
+} ?>>する</div>
 <div><b>認証済ユーザーのみ投稿を許可</b></div>
-<div><input type="checkbox" value="checked" name="Authentication_required"<?php if ($SETTING['Authentication_required']=="checked") echo " checked"; ?>>する</div>
+<div><input type="checkbox" value="checked" name="Authentication_required"<?php if ($SETTING['Authentication_required'] === 'checked') {
+    echo ' checked';
+} ?>>する</div>
 <div><b>キャップユーザーのみ投稿を許可</b></div>
-<div><input type="checkbox" value="checked" name="cap_only"<?php if ($SETTING['cap_only']=="checked") echo " checked"; ?>>する</div>
+<div><input type="checkbox" value="checked" name="cap_only"<?php if ($SETTING['cap_only'] === 'checked') {
+    echo ' checked';
+} ?>>する</div>
 <div><b>2ch専用ブラウザ</b></div>
-<div><input type="radio" name="2ch_dedicate_browsers" value="disable" <?php if ($SETTING['2ch_dedicate_browsers']=="disable") echo "checked"; ?>>無効<input type="radio" name="2ch_dedicate_browsers" value="" <?php if ($SETTING['2ch_dedicate_browsers']=="") echo "checked"; ?>>閲覧のみ有効<input type="radio" name="2ch_dedicate_browsers" value="enable" <?php if ($SETTING['2ch_dedicate_browsers']=="enable") echo "checked"; ?>>閲覧・投稿共に有効</div>
+<div><input type="radio" name="2ch_dedicate_browsers" value="disable" <?php if ($SETTING['2ch_dedicate_browsers'] === 'disable') {
+    echo 'checked';
+} ?>>無効<input type="radio" name="2ch_dedicate_browsers" value="" <?php if ($SETTING['2ch_dedicate_browsers'] === '') {
+    echo 'checked';
+} ?>>閲覧のみ有効<input type="radio" name="2ch_dedicate_browsers" value="enable" <?php if ($SETTING['2ch_dedicate_browsers'] === 'enable') {
+    echo 'checked';
+} ?>>閲覧・投稿共に有効</div>
 <div><b>過去ログを保持</b></div>
-<div><input type="checkbox" value="checked" name="disable_kakolog"<?php if ($SETTING['disable_kakolog']=="checked") echo " checked"; ?>>しない</div>
+<div><input type="checkbox" value="checked" name="disable_kakolog"<?php if ($SETTING['disable_kakolog'] === 'checked') {
+    echo ' checked';
+} ?>>しない</div>
 <div><b>スレッド最大保持数</b></div>
-<div><input type="text" value="<?=$SETTING['BBS_THREADS_LIMIT']?>" name="BBS_THREADS_LIMIT"></div>
+<div><input type="text" value="<?=$SETTING['BBS_THREADS_LIMIT'];?>" name="BBS_THREADS_LIMIT"></div>
 <div><b>タイムライン最大保持数</b></div>
-<div><input type="text" value="<?=$SETTING['LTL_LIMIT']?>" name="LTL_LIMIT"></div>
+<div><input type="text" value="<?=$SETTING['LTL_LIMIT'];?>" name="LTL_LIMIT"></div>
 <div><b>各スレッドのレス数上限</b></div>
-<div><input type="text" value="<?=$SETTING['MAX_RES']?>" name="MAX_RES"></div>
+<div><input type="text" value="<?=$SETTING['MAX_RES'];?>" name="MAX_RES"></div>
 <div><b>強制sageまでの秒数</b><small class="notice mt5">無記入で無効化</small></div>
 <div><input type="text" value="" name="BBS_FORCE_SAGE"></div>
 <div><b>スレッド作成主機能</b></div>
-<div><input type="checkbox" value="checked" name="thread_supervisor"<?php if ($SETTING['thread_supervisor']=="checked") echo " checked"; ?>>有効</div>
+<div><input type="checkbox" value="checked" name="thread_supervisor"<?php if ($SETTING['thread_supervisor'] === 'checked') {
+    echo ' checked';
+} ?>>有効</div>
 <div><b>AAを自動検出し、フォントを最適化</b></div>
-<div><input type="checkbox" name="aa_check" value="checked"<?php if ($SETTING['aa_check']=="checked") echo " checked"; ?>>する</div>
+<div><input type="checkbox" name="aa_check" value="checked"<?php if ($SETTING['aa_check'] === 'checked') {
+    echo ' checked';
+} ?>>する</div>
 <div><b>各スレッドでの設定変更コマンド類</b></div>
-<div><input type="radio" name="commands" value="checked"<?php if ($SETTING['commands'] == "checked") echo " checked"; ?>>有効<input type="radio" name="commands" value=""<?php if (!$SETTING['commands']) echo " checked"; ?>>無効</div>
+<div><input type="radio" name="commands" value="checked"<?php if ($SETTING['commands'] === 'checked') {
+    echo ' checked';
+} ?>>有効<input type="radio" name="commands" value=""<?php if (!$SETTING['commands']) {
+    echo ' checked';
+} ?>>無効</div>
 <div><b>投稿最大ログ保存件数</b><small class="notice mt5">無記入の場合は上限なし</small></div>
-<div><input type="text" value="<?=$SETTING['LOG_LIMIT']?>" name="LOG_LIMIT"></div>
+<div><input type="text" value="<?=$SETTING['LOG_LIMIT'];?>" name="LOG_LIMIT"></div>
 <!-- 以降新規追加設定 -->
 <div><b>9桁目のIDを有効にする</b></div>
-<div><input type="checkbox" value="checked" name="id_9th_char"<?php if (isset($SETTING['id_9th_char']) && $SETTING['id_9th_char']=="checked") echo " checked"; ?>>する</div>
+<div><input type="checkbox" value="checked" name="id_9th_char"<?php if ($SETTING['id_9th_char'] === 'checked') {
+    echo ' checked';
+} ?>>する</div>
 <div><b>レスの装飾機能を有効にする</b></div>
-<div><input type="checkbox" value="checked" name="res_decoration"<?php if (isset($SETTING['res_decoration']) && $SETTING['res_decoration']=="checked") echo " checked"; ?>>する</div>
+<div><input type="checkbox" value="checked" name="res_decoration"<?php if ($SETTING['res_decoration'] === 'checked') {
+    echo ' checked';
+} ?>>する</div>
 <div><b>レスの投稿日時のコンマ桁数</b></div>
 <div>
   <select name="date_comma_digit">
     <option value="0">0(表示しない)</option>
-    <option value="1"<?php if (isset($SETTING['date_comma_digit']) && $SETTING['date_comma_digit']=="1") echo " selected"; ?>>1</option>
-    <option value="2"<?php if (isset($SETTING['date_comma_digit']) && $SETTING['date_comma_digit']=="2") echo " selected"; ?>>2</option>
-    <option value="3"<?php if (isset($SETTING['date_comma_digit']) && $SETTING['date_comma_digit']=="3") echo " selected"; ?>>3</option>
+    <option value="1"<?php if ($SETTING['date_comma_digit'] === '1') {
+        echo ' selected';
+    } ?>>1</option>
+    <option value="2"<?php if ($SETTING['date_comma_digit'] === '2') {
+        echo ' selected';
+    } ?>>2</option>
+    <option value="3"<?php if ($SETTING['date_comma_digit'] === '3') {
+        echo ' selected';
+    } ?>>3</option>
   </select>
 </div>
+<div><b>TL(タイムライン)機能を有効にする</b></div>
+<div><input type="checkbox" value="checked" name="is_valid_TL"<?php if ($SETTING['is_valid_TL'] === 'checked') {
+    echo ' checked';
+} ?>>する</div>
+<div><b>!idchange, !noidコマンドを>>1から有効にする</b></div>
+<div><input type="checkbox" value="checked" name="commands_idchange_first_res"<?php if ($SETTING['commands_idchange_first_res'] === 'checked') {
+    echo ' checked';
+} ?>>する</div>
+<!--  -->
 <hr><div class="contents"><input type="submit" name="Submit" class="btn btn-primary btn-block" value="適用"></div>
 </form>
 </div>

@@ -11,6 +11,8 @@ $ip = implode('', file($PATH."deny_ip.cgi"));
 $ua = implode('', file($PATH."deny_ua.cgi"));
 $account = implode('', file($PATH."deny_account.cgi"));
 $area = implode('', file($PATH."deny_area.cgi"));
+$bbs = basename($_REQUEST['bbs']);
+$safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -24,10 +26,17 @@ $area = implode('', file($PATH."deny_area.cgi"));
 </head>
 <body>
 <div class="main">
+<form action="?bbs=<?= $safeBbs; ?>" method="post" style="margin-bottom: 4px;">
+  <input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+  <button type="submit">← 管理ページへ戻る</button>
+</form>
+<form action="?bbs=<?= $safeBbs; ?>&mode=boardsetting" method="post" style="margin-bottom: 16px;">
+  <input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+  <button type="submit">← 掲示板設定へ戻る</button>
+</form>
 <form method="post" action="?bbs=<?=$_REQUEST['bbs']?>&mode=kisei2">
 <input type="hidden" name="password" value="<?=$_REQUEST['password']?>">
 <input type="hidden" name="edit" value="yes">
-<div class="back"><a href="./admin.php">← 管理ページへ戻る</a></div>
 <h3>投稿規制</h3>
 <div><b>リモートホスト</b></div>
 <div class="notice mt5">

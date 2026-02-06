@@ -1,40 +1,42 @@
 <?php
+
 /**
  * 設定された!gobiコマンドに応じて本文に語尾を追加する処理
  *
  * @param array $SETTING 板の設定
  * @param boolean $tlonly TL判定
- * @param string $THREADS_STATES_FILE スレ状態ファイルへのパス
+ * @param array $threadState スレ状態
  */
 function applyGobiCommand(
     $SETTING,
     $tlonly,
-    $THREADS_STATES_FILE
+    $threadStates
 ) {
-    if($SETTING['commands'] !== 'checked') {
+    if ($SETTING['commands'] !== 'checked') {
         return;
     }
-    if($tlonly) {
+    if (isset($SETTING['commands-gobi']) && $SETTING['commands-gobi'] !== 'checked') {
         return;
     }
-    if (strpos($_POST['name'], '!nocmd') !== false) {
+    if ($tlonly) {
         return;
     }
-    if (!is_file($THREADS_STATES_FILE)) {
+    if (str_contains($_POST['name'], '!nocmd')) {
         return;
     }
-    $threadsStates = getThreadsStates($THREADS_STATES_FILE);
-    if($threadsStates === false) {
+    if (empty($threadStates)) {
         return;
     }
-    if(!isset($threadsStates[$_POST['thread']]['gobi'])) {
+    if (!isset($threadStates['gobi'])) {
         return;
     }
     // 元本文のみ取得 ※<hr>以降はシステムメッセージなので対象外
     $commentParts = explode('<hr>', $_POST['comment']);
     // 語尾追加
-    $gobi = $threadsStates[$_POST['thread']]['gobi'];
-    if(function_exists('replaceRmj')) {
+    $gobi = $threadStates['gobi'];
+    // rmjが有効なら適用
+    // 本文と語尾のrmj展開数を独立させるために別々に処理
+    if (function_exists('replaceRmj') && (!isset($SETTING['commands-rmj']) || $SETTING['commands-rmj'] === 'checked')) {
         $gobi = replaceRmj($gobi);
     }
     $commentParts[0] .= $gobi;
@@ -45,5 +47,5 @@ function applyGobiCommand(
 applyGobiCommand(
     $SETTING,
     $tlonly,
-    $THREADS_STATES_FILE
+    $threadStates
 );

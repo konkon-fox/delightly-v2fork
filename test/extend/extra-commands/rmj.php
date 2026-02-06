@@ -94,8 +94,7 @@ function replaceRmj($text)
             }
             // 抽選処理
             $key = array_rand($replace['items'], 1);
-            $value = $replace['items'][$key];
-            return "<b>{$value}</b>";
+            return $replace['items'][$key];
         }, $text);
     }
     return $text;
@@ -113,10 +112,13 @@ function applyRmjCommand($SETTING, $LV)
     if ($SETTING['commands'] !== 'checked') {
         return;
     }
-    if (strpos($_POST['name'], '!nocmd') !== false) {
+    if (isset($SETTING['commands-rmj']) && $SETTING['commands-rmj'] !== 'checked') {
         return;
     }
-    if (strpos($_POST['name'], '!rmj') === false && strpos($_POST['comment'], '!rmj') === false) {
+    if (str_contains($_POST['name'], '!nocmd')) {
+        return;
+    }
+    if (!str_contains($_POST['name'], '!rmj') && !str_contains($_POST['comment'], '!rmj')) {
         return;
     }
     // レベル制限
@@ -125,11 +127,11 @@ function applyRmjCommand($SETTING, $LV)
         Error("レベルが{$MIN_LV}未満のユーザーは!rmjコマンドを使えません。");
     }
     // 名前欄置換
-    if (strpos($_POST['name'], '!rmj') !== false) {
+    if (str_contains($_POST['name'], '!rmj')) {
         $_POST['name'] = replaceRmj($_POST['name']);
     }
     // 本文置換
-    if (strpos($_POST['comment'], '!rmj') !== false) {
+    if (str_contains($_POST['comment'], '!rmj')) {
         $commentParts = explode('<hr>', $_POST['comment']);
         $commentParts[0] = replaceRmj($commentParts[0]);
         if ($commentParts[0] === '') {

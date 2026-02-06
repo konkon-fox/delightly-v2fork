@@ -18,6 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['edit'] == "yes") {
  file_put_contents($setfile, json_encode($SETTING, JSON_UNESCAPED_UNICODE), LOCK_EX);
  file_put_contents($settxt, mb_convert_encoding($SET, "SJIS-win", "UTF-8"), LOCK_EX);
 }
+$bbs = basename($_REQUEST['bbs']);
+$safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -31,10 +33,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['edit'] == "yes") {
 </head>
 <body>
 <div class="main">
+<form action="?bbs=<?= $safeBbs; ?>" method="post" style="margin-bottom: 4px;">
+  <input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+  <button type="submit">← 管理ページへ戻る</button>
+</form>
+<form action="?bbs=<?= $safeBbs; ?>&mode=boardsetting" method="post" style="margin-bottom: 16px;">
+  <input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+  <button type="submit">← 掲示板設定へ戻る</button>
+</form>
 <form method="post" action="?bbs=<?=$_REQUEST['bbs']?>&mode=kisei">
 <input type="hidden" name="password" value="<?=$_REQUEST['password']?>">
 <input type="hidden" name="edit" value="yes">
-<div class="back"><a href="./admin.php">← 管理ページへ戻る</a></div>
 <div><b>UNICODE</b>(絵文字等)</div>
 <div><input type="radio" name="BBS_UNICODE" value="deny" <?php if ($SETTING['BBS_UNICODE']=="deny") echo "checked"; ?>>禁止<br><input type="radio" name="BBS_UNICODE" value="change" <?php if ($SETTING['BBS_UNICODE']=="change") echo "checked"; ?>>？に変換<br><input type="radio" name="BBS_UNICODE" value="pass" <?php if ($SETTING['BBS_UNICODE']=="pass") echo "checked"; ?>>タイトルのみ？に変換<br><input type="radio" name="BBS_UNICODE" value="checked" <?php if ($SETTING['BBS_UNICODE']=="checked") echo "checked"; ?>>許可</div>
 <div><b>短時間連続投稿制限</b></div>

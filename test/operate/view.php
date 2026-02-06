@@ -13,6 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['edit'] == "yes") {
  $sjis = mb_convert_encoding($SETTING["BBS_TITLE"], "SJIS-win", "UTF-8");
  file_put_contents($PATH."index.php", "<?php \$BBS_TITLE_UTF8 = \"{$utf8}\";\$BBS_TITLE_SJIS = \"{$sjis}\";include \"../test/board/index.php\";?>");
 }
+$bbs = basename($_REQUEST['bbs']);
+$safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -25,11 +27,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['edit'] == "yes") {
 <link rel="stylesheet" href="/static/a.css">
 </head>
 <body>
+<form action="?bbs=<?= $safeBbs; ?>" method="post" style="margin-bottom: 4px;">
+  <input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+  <button type="submit">← 管理ページへ戻る</button>
+</form>
+<form action="?bbs=<?= $safeBbs; ?>&mode=boardsetting" method="post" style="margin-bottom: 16px;">
+  <input type="hidden" name="password" value="<?=htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');?>">
+  <button type="submit">← 掲示板設定へ戻る</button>
+</form>
 <div class="main">
 <form method="post" action="/test/admin.php?bbs=<?=$_REQUEST['bbs']?>&mode=view">
 <input type="hidden" name="password" value="<?=$_REQUEST['password']?>">
 <input type="hidden" name="edit" value="yes">
-<div class="back"><a href="./admin.php">← 管理ページへ戻る</a></div>
 <div><b>掲示板タイトル</b></div>
 <div><input type="text" name="BBS_TITLE" value="<?=$SETTING['BBS_TITLE']?>"></div>
 <div><b>背景</b></div>
