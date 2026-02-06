@@ -3,6 +3,7 @@ error_reporting(E_COMPILE_ERROR | E_RECOVERABLE_ERROR | E_ERROR | E_CORE_ERROR |
 
 require './utils/get-json-file.php';
 require './utils/safe-file-get-contents.php';
+require './extend/SystemDB.php';
 
 $settingFile = './operate/auth-settings.json';
 if (is_file($settingFile)) {
@@ -46,66 +47,67 @@ $authStatus = 'failed';
 
 /**
  * 認証ログを記録する関数
- *
- * @param 'success'|'failed' $authStatus 認証の成功判定
- * @param string $WrtAgreementKey 同意鍵
- * @param string $IP IPアドレス
- * @param string $HOST ホスト
- * @param string $isp プロバイダ
- * @param string $asname
- * @param string $UA UA
- * @param string $CH_UA Client Hints
- * @param string $clientId Client ID
- * @param string $enFile 環境ファイル名
+ * @param array{
+ *   status: string,
+ *   wrt_agreement_key: string,
+ *   ip: string,
+ *   host: string,
+ *   isp: string,
+ *   asname: string,
+ *   ua: string,
+ *   ch_ua: string,
+ *   client_id: string,
+ *   en_file: string,
+ *   posted_at: int,
+ * } $data 認証時データ
  */
-function recordLog(
-    $authStatus,
-    $WrtAgreementKey,
-    $IP,
-    $HOST,
-    $isp,
-    $asname,
-    $UA,
-    $CH_UA,
-    $clientId,
-    $enFile
-) {
-    // 定数定義
-    $LOG_LIMITS = 10000;
-    // ログを追記
-    $nowDate = date('Y-m-d H:i:s');
-    $log = $nowDate . '<>' . $authStatus . '<>' . $WrtAgreementKey . '<>' . $IP . '<>' . $HOST . '<>' . $isp . '<>' . $asname . '<>' . $UA . '<>' . $CH_UA . '<>' . $clientId . '<>' . $enFile . "\n";
-    $logFile = './HAP/log.cgi';
-    file_put_contents($logFile, $log, FILE_APPEND | LOCK_EX);
-    // ログの数チェック
-    $fp = fopen($logFile, 'c+b');
-    if (!$fp) {
-        return;
-    }
-    if (!flock($fp, LOCK_EX)) {
-        fclose($fp);
-        return;
-    }
-    $lines = [];
-    while (($line = fgets($fp)) !== false) {
-        $lines[] = $line;
-    }
-    // 規定数未満なので終了
-    if (count($lines) < $LOG_LIMITS) {
+function recordLog($data)
+{
+    $db = new SystemDB();
+    if ($db->isSQLiteMode()) {
+        $nowDate = date('Y-m-d H:i:s', $data['posted_at']);
+        $accountId = $data['wrt_agreement_key'] === 'null' ? 'null' : hash('sha256', hash('sha256', md5($data['wrt_agreement_key']) . preg_replace('/[^0-9]/', '', md5($data['wrt_agreement_key']))));
+        $data['date'] = $nowDate;
+        $data['account_id'] = $accountId;
+        $db->addToAuthLog($data);
+    } else {// ファイル形式
+        // 定数定義
+        $LOG_LIMITS = 10000;
+        // ログを追記
+        $nowDate = date('Y-m-d H:i:s', $data['posted_at']);
+        $log = $nowDate . '<>' . $data['status'] . '<>' . $data['wrt_agreement_key'] . '<>' . $data['ip'] . '<>' . $data['host'] . '<>' . $data['isp'] . '<>' . $data['asname'] . '<>' . $data['ua'] . '<>' . $data['ch_ua'] . '<>' . $data['client_id'] . '<>' . $data['en_file'] . "\n";
+        $logFile = './HAP/log.cgi';
+        file_put_contents($logFile, $log, FILE_APPEND | LOCK_EX);
+        // ログの数チェック
+        $fp = fopen($logFile, 'c+b');
+        if (!$fp) {
+            return;
+        }
+        if (!flock($fp, LOCK_EX)) {
+            fclose($fp);
+            return;
+        }
+        $lines = [];
+        while (($line = fgets($fp)) !== false) {
+            $lines[] = $line;
+        }
+        // 規定数未満なので終了
+        if (count($lines) < $LOG_LIMITS) {
+            flock($fp, LOCK_UN);
+            fclose($fp);
+            return;
+        }
+        // 古いlogを削除する処理
+        $offset = -($LOG_LIMITS - 100);
+        $newLines = array_slice($lines, $offset);
+        // ファイルに書き込み
+        rewind($fp);
+        ftruncate($fp, 0);
+        fwrite($fp, implode('', $newLines));
+        // ファイル閉じる
         flock($fp, LOCK_UN);
         fclose($fp);
-        return;
     }
-    // 古いlogを削除する処理
-    $offset = -($LOG_LIMITS - 100);
-    $newLines = array_slice($lines, $offset);
-    // ファイルに書き込み
-    rewind($fp);
-    ftruncate($fp, 0);
-    fwrite($fp, implode('', $newLines));
-    // ファイル閉じる
-    flock($fp, LOCK_UN);
-    fclose($fp);
 }
 
 // UA初期化
@@ -267,9 +269,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // クッキーがある場合はそれを返す
     if (isset($_COOKIE['WrtAgreementKey'])) {
-        $WrtAgreementKey = $_COOKIE['WrtAgreementKey'];
-        setcookie('WrtAgreementKey', $WrtAgreementKey, $NOWTIME + 31536000, '/');
-        exit('認証に成功しました。Web版をご利用の場合はそのまま投稿できます<br>2ch専用ブラウザでの投稿時やCookie失効時は以下のキーをE-mail欄に入力してご利用ください<br>※E-mail欄は外部には表示されません<input name="mcode" onfocus="this.select()" value="#' . $WrtAgreementKey . '" style="display:block;margin:auto;width:95%;" readonly=""><hr><a href="#" onclick="window.history.go(-1);">前ページに戻る</a><br><a href="#" onclick="window.history.go(-2);">2つ前のページに戻る</a>');
+        $wrtAgreementKey = $_COOKIE['WrtAgreementKey'];
+        setcookie('WrtAgreementKey', $wrtAgreementKey, $NOWTIME + 31536000, '/');
+        exit('認証に成功しました。Web版をご利用の場合はそのまま投稿できます<br>2ch専用ブラウザでの投稿時やCookie失効時は以下のキーをE-mail欄に入力してご利用ください<br>※E-mail欄は外部には表示されません<input name="mcode" onfocus="this.select()" value="#' . $wrtAgreementKey . '" style="display:block;margin:auto;width:95%;" readonly=""><hr><a href="#" onclick="window.history.go(-1);">前ページに戻る</a><br><a href="#" onclick="window.history.go(-2);">2つ前のページに戻る</a>');
     }
 
     // --------------------------------------------
@@ -393,7 +395,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     # 新規鍵を生成する
-    $WrtAgreementKey = bin2hex(random_bytes(4));
+    $wrtAgreementKey = bin2hex(random_bytes(4));
     # 記録ファイルが設置された場所。
     $HAP_PATH = './HAP/';
 
@@ -418,48 +420,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ホスティング判定された回線からの認証を拒否
     $useStrictAuth = $settings['use-strict-auth'] ?? 'checked' === 'checked';
     if ($useStrictAuth && $slip === 'H') {
-        recordLog(
-            $authStatus,
-            'null', // $WrtAgreementKey
-            $IP,
-            $HOST,
-            $area['isp'],
-            $area['asname'],
-            $_SERVER['HTTP_USER_AGENT'],
-            $CH_UA,
-            'null', // $clientId
-            'null' // $enFile
-        );
+        $data = [
+            'status' => $authStatus,
+            'wrt_agreement_key' => 'null',
+            'ip' => $IP ?? 'unknown',
+            'host' => $HOST ?? 'unknown',
+            'isp' => $area['isp'] ?? 'unknown',
+            'asname' => $area['asname'] ?? 'unknown',
+            'ua' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+            'ch_ua' => $CH_UA ?? 'unknown',
+            'client_id' => 'null',
+            'en_file' => 'null',
+            'posted_at' => $NOWTIME,
+        ];
+        recordLog($data);
         exit('【認証エラー】ご使用の回線（海外/VPN/データセンター等）からの認証は現在制限されています。家庭用回線またはモバイル回線からお試しください。');
     }
 
     // 環境控えファイル更新が30日間以内なら同一キーを返す
     if (is_file($enPath)) {
         if (filemtime($enPath) + 30 * 24 * 60 * 60 > $NOWTIME) {
-            $WrtAgreementKey = trim(safe_file_get_contents($enPath));
+            $wrtAgreementKey = trim(safe_file_get_contents($enPath));
         }
     }
     // 環境控えファイルを更新
-    file_put_contents($enPath, $WrtAgreementKey, LOCK_EX);
+    file_put_contents($enPath, $wrtAgreementKey, LOCK_EX);
 
     // ログ記録
     $authStatus = 'success';
     $clientId = substr(md5($range . $area['asname'] . $CH_UA . $ACCEPT), 0, 7);
-    recordLog(
-        $authStatus,
-        $WrtAgreementKey,
-        $IP,
-        $HOST,
-        $area['isp'],
-        $area['asname'],
-        $_SERVER['HTTP_USER_AGENT'],
-        $CH_UA,
-        $clientId,
-        $enFile
-    );
+    $data = [
+        'status' => $authStatus,
+        'wrt_agreement_key' => $wrtAgreementKey,
+        'ip' => $IP ?? 'unknown',
+        'host' => $HOST ?? 'unknown',
+        'isp' => $area['isp'] ?? 'unknown',
+        'asname' => $area['asname'] ?? 'unknown',
+        'ua' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+        'ch_ua' => $CH_UA ?? 'unknown',
+        'client_id' => $clientId,
+        'en_file' => $enFile,
+        'posted_at' => $NOWTIME,
+    ];
+    recordLog($data);
 
     // アカウントID算出
-    $accountId = hash('sha256', hash('sha256', md5($WrtAgreementKey) . preg_replace('/[^0-9]/', '', md5($WrtAgreementKey))));
+    $accountId = hash('sha256', hash('sha256', md5($wrtAgreementKey) . preg_replace('/[^0-9]/', '', md5($wrtAgreementKey))));
 
     // ユーザーファイル作成
     $file = $HAP_PATH . $accountId . '.cgi';
@@ -487,8 +493,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          ];
         file_put_contents($file, json_encode($HAP, JSON_UNESCAPED_UNICODE), LOCK_EX);
     }
-    setcookie('WrtAgreementKey', $WrtAgreementKey, $NOWTIME + 31536000, '/');
-    exit('認証に成功しました。Web版をご利用の場合はそのまま投稿できます<br>2ch専用ブラウザでの投稿時やCookie失効時は以下のキーをE-mail欄に入力してご利用ください<br>※E-mail欄は外部には表示されません<input name="mcode" onfocus="this.select()" value="#' . $WrtAgreementKey . '" style="display:block;margin:auto;width:95%;" readonly=""><hr><a href="#" onclick="window.history.go(-1);">前ページに戻る</a><br><a href="#" onclick="window.history.go(-2);">2つ前のページに戻る</a>');
+    setcookie('WrtAgreementKey', $wrtAgreementKey, $NOWTIME + 31536000, '/');
+    exit('認証に成功しました。Web版をご利用の場合はそのまま投稿できます<br>2ch専用ブラウザでの投稿時やCookie失効時は以下のキーをE-mail欄に入力してご利用ください<br>※E-mail欄は外部には表示されません<input name="mcode" onfocus="this.select()" value="#' . $wrtAgreementKey . '" style="display:block;margin:auto;width:95%;" readonly=""><hr><a href="#" onclick="window.history.go(-1);">前ページに戻る</a><br><a href="#" onclick="window.history.go(-2);">2つ前のページに戻る</a>');
 
 }
 ?>

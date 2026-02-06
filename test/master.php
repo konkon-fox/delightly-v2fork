@@ -27,7 +27,7 @@ if (isset($_POST['code'])) {
     if (empty($error)) {
         if ($isAuthed) {
             //設定の一覧ページ
-            require './operate/master-settinglist.php';
+            require './operate/master/master-settinglist.php';
             exit;
         } else {
             $error = 'パスワードが違います。';

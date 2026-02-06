@@ -40,6 +40,9 @@ server {
     location ~ ^/[^/]+/threads-states/ {
         deny all;
     }
+    location ~ ^/[^/]+/db/ {
+        deny all;
+    }
 
     # /test/.htaccessに相当
     location ~ ^/test/(bbs-main\.php|createcode\.cgi)$ {

@@ -1,6 +1,6 @@
 <?php
 
-include './utils/get-json-file.php';
+require_once './utils/get-json-file.php';
 
 $error = '';
 

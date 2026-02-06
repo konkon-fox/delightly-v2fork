@@ -1,19 +1,49 @@
 <?php
 if (isset($_GET['mode'])) {
     if ($_GET['mode'] === 'update-password') {
-        require './operate/update-password.php';
+        require './operate/master/update-password.php';
         exit;
     }
     if ($_GET['mode'] === 'system-settings') {
-        require './operate/system-settings.php';
+        require './operate/master/system-settings.php';
         exit;
     }
     if ($_GET['mode'] === 'auth-settings') {
-        require './operate/auth-settings.php';
+        require './operate/master/auth-settings.php';
         exit;
     }
     if ($_GET['mode'] === 'auth-logs') {
-        require './operate/auth-logs.php';
+        require './operate/master/auth-logs.php';
+        exit;
+    }
+    if ($_GET['mode'] === 'key-error-logs') {
+        require './operate/master/key-error-logs.php';
+        exit;
+    }
+    if ($_GET['mode'] === 'migration-list') {
+        require './operate/master/migration-list.php';
+        exit;
+    }
+
+    // migration-list
+    if ($_GET['mode'] === 'migration3to4') {
+        require './operate/master/migration3to4.php';
+        exit;
+    }
+    if ($_GET['mode'] === 'migration2to4') {
+        require './operate/master/migration2to4.php';
+        exit;
+    }
+    if ($_GET['mode'] === 'migration-post-log') {
+        require './operate/master/migration-post-log.php';
+        exit;
+    }
+    if ($_GET['mode'] === 'migration-error-log') {
+        require './operate/master/migration-error-log.php';
+        exit;
+    }
+    if ($_GET['mode'] === 'migration-auth-log') {
+        require './operate/master/migration-auth-log.php';
         exit;
     }
 }
@@ -52,6 +82,14 @@ if (isset($_GET['mode'])) {
         <form action="?mode=auth-logs" method="POST" class="list-group-item list-group-item-action">
           <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
           <button class="btn stretched-link">認証ログ閲覧</button>
+        </form>
+        <form action="?mode=key-error-logs" method="POST" class="list-group-item list-group-item-action">
+          <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
+          <button class="btn stretched-link">同意鍵エラーログ閲覧</button>
+        </form>
+        <form action="?mode=migration-list" method="POST" class="list-group-item list-group-item-action">
+          <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
+          <button class="btn stretched-link">システム移行</button>
         </form>
       </div>
     </main>

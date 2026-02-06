@@ -183,7 +183,8 @@ if ($_POST['del']) {
                     $targetThread['title'],
                     $targetThread['number'],
                     $KFILE,
-                    $bbs
+                    $bbs,
+                    time()
                 );
             }
 

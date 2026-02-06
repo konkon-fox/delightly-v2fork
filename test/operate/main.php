@@ -5,6 +5,8 @@ $SETTING['res_decoration'] ??= '';
 $SETTING['date_comma_digit'] ??= '0';
 $SETTING['is_valid_TL'] ??= 'checked';
 $SETTING['commands_idchange_first_res'] ??= 'checked';
+$SETTING['post_log_ttl'] ??= '30';
+$SETTING['error_log_ttl'] ??= '30';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['edit'] === 'yes') {
     // チェックボックスのキャンセル値
@@ -224,6 +226,10 @@ $safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
 <div><input type="checkbox" value="checked" name="commands_idchange_first_res"<?php if ($SETTING['commands_idchange_first_res'] === 'checked') {
     echo ' checked';
 } ?>>する</div>
+<div><b>投稿ログ保存期間(日)</b></div>
+<div><input type="number" value="<?=$SETTING['post_log_ttl'];?>" name="post_log_ttl"></div>
+<div><b>エラーログ保存期間(日)</b></div>
+<div><input type="number" value="<?=$SETTING['error_log_ttl'];?>" name="error_log_ttl"></div>
 <!--  -->
 <hr><div class="contents"><input type="submit" name="Submit" class="btn btn-primary btn-block" value="適用"></div>
 </form>

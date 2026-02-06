@@ -56,16 +56,16 @@ if (isset($SETTING['date_comma_digit']) && $SETTING['date_comma_digit'] !== '0')
     $TIME = date('H:i:s', $NOWMICROTIME);
 }
 
-require './utils/get-json-file.php';
-require './utils/safe-file-get-contents.php';
-require './utils/safe-file.php';
+require_once './utils/get-json-file.php';
+require_once './utils/safe-file-get-contents.php';
+require_once './utils/safe-file.php';
 
 // 認証設定
 $settingFile = './operate/auth-settings.json';
 if (is_file($settingFile)) {
     $settings = getJsonFile($settingFile);
     if ($settings === false) {
-        Error('認証設定ファイルの取得に失敗しました。');
+        Error2('認証設定ファイルの取得に失敗しました。');
     }
 } else {
     $settings = [];
@@ -82,7 +82,7 @@ $systemSettingsFile = './operate/system-settings.json';
 if (is_file($systemSettingsFile)) {
     $systemSettings = getJsonFile($systemSettingsFile);
     if ($systemSettings === false) {
-        Error('システム設定ファイルの取得に失敗しました。');
+        Error2('システム設定ファイルの取得に失敗しました。');
     }
 } else {
     $systemSettings = [];
@@ -92,7 +92,7 @@ $systemSettings['enable_host_lookup'] ??= '';
 
 // ホストチェック
 if ($systemSettings['enable_host_lookup'] === 'checked') {
-    require './extend/get-host-by-ip.php';
+    require_once './extend/get-host-by-ip.php';
     $HOST = getHostByIp($NOWTIME);
 } else {
     $HOST = $_SERVER['REMOTE_ADDR'];
@@ -149,6 +149,19 @@ if (!getenv('SKIP_VERIFICATION')) {
             Error2('invalid:ref1');
         }
     }
+}
+
+// 同意鍵検証
+require_once './extend/validate-wrt-agreement-key.php';
+/** @var array{account_id:string, hap_file:string} */
+$validateKeyResult = validateWrtAgreementKey($NOWTIME);
+$accountid = $validateKeyResult['account_id'];
+$hapfile = $validateKeyResult['hap_file'];
+
+// ユーザーデータを取得
+$HAP = getJsonFile($hapfile);
+if ($HAP === false) {
+    Error('ユーザーデータの取得に失敗しました。');
 }
 
 // IPv6に対応したサーバ用
@@ -431,28 +444,7 @@ if ($SETTING['DISABLE_NAME'] === 'checked') {
     $_POST['name'] = '';
 }
 
-// 同意鍵
-if (empty($_COOKIE['WrtAgreementKey'])) {
-    $_COOKIE['WrtAgreementKey'] = str_replace('#', '', $_POST['mail']);
-}
-if (!$_COOKIE['WrtAgreementKey']) {
-    Error('投稿するには同意が必要です <a href="http://' . $_SERVER['HTTP_HOST'] . '/test/auth.php">http://' . $_SERVER['HTTP_HOST'] . '/test/auth.php</a>');
-}
-$clientid = hash('sha256', hash('sha256', md5($_COOKIE['WrtAgreementKey']) . preg_replace('/[^0-9]/', '', md5($_COOKIE['WrtAgreementKey']))));
-$hapfile = $HAP_PATH . $clientid . '.cgi'; // 新方式
-if (!is_file($hapfile)) {
-    $hapfile = $HAP_PATH . $_COOKIE['WrtAgreementKey'] . '.cgi';
-} // 旧方式の記録ファイル
-if (!is_file($hapfile)) {
-    Error('鍵が失効しています:' . $_COOKIE['WrtAgreementKey']);
-}
-setcookie('WrtAgreementKey', $_COOKIE['WrtAgreementKey'], $NOWTIME + 31536000, '/');
-// 記録されたデータを取得
-$HAP = getJsonFile($hapfile);
-if ($HAP === false) {
-    Error('ユーザーデータの取得に失敗しました。');
-}
-$WrtAgreementKey = substr(md5($HAP['range'] . $HAP['provider'] . $HAP['CH_UA'] . $HAP['ACCEPT']), 0, 7);
+$clientId = substr(md5($HAP['range'] . $HAP['provider'] . $HAP['CH_UA'] . $HAP['ACCEPT']), 0, 7);
 
 // 指定Lv以上で自動承認
 $ltime = $NOWTIME - $HAP['first'];
@@ -481,7 +473,7 @@ if (is_file($PATH . 'authorize.cgi')) {
         if (!$tmp || strpos(substr($tmp, 0, 1), '#') !== false) {
             continue;
         }
-        if ($WrtAgreementKey === $tmp || stristr($HOST, $tmp) !== false || stristr($_SERVER['REMOTE_ADDR'], $tmp) !== false) {
+        if ($clientId === $tmp || stristr($HOST, $tmp) !== false || stristr($_SERVER['REMOTE_ADDR'], $tmp) !== false) {
             $authorized = true;
             break;
         }
@@ -534,7 +526,7 @@ if (preg_match("/([^\#]*)\#(.+)/", $_POST['mail'], $ca)) {
                     $authorized = true;
                 }
                 if ($a1 === 'authorized') {
-                    $WrtAgreementKey = $name1;
+                    $clientId = $name1;
                 }
                 if ($caid) {
                     $CAPID = $caid;
@@ -572,7 +564,7 @@ $SLIP_SP = $MM = $WF = false;
 
 // ホストを逆引きしていない場合新slip(末尾)に置き換え
 if ($systemSettings['enable_host_lookup'] !== 'checked') {
-    require './extend/get-end-char.php';
+    require_once './extend/get-end-char.php';
     $slip = getEndChar();
 }
 
@@ -651,7 +643,7 @@ if ($SETTING['timeinterval'] && !$tlonly && !$newthread) {
  */
 // $THREAD_STATES_FILE = $PATH.'threads-states.cgi'; 廃止
 $THREAD_STATES_FILE = "{$THREAD_STATES_PATH}/{$_POST['thread']}.json";
-include './extend/extra-commands/utilities/ThreadStatesUpdater.php';
+require_once './extend/extra-commands/utilities/ThreadStatesUpdater.php';
 $threadStatesUpdater = new ThreadStatesUpdater($THREAD_STATES_FILE);
 $threadStates = $threadStatesUpdater->get();
 if ($threadStates === false) {
@@ -681,7 +673,7 @@ if (!$newthread && !$tlonly) {
 }
 
 // システムメッセージ用関数
-include './extend/extra-commands/utilities/add-system-message.php';
+require_once './extend/extra-commands/utilities/add-system-message.php';
 // !ninkeyコマンド
 @include './extend/extra-commands/ninkey.php';
 // !stickyコマンド
@@ -1139,7 +1131,7 @@ if (!$admin) {
             if (strpos(substr($kw, 0, 1), '/') === false) {
                 $kw = '/' . $kw . '/';
             } // 規制を発動するワード
-            if (preg_match($kisei, $WrtAgreementKey)) {
+            if (preg_match($kisei, $clientId)) {
                 if ((!$kt || preg_match($kt, $subject)) && (!$kw || preg_match($kw, $_POST['name'] . $_POST['mail'] . $_POST['comment'] . $_POST['title']))) {
                     Error('BANされています');
                 }
@@ -1173,7 +1165,7 @@ if (!$tlonly && $SETTING['threadcheck'] === 'checked') {
         foreach ($IP as $tmp) {
             $tmp = trim($tmp);
             list($time1, $addr1, $c1) = explode('<>', $tmp);
-            if ($NOWTIME < $time1 + $SETTING['threadlimit'] && ($IP_ADDR === $addr1 || $WrtAgreementKey === $c1)) {
+            if ($NOWTIME < $time1 + $SETTING['threadlimit'] && ($IP_ADDR === $addr1 || $clientId === $c1)) {
                 $count++;
             }
         }
@@ -1181,7 +1173,7 @@ if (!$tlonly && $SETTING['threadcheck'] === 'checked') {
     if ($count >= $SETTING['timecover']) {
         Error('このスレッド内で一定時間内に投稿可能な上限に達しました');
     }
-    array_unshift($IP, $NOWTIME . '<>' . $IP_ADDR . '<>' . $WrtAgreementKey);
+    array_unshift($IP, $NOWTIME . '<>' . $IP_ADDR . '<>' . $clientId);
     while (count($IP) > $SETTING['threadcount']) {
         array_pop($IP);
     }
@@ -1217,7 +1209,7 @@ if ($SETTING['timecheck'] === 'checked') {
         foreach ($IP as $tmp) {
             $tmp = trim($tmp);
             list($time1, $addr1, $c1) = explode('<>', $tmp);
-            if ($NOWTIME < $time1 + $SETTING['timelimit'] && ($IP_ADDR === $addr1 || $WrtAgreementKey === $c1)) {
+            if ($NOWTIME < $time1 + $SETTING['timelimit'] && ($IP_ADDR === $addr1 || $clientId === $c1)) {
                 $count++;
             }
         }
@@ -1225,7 +1217,7 @@ if ($SETTING['timecheck'] === 'checked') {
     if ($count >= $SETTING['timeclose']) {
         Error('一定時間内に投稿可能な上限に達しました');
     }
-    array_unshift($IP, $NOWTIME . '<>' . $IP_ADDR . '<>' . $WrtAgreementKey);
+    array_unshift($IP, $NOWTIME . '<>' . $IP_ADDR . '<>' . $clientId);
     while (count($IP) > $SETTING['timecount']) {
         array_pop($IP);
     }
@@ -1378,7 +1370,7 @@ if ($newthread && !$admin) {
             if (strpos(substr($kw, 0, 1), '/') === false) {
                 $kw = '/' . $kw . '/';
             } // 規制を発動するワード
-            if (preg_match($kisei, $WrtAgreementKey)) {
+            if (preg_match($kisei, $clientId)) {
                 if ((!$kt || preg_match($kt, $_POST['title'])) && (!$kw || preg_match($kw, $_POST['name'] . $_POST['mail'] . $_POST['comment'] . $_POST['title']))) {
                     Error('あなたはスレッドを作成することができません');
                 }
@@ -1406,12 +1398,12 @@ if ($newthread) {
             foreach ($IP as $tmp) {
                 $tmp = trim($tmp);
                 list($t1, $p1, $c1) = explode('<>', $tmp);
-                if ($NOWTIME < $t1 + $SETTING['JUNBAN_LIMIT'] && ($IP_ADDR === $p1 || $WrtAgreementKey === $c1)) {
+                if ($NOWTIME < $t1 + $SETTING['JUNBAN_LIMIT'] && ($IP_ADDR === $p1 || $clientId === $c1)) {
                     Error('スレッド作成の順番待ち中です');
                 }
             }
         }
-        array_unshift($IP, $NOWTIME . '<>' . $IP_ADDR . '<>' . $WrtAgreementKey);
+        array_unshift($IP, $NOWTIME . '<>' . $IP_ADDR . '<>' . $clientId);
         while (count($IP) > $SETTING['THREAD_JUNBAN']) {
             array_pop($IP);
         }
@@ -1506,7 +1498,7 @@ if ($SETTING['fusianasan'] === 'name' && !$authorized && !$admin) {
 }
 // 強制ClientID表示
 elseif ($SETTING['fusianasan'] === 'id' && !$authorized && !$admin) {
-    $M .= " </b>($WrtAgreementKey)<b>";
+    $M .= " </b>($clientId)<b>";
 }
 
 // スレッド主表示
@@ -1523,7 +1515,7 @@ if ($newthread && $SETTING['createid'] === 'checked' && $SETTING['id'] && !$admi
 // fusianasanでホスト表示
 $_POST['name'] = str_replace('fusianasan', ' </b>(' . $HOST . ')<b>', $_POST['name']);
 // ClientID表示
-$_POST['name'] = str_replace('!clientid', ' </b>(' . $WrtAgreementKey . ')<b>', $_POST['name']);
+$_POST['name'] = str_replace('!clientid', ' </b>(' . $clientId . ')<b>', $_POST['name']);
 // 県名表示
 $_POST['name'] = str_replace('!ken', ' </b>(' . $HAP['region'] . ')<b>', $_POST['name']);
 // ID表示
@@ -1820,7 +1812,8 @@ if (!$sage) {
     fclose($tlDatHandle);
 }
 
-include './extend/archive-thread.php';
+require_once './extend/KakologDB.php';
+require_once './extend/archive-thread.php';
 
 // スレッド一覧 (subject.json)
 if (!$tlonly) {
@@ -1900,7 +1893,8 @@ if (!$tlonly) {
                     $thread['title'],
                     $thread['number'],
                     $PATH . 'dat/' . $thread['thread'] . '_kisei.cgi',
-                    $_POST['board']
+                    $_POST['board'],
+                    $NOWTIME
                 );
             } else {
                 // 順番そのまま
@@ -1928,7 +1922,8 @@ if (!$tlonly) {
                         $PAGEFILE[$start]['title'],
                         $PAGEFILE[$start]['number'],
                         $PATH . 'dat/' . $PAGEFILE[$start]['thread'] . '_kisei.cgi',
-                        $_POST['board']
+                        $_POST['board'],
+                        $NOWTIME
                     );
                 }
                 $PAGEFILE = array_slice($PAGEFILE, 0, $SETTING['BBS_THREADS_LIMIT']);
@@ -1963,41 +1958,7 @@ if (!$tlonly) {
 }
 
 // 投稿ログ
-$LOG_LIMIT = 10000;
-if ($SETTING['LOG_LIMIT'] !== '') {
-    $LOG_LIMIT = min((int) $SETTING['LOG_LIMIT'], $LOG_LIMIT);
-    if ($LOG_LIMIT < 0) {
-        $LOG_LIMIT = 0;
-    }
-}
-$logFileHandle = fopen($LOGFILE, 'a+');
-if (flock($logFileHandle, LOCK_EX)) {
-    // 新規ログを追記
-    $newLog = $_POST['name'] . '<>' . $_POST['mail'] . '<>' . $DATE . ' ' . $ID . '<>' . $_POST['comment'] . '<>' . $subject . '<>' . $_POST['thread'] . '<>' . $number . '<>' . $HOST . '<>' . $_SERVER['REMOTE_ADDR'] . '<>' . $_SERVER['HTTP_USER_AGENT'] . '<>' . htmlspecialchars($CH_UA, ENT_NOQUOTES, 'UTF-8') . '<>' . htmlspecialchars($ACCEPT, ENT_NOQUOTES, 'UTF-8') . '<>' . $WrtAgreementKey . '<>' . $LV . '<>' . $info . "\n";
-    fwrite($logFileHandle, $newLog);
-    // ログの行数確認
-    rewind($logFileHandle);
-    for ($lineCount = 0; fgets($logFileHandle); $lineCount++);
-    if ($lineCount > $LOG_LIMIT + 100) {
-        // ログ縮小処理用にファイルを開き直す
-        flock($logFileHandle, LOCK_UN);
-        fclose($logFileHandle);
-        $logFileHandle = fopen($LOGFILE, 'c+');
-        // 古いログを削除
-        if (flock($logFileHandle, LOCK_EX)) {
-            $logLines = [];
-            while (($logLine = fgets($logFileHandle)) !== false) {
-                $logLines[] = $logLine;
-            }
-            $logLines = array_slice($logLines, $lineCount - $LOG_LIMIT);
-            ftruncate($logFileHandle, 0);
-            rewind($logFileHandle);
-            fwrite($logFileHandle, implode('', $logLines));
-        }
-    }
-}
-flock($logFileHandle, LOCK_UN);
-fclose($logFileHandle);
+require_once './extend/record-post-log.php';
 
 // 記録
 $HAP['last'] = $NOWTIME;
