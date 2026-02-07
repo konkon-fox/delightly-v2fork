@@ -11,15 +11,17 @@ if (is_file($settingFile)) {
 if ($settings === false) {
     exit('認証設定の取得に失敗しました。');
 }
+
+// 初期値
+$settings['turnstile-sitekey'] ??= '';
+$settings['turnstile-secretkey'] ??= '';
+$settings['use-cloudflare'] ??= 'checked';
+$settings['use-strict-auth'] ??= 'checked';
+$settings['use-browser-fingerprint'] ??= '';
+$settings['proxycheck-apikey'] ??= '';
+
 if ($_POST['edit'] === 'true') {
-    $settingNames = [
-        'turnstile-sitekey',
-        'turnstile-secretkey',
-        'use-cloudflare',
-        'use-strict-auth',
-        'use-browser-fingerprint',
-    ];
-    foreach ($settingNames as $settingName) {
+    foreach ($settings as $settingName => $_) {
         if (isset($_POST[$settingName])) {
             $settings[$settingName] = $_POST[$settingName];
         } else {
@@ -65,93 +67,116 @@ if ($_POST['edit'] === 'true') {
 					name="edit"
 					value="true"
 				/>
-				<div class="d-flex flex-column row-gap-3 align-items-start">
-					<div class="w-100">
+				<ul class="list-group">
+					<li class="list-group-item">
+						<div>
+							<label
+								for="turnstile-sitekey"
+								class="form-label"
+								>Turnstile Sitekey</label
+							>
+							<input
+								type="text"
+								class="form-control"
+								id="turnstile-sitekey"
+								name="turnstile-sitekey"
+								placeholder="1x00000000000000000000AA"
+								value="<?= isset($settings['turnstile-sitekey']) ? $settings['turnstile-sitekey'] : ''; ?>"
+							/>
+						</div>
+						<div class="mt-2">
+							<label
+								for="turnstile-secretkey"
+								class="form-label"
+								>Turnstile Secret key</label
+							>
+							<input
+								type="text"
+								class="form-control"
+								id="turnstile-secretkey"
+								name="turnstile-secretkey"
+								placeholder="1x0000000000000000000000000000000AA"
+								value="<?= isset($settings['turnstile-secretkey']) ? $settings['turnstile-secretkey'] : ''; ?>"
+							/>
+						</div>
+					</li>
+					<li class="list-group-item">
 						<label
-							for="turnstile-sitekey"
+							for="proxycheck-apikey"
 							class="form-label"
-							>Turnstile Sitekey</label
+							>proxycheck.io API Key</label
 						>
 						<input
 							type="text"
 							class="form-control"
-							id="turnstile-sitekey"
-							name="turnstile-sitekey"
-							placeholder="1x00000000000000000000AA"
-							value="<?= isset($settings['turnstile-sitekey']) ? $settings['turnstile-sitekey'] : ''; ?>"
+							id="proxycheck-apikey"
+							name="proxycheck-apikey"
+							placeholder="111111-222222-333333-444444"
+							value="<?= isset($settings['proxycheck-apikey']) ? $settings['proxycheck-apikey'] : ''; ?>"
 						/>
-					</div>
-					<div class="w-100">
-						<label
-							for="turnstile-secretkey"
-							class="form-label"
-							>Turnstile Secret key</label
-						>
-						<input
-							type="text"
-							class="form-control"
-							id="turnstile-secretkey"
-							name="turnstile-secretkey"
-							placeholder="1x0000000000000000000000000000000AA"
-							value="<?= isset($settings['turnstile-secretkey']) ? $settings['turnstile-secretkey'] : ''; ?>"
-						/>
-					</div>
-					<div class="form-check">
-						<input
-							class="form-check-input"
-							type="checkbox"
-							value="checked"
-							<?= !isset($settings['use-cloudflare']) || $settings['use-cloudflare'] === 'checked' ? 'checked' : ''; ?>
-							id="use-cloudflare"
-							name="use-cloudflare"
-						/>
-						<label
-							class="form-check-label"
-							for="use-cloudflare"
-						>
-							Cloudflareを使用する
-						</label>
-					</div>
-					<div class="form-check">
-						<input
-							class="form-check-input"
-							type="checkbox"
-							value="checked"
-							<?= !isset($settings['use-strict-auth']) || $settings['use-strict-auth'] === 'checked' ? 'checked' : ''; ?>
-							id="use-strict-auth"
-							name="use-strict-auth"
-						/>
-						<label
-							class="form-check-label"
-							for="use-strict-auth"
-						>
-						  VPN等での認証を禁止する
-						</label>
-					</div>
-					<div class="form-check">
-						<input
-							class="form-check-input"
-							type="checkbox"
-							value="checked"
-							<?= isset($settings['use-browser-fingerprint']) && $settings['use-browser-fingerprint'] === 'checked' ? 'checked' : ''; ?>
-							id="use-browser-fingerprint"
-							name="use-browser-fingerprint"
-						/>
-						<label
-							class="form-check-label"
-							for="use-browser-fingerprint"
-						>
-						  認証時の環境チェックにブラウザ情報を使用する
-						</label><br>
-						※同意鍵が被りにくくなる代わりに複垢が作りやすくなります。
-					</div>
-					<button
-						type="submit"
-						class="btn btn-primary"
-					>
-						適用
-					</button>
-				</div>
+					</li>
+					<li class="list-group-item">
+						<div class="form-check">
+							<input
+								class="form-check-input"
+								type="checkbox"
+								value="checked"
+								<?= !isset($settings['use-cloudflare']) || $settings['use-cloudflare'] === 'checked' ? 'checked' : ''; ?>
+								id="use-cloudflare"
+								name="use-cloudflare"
+							/>
+							<label
+								class="form-check-label"
+								for="use-cloudflare"
+							>
+								Cloudflareを使用する
+							</label>
+						</div>
+					</li>
+					<li class="list-group-item">
+						<div class="form-check">
+							<input
+								class="form-check-input"
+								type="checkbox"
+								value="checked"
+								<?= !isset($settings['use-strict-auth']) || $settings['use-strict-auth'] === 'checked' ? 'checked' : ''; ?>
+								id="use-strict-auth"
+								name="use-strict-auth"
+							/>
+							<label
+								class="form-check-label"
+								for="use-strict-auth"
+							>
+								VPN等での認証を禁止する
+							</label>
+						</div>
+					</li>
+					<li class="list-group-item">
+						<div class="form-check">
+							<input
+								class="form-check-input"
+								type="checkbox"
+								value="checked"
+								<?= isset($settings['use-browser-fingerprint']) && $settings['use-browser-fingerprint'] === 'checked' ? 'checked' : ''; ?>
+								id="use-browser-fingerprint"
+								name="use-browser-fingerprint"
+							/>
+							<label
+								class="form-check-label"
+								for="use-browser-fingerprint"
+							>
+								認証時の環境チェックにブラウザ情報を使用する
+							</label><br>
+							※同意鍵が被りにくくなる代わりに複垢が作りやすくなります。
+						</div>
+					</li>
+				</ul>
+				<button
+					type="submit"
+					class="btn btn-primary mt-2"
+				>
+					適用
+				</button>
 			</form>
 		</main>
 </body>
