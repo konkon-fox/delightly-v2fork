@@ -155,7 +155,7 @@ if (!getenv('SKIP_VERIFICATION')) {
 require_once './extend/validate-wrt-agreement-key.php';
 /** @var array{account_id:string, hap_file:string} */
 $validateKeyResult = validateWrtAgreementKey($NOWTIME);
-$accountid = $validateKeyResult['account_id'];
+$accountId = $validateKeyResult['account_id'];
 $hapfile = $validateKeyResult['hap_file'];
 
 // ユーザーデータを取得
