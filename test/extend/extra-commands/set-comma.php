@@ -45,10 +45,22 @@ function setCommaCommand(
     if (!preg_match_all('/\!comma:([0-9]{1,3}):(.+?)(?=(?:\<br\>|$))/', $commentParts[0], $commandMatches, PREG_SET_ORDER)) {
         return;
     }
+
+    // コマンド定数設定取得
+    $settingFile = dirname(__FILE__, 3) . '/operate/data/commands-constant-settings.json';
+    if (is_file($settingFile)) {
+        $settings = getJsonFile($settingFile);
+        if ($settings === false) {
+            Error('コマンド定数設定ファイルの取得に失敗しました。');
+        }
+    } else {
+        $settings = [];
+    }
+
     // コンマセット可能な数
-    $COMMA_LIMIT = 20;
+    $COMMA_LIMIT = (int) (($settings['COMMA_LIMIT'] ?? 0) ?: 20);
     // コンマセット可能な文章の最大文字数
-    $COMMA_COMMENT_LIMIT = 100;
+    $COMMA_COMMENT_LIMIT = (int) (($settings['COMMA_COMMENT_LIMIT'] ?? 0) ?: 100);
 
     if (!isset($threadStates['comma'])) {
         $threadStates['comma'] = [];
