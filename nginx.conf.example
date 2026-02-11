@@ -43,6 +43,9 @@ server {
     location ~ ^/[^/]+/db/ {
         deny all;
     }
+    location ~ \.old$ {
+        deny all;
+    }
 
     # /test/.htaccessに相当
     location ~ ^/test/(bbs-main\.php|createcode\.cgi)$ {
