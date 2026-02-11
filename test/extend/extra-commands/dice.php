@@ -20,12 +20,22 @@ function applyDiceCommand($SETTING)
     if (!preg_match('/\![1-9]+[0-9]*[dD][1-9]+[0-9]*/', $_POST['comment'])) {
         return;
     }
+    // コマンド定数設定取得
+    $settingFile = dirname(__FILE__, 3) . '/operate/data/commands-constant-settings.json';
+    if (is_file($settingFile)) {
+        $settings = getJsonFile($settingFile);
+        if ($settings === false) {
+            Error('コマンド定数設定ファイルの取得に失敗しました。');
+        }
+    } else {
+        $settings = [];
+    }
     // 振れるダイスxの最大数
-    $MAX_NUM_OF_DICE = 100;
+    $MAX_NUM_OF_DICE = (int) (($settings['DICE_MAX_NUM_OF_DICE'] ?? 0) ?: 100);
     // ダイスの出目yの最大数
-    $MAX_DICE_VALUE = 100;
+    $MAX_DICE_VALUE = (int) (($settings['DICE_MAX_DICE_VALUE'] ?? 0) ?: 100);
     // 1レス内でダイスコマンドが発火する最大回数
-    $DICE_LIMIT = 5;
+    $DICE_LIMIT = (int) (($settings['DICE_LIMIT'] ?? 0) ?: 5);
     // x,yが最大数を超えているかの判定
     $xIsOver = false;
     $yIsOver = false;

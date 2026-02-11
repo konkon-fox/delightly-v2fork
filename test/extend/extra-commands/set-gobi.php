@@ -42,10 +42,21 @@ function setGobiCommand(
     if (!preg_match('/\!gobi:(.*?):/', $commentParts[0], $commandMatches)) {
         return;
     }
-    // 語尾の最大文字数
-    $MAX_GOBI_LENGTH = 100;
 
-    $MAX_GOBI_LENGTH = min($MAX_GOBI_LENGTH, floor($SETTING['BBS_MESSAGE_COUNT'] / 2));
+    // コマンド定数設定取得
+    $settingFile = dirname(__FILE__, 3) . '/operate/data/commands-constant-settings.json';
+    if (is_file($settingFile)) {
+        $settings = getJsonFile($settingFile);
+        if ($settings === false) {
+            Error('コマンド定数設定ファイルの取得に失敗しました。');
+        }
+    } else {
+        $settings = [];
+    }
+
+    // 語尾の最大文字数
+    $MAX_GOBI_LENGTH = (int) (($settings['GOBI_MAX_GOBI_LENGTH'] ?? 0) ?: 100);
+
     $gobi = trim($commandMatches[1]);
     // 例外処理
     if (mb_strlen($gobi, 'UTF-8') > $MAX_GOBI_LENGTH) {

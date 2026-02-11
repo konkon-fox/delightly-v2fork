@@ -8,12 +8,23 @@
  */
 function replaceRmj($text)
 {
+    // コマンド定数設定取得
+    $settingFile = dirname(__FILE__, 3) . '/operate/data/commands-constant-settings.json';
+    if (is_file($settingFile)) {
+        $settings = getJsonFile($settingFile);
+        if ($settings === false) {
+            Error('コマンド定数設定ファイルの取得に失敗しました。');
+        }
+    } else {
+        $settings = [];
+    }
+
     // 入れ子の最大数
-    $MAX_NEST = 3;
+    $MAX_NEST = (int) (($settings['RMJ_MAX_NEST'] ?? 0) ?: 3);
     // !rmj◯で使用可能な番号の最大数
-    $MAX_RMJ_NUMBER = 20;
+    $MAX_RMJ_NUMBER = (int) (($settings['RMJ_MAX_RMJ_NUMBER'] ?? 0) ?: 20);
     // !rmj構文を置換する上限数
-    $REPLACE_LIMIT = 100;
+    $REPLACE_LIMIT = (int) (($settings['RMJ_REPLACE_LIMIT'] ?? 0) ?: 100);
 
     $rmjReplaceList = [];
     $replaceCount = 0;

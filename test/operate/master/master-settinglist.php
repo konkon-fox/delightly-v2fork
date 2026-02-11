@@ -4,6 +4,8 @@ if (isset($_GET['mode'])) {
         require './operate/master/update-password.php';
         exit;
     }
+
+    // 設定類
     if ($_GET['mode'] === 'system-settings') {
         require './operate/master/system-settings.php';
         exit;
@@ -12,6 +14,12 @@ if (isset($_GET['mode'])) {
         require './operate/master/auth-settings.php';
         exit;
     }
+    if ($_GET['mode'] === 'commands-constant-settings') {
+        require './operate/master/commands-constant-settings.php';
+        exit;
+    }
+
+    // ログ類
     if ($_GET['mode'] === 'auth-logs') {
         require './operate/master/auth-logs.php';
         exit;
@@ -78,6 +86,10 @@ if (isset($_GET['mode'])) {
         <form action="?mode=auth-settings" method="POST" class="list-group-item list-group-item-action">
           <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
           <button class="btn stretched-link">認証設定</button>
+        </form>
+        <form action="?mode=commands-constant-settings" method="POST" class="list-group-item list-group-item-action">
+          <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">
+          <button class="btn stretched-link">コマンド定数設定</button>
         </form>
         <form action="?mode=auth-logs" method="POST" class="list-group-item list-group-item-action">
           <input type="hidden" name="code" value="<?= htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8'); ?>">

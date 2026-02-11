@@ -45,12 +45,26 @@ function setMaxCommand(
         return;
     }
 
+    // コマンド定数設定取得
+    $settingFile = dirname(__FILE__, 3) . '/operate/data/commands-constant-settings.json';
+    if (is_file($settingFile)) {
+        $settings = getJsonFile($settingFile);
+        if ($settings === false) {
+            Error('コマンド定数設定ファイルの取得に失敗しました。');
+        }
+    } else {
+        $settings = [];
+    }
+
+    // 設定可能なレス上限の最大値
+    $MAX_NEW_MAX = (int) (($settings['MAX_NEW_MAX'] ?? 0) ?: 4000);
+
     // レス数上限
     $newMax = (int) $matches[1];
 
     // 4000を超えている場合は設定不可
-    if ($newMax > 4000) {
-        addSystemMessage('★レス上限数は最大4000までです。');
+    if ($newMax > $MAX_NEW_MAX) {
+        addSystemMessage("★レス上限数は最大{$MAX_NEW_MAX}までです。");
         return;
     }
 
