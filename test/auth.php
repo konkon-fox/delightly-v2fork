@@ -34,15 +34,13 @@ if (getenv('SKIP_VERIFICATION')) {
 $NOWTIME = time();
 
 // cloudflare使用チェック
-$useCloudflare = $settings['use-cloudflare'] ?? 'checked' === 'checked';
+$useCloudflare = ($settings['use-cloudflare'] ?? 'checked') === 'checked';
 if ($useCloudflare && isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
     $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_CF_CONNECTING_IP'];
 }
 
 $IP = $_SERVER['REMOTE_ADDR'];
 $HOST = $IP;
-$area = [];
-$area['district'] = $area['proxy'] = $area['hosting'] = $area['regionName'] = $area['city'] = $area['countryCode'] = $area['mobile'] = $area['asname'] = '';
 $authStatus = 'failed';
 
 /**
@@ -246,7 +244,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post_data));
         // リクエストを実行し、レスポンスを取得
-        $response = curl_exec($ch);
+        $responseData = curl_exec($ch);
         // エラーがある場合はエラー情報を取得
         if (curl_errno($ch)) {
             echo 'Curl error: ' . curl_error($ch);
@@ -255,9 +253,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         curl_close($ch);
 
         // レスポンス
-        $result = json_decode($response, true);
+        $result = json_decode($responseData, true);
         $success = $result['success'];
-        $error = $result['error-codes'];
+        // $error = $result['error-codes'];
 
         if ($success === false) {
             print_r($success);
@@ -275,64 +273,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // --------------------------------------------
-    // ip-api.comのAPIへアクセス　始まり
+    // proxycheck.io のAPIへアクセス　始まり
     // --------------------------------------------
-    $options = [
-            'http' => [
-                    'method' => 'GET',
-                    ],
-            ];
-    $url = 'http://ip-api.com/json/' . $IP . '?fields=countryCode,regionName,city,isp,asname,reverse,mobile,proxy,hosting&lang=ja';
-    $cp = curl_init();
-    /*オプション:リダイレクトされたらリダイレクト先のページを取得する*/
-    curl_setopt($cp, CURLOPT_RETURNTRANSFER, 1);
-    /*オプション:URLを指定する*/
-    curl_setopt($cp, CURLOPT_URL, $url);
-    /*オプション:タイムアウト時間を指定する*/
-    curl_setopt($cp, CURLOPT_TIMEOUT, 5);
-    /*オプション:ユーザーエージェントを指定する*/
-    curl_setopt($cp, CURLOPT_USERAGENT, 'Mozilla/5.0 P2/2.5 (iPad; CPU OS 13_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/87.0.4280.77 Mobile/15E148 Safari/604.1');
-    curl_setopt($cp, CURLOPT_HEADER, true);
-    $source = curl_exec($cp);
-    $curlInfo = curl_getinfo($cp);
+    // 1. 初期化
+    $ch = curl_init();
 
-    $headerSize = $curlInfo['header_size'];
-    $head = substr($source, 0, $headerSize);
-    $data = substr($source, $headerSize);
-    curl_close($cp);
+    // 2. オプションの設定
+    $url = 'https://proxycheck.io/v2/' . $IP;
+    $params = [
+        'key' => $settings['proxycheck-apikey'] ?? '',
+        'vpn' => 1,
+        'asn' => 1,
+        'risk' => 1,
+    ];
 
-    // --------------------------------------------
-    // ip-api.comのAPIへアクセス　ここまで
-    // --------------------------------------------
+    // GETパラメータ
+    curl_setopt($ch, CURLOPT_URL, $url . '?' . http_build_query($params));
+    // 結果を文字列で返す
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    // タイムアウト秒数
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    // ヘッダー指定
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Accept: application/json',
+    ]);
 
-    // ヘッダーを解析して配列に格納
-    $HTTP = [];
-    $headLines = explode("\n", str_replace(["\r\n", "\r"], "\n", $head));
-    foreach ($headLines as $line) {
-        if (strpos($line, ': ') !== false) {
-            list($key, $value) = explode(': ', $line, 2);
-            $HTTP[strtolower(trim($key))] = trim($value); // キーを小文字で統一して保存
-        }
+    // 3. 実行
+    $response = curl_exec($ch);
+
+    // 4. エラーチェック
+    if (curl_errno($ch)) {
+        exit('APIへのアクセスに失敗しました。しばらく後にもう一度お試しください。');
     }
 
-    // API制限（X-Rl）のチェック
-    if (isset($HTTP['x-rl']) && (int) $HTTP['x-rl'] <= 5) {
-        exit('【認証エラー】サーバーの認証リクエストが上限に達しました。1分ほど時間を置いてから再度お試しください。');
+    // 5. 終了
+    curl_close($ch);
+
+    // responseデータをJSONへ
+    $proxyCheckData = json_decode($response, true);
+    if (($proxyCheckData['status'] ?? '') !== 'ok') {
+        exit('APIへのアクセスに失敗しました。しばらく後にもう一度お試しください。');
+    }
+    if (!isset($proxyCheckData[$IP])) {
+        exit('IP情報の取得に失敗しました。');
     }
 
-    // $areaに結果を格納
-    $area = json_decode($data, true);
+    // --------------------------------------------
+    // proxycheck.io のAPIへアクセス　ここまで
+    // --------------------------------------------
 
     // HOST
-    $HOST = $area['reverse'] ?? $HOST;
+    $HOST = $proxyCheckData[$IP]['hostname'] ?? $HOST;
+    $reverse = $proxyCheckData[$IP]['hostname'] ?? '';
+    $asname = $proxyCheckData[$IP]['asn'] ?? 'unknown';
+    $provider = $proxyCheckData[$IP]['provider'] ?? 'unknown';
+    $country = $proxyCheckData[$IP]['country'] ?? 'unknown';
+    $ipType = $proxyCheckData[$IP]['type'] ?? 'unknown';
+    $isProxy = ($proxyCheckData[$IP]['proxy'] ?? 'unknown') === 'yes';
+    $risk = $proxyCheckData[$IP]['risk'] ?? 0;
+    $region = $proxyCheckData[$IP]['region'] ?? 'unknown';
+    $city = $proxyCheckData[$IP]['city'] ?? 'unknown';
 
     // 国名取得(CFを通さないサーバの場合)
     if (empty($_SERVER['HTTP_CF_IPCOUNTRY'])) {
-        if ($area['countryCode']) {
-            $_SERVER['HTTP_CF_IPCOUNTRY'] = $area['countryCode'];
-        } else {
-            $_SERVER['HTTP_CF_IPCOUNTRY'] = 'JP';
-        }
+        $_SERVER['HTTP_CF_IPCOUNTRY'] = $country;
     }
 
     // smart phone marks
@@ -344,19 +348,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // モバイルを検出
     if (
-        $area['mobile'] === true &&
+        $ipType === 'Wireless' &&
         $slip === '0' &&
         strpos($HOST, 'bbtec.net') === false &&
         strpos($HOST, 'ocn.ne.jp') === false &&
         strpos($HOST, 'dion.ne.jp') === false
     ) {
         $SLIP_SP = true;
-        $SLIP_NAME = $area['asname'];
+        $SLIP_NAME = $asname;
     }
-
-    // 新slip(末尾)に置き換え
-    require './extend/get-end-char.php';
-    $slip = getEndChar();
 
     // User-Agent Client Hints
     if ($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST']) {
@@ -389,7 +389,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ホスティング判定
     if (
-        $area['proxy'] || $area['hosting']
+        $isProxy || $ipType === 'VPN'
     ) {
         $slip = 'H';
     }
@@ -400,14 +400,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $HAP_PATH = './HAP/';
 
     // ユーザー環境を生成
-    $ipReverse = preg_replace('/[0-9]+/', '', $area['reverse'] ?? '');
+    $ipReverse = preg_replace('/[0-9]+/', '', $reverse);
     $fingerprint =
         $ipNetworkPart .
-        $area['asname']
-        . $ipReverse;
+        $asname .
+        $ipReverse;
 
     // ユーザー環境にブラウザ情報を追加
-    if ($settings['use-browser-fingerprint'] ?? '' === 'checked') {
+    if (($settings['use-browser-fingerprint'] ?? '') === 'checked') {
         $fingerprint .= $CH_UA . $ACCEPT;
     }
 
@@ -418,15 +418,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $enPath = $HAP_PATH . $enFile;
 
     // ホスティング判定された回線からの認証を拒否
-    $useStrictAuth = $settings['use-strict-auth'] ?? 'checked' === 'checked';
-    if ($useStrictAuth && $slip === 'H') {
+    $useStrictAuth = ($settings['use-strict-auth'] ?? 'checked') === 'checked';
+    if (
+        ($useStrictAuth && $slip === 'H') ||
+        $risk >= 66
+    ) {
         $data = [
             'status' => $authStatus,
             'wrt_agreement_key' => 'null',
             'ip' => $IP ?? 'unknown',
             'host' => $HOST ?? 'unknown',
-            'isp' => $area['isp'] ?? 'unknown',
-            'asname' => $area['asname'] ?? 'unknown',
+            'isp' => $provider,
+            'asname' => $asname,
             'ua' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
             'ch_ua' => $CH_UA ?? 'unknown',
             'client_id' => 'null',
@@ -448,14 +451,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ログ記録
     $authStatus = 'success';
-    $clientId = substr(md5($range . $area['asname'] . $CH_UA . $ACCEPT), 0, 7);
+    $clientId = substr(md5($range . $asname . $CH_UA . $ACCEPT), 0, 7);
     $data = [
         'status' => $authStatus,
         'wrt_agreement_key' => $wrtAgreementKey,
         'ip' => $IP ?? 'unknown',
         'host' => $HOST ?? 'unknown',
-        'isp' => $area['isp'] ?? 'unknown',
-        'asname' => $area['asname'] ?? 'unknown',
+        'isp' => $provider,
+        'asname' => $asname,
         'ua' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
         'ch_ua' => $CH_UA ?? 'unknown',
         'client_id' => $clientId,
@@ -480,11 +483,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           'CH_UA' => $CH_UA,
           'ACCEPT' => $ACCEPT,
           'range' => $range,
-          'provider' => $area['asname'],
+          'provider' => $provider,
           'country' => $_SERVER['HTTP_CF_IPCOUNTRY'],
-          'region' => $area['regionName'] . $area['city'] . $area['district'],
-          'proxy' => $area['proxy'],
-          'hosting' => $area['hosting'],
+          'region' => $region . ' ' . $city,
+          'proxy' => $isProxy,
+          'hosting' => $ipType === 'Hosting',
           'slip' => $slip,
           'SLIP_NAME' => $SLIP_NAME,
           'SLIP_SP' => $SLIP_SP,
