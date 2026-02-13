@@ -17,10 +17,10 @@ function applyCommaCommand(
     if ($SETTING['commands'] !== 'checked') {
         return;
     }
-    if (($SETTING['commands-comma'] ??= 'checked') !== 'checked') {
+    if (($SETTING['commands-comma'] ?? 'checked') !== 'checked') {
         return;
     }
-    if (($SETTING['date_comma_digit'] ??= '0') === '0') {
+    if (($SETTING['date_comma_digit'] ?? '0') === '0') {
         return;
     }
     if ($tlonly) {
