@@ -22,6 +22,7 @@ $settings['RMJ_REPLACE_LIMIT'] ??= '100';
 $settings['COMMA_LIMIT'] ??= '20';
 $settings['COMMA_COMMENT_LIMIT'] ??= '100';
 $settings['GOBI_MAX_GOBI_LENGTH'] ??= '100';
+$settings['RMJ_MIN_LV'] ??= '0';
 
 if ($_POST['edit'] === 'true') {
     foreach ($settings as $settingName => $_) {
@@ -224,6 +225,19 @@ if ($_POST['edit'] === 'true') {
 										name="RMJ_REPLACE_LIMIT"
 										placeholder="100"
 										value="<?= htmlspecialchars($settings['RMJ_REPLACE_LIMIT'], ENT_QUOTES, 'UTF-8'); ?>"
+									>
+								</div>
+							</div>
+							<hr>
+							<label for="RMJ_MIN_LV" class="form-label">!rmj使用可能な最低レベル</label>
+							<div class="row">
+								<div class="col-4 col-md-2">
+									<input 
+										type="number"
+										class="form-control d-inline-block"
+										name="RMJ_MIN_LV"
+										placeholder="0"
+										value="<?= htmlspecialchars($settings['RMJ_MIN_LV'], ENT_QUOTES, 'UTF-8'); ?>"
 									>
 								</div>
 							</div>

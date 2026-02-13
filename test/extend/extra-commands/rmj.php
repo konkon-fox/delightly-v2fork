@@ -132,10 +132,22 @@ function applyRmjCommand($SETTING, $LV)
     if (!str_contains($_POST['name'], '!rmj') && !str_contains($_POST['comment'], '!rmj')) {
         return;
     }
+
+    // コマンド定数設定取得
+    $settingFile = dirname(__FILE__, 3) . '/operate/data/commands-constant-settings.json';
+    if (is_file($settingFile)) {
+        $settings = getJsonFile($settingFile);
+        if ($settings === false) {
+            Error('コマンド定数設定ファイルの取得に失敗しました。');
+        }
+    } else {
+        $settings = [];
+    }
+
     // レベル制限
-    $MIN_LV = 1;
-    if ($LV < $MIN_LV) {
-        Error("レベルが{$MIN_LV}未満のユーザーは!rmjコマンドを使えません。");
+    $MIN_LV = (int) ($settings['RMJ_MIN_LV'] ?? 0);
+    if ($LV <= $MIN_LV) {
+        Error("レベルが{$MIN_LV}以下のユーザーは!rmjコマンドを使えません。");
     }
     // 名前欄置換
     if (str_contains($_POST['name'], '!rmj')) {
