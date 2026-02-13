@@ -626,13 +626,6 @@ if (!$tlonly) {
     @include './extend/commands.php';
 }
 
-// 直前の投稿からtimeinterval秒投稿禁止
-if ($SETTING['timeinterval'] && !$tlonly && !$newthread) {
-    if ($NOWTIME < filemtime($THREADFILE) + $SETTING['timeinterval']) {
-        Error('このスレッドでは直前の投稿から' . $SETTING['timeinterval'] . '秒経たなければ投稿することができません');
-    }
-}
-
 /**
  * スレ状態を管理するファイルです。
  * 現行スレ判定にも使用されます。
@@ -1450,6 +1443,13 @@ if (!$newthread && !$tlonly && $number > $maxResLimit) {
 }
 if (!$tlonly && $number >= $maxResLimit) {
     $isMax = true;
+}
+
+// 直前の投稿からtimeinterval秒投稿禁止
+if ($SETTING['timeinterval'] && !$tlonly && !$newthread) {
+    if ($NOWTIME < filemtime($THREADFILE) + $SETTING['timeinterval']) {
+        Error('このスレッドでは直前の投稿から' . $SETTING['timeinterval'] . '秒経たなければ投稿することができません');
+    }
 }
 
 // 名前入力チェックと補完
