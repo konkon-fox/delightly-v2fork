@@ -23,7 +23,7 @@ function setCommaCommand(
     if ($SETTING['commands'] !== 'checked') {
         return;
     }
-    if (($SETTING['commands-comma'] ??= 'checked') !== 'checked') {
+    if (($SETTING['commands-comma'] ?? 'checked') !== 'checked') {
         return;
     }
     if (($SETTING['date_comma_digit'] ??= '0') === '0') {
@@ -42,9 +42,6 @@ function setCommaCommand(
         return;
     }
     $commentParts = explode('<hr>', $_POST['comment']);
-    if (!preg_match_all('/\!comma:([0-9]{1,3}):(.+?)(?=(?:\<br\>|$))/', $commentParts[0], $commandMatches, PREG_SET_ORDER)) {
-        return;
-    }
 
     // コマンド定数設定取得
     $settingFile = dirname(__FILE__, 3) . '/operate/data/commands-constant-settings.json';
@@ -62,40 +59,78 @@ function setCommaCommand(
     // コンマセット可能な文章の最大文字数
     $COMMA_COMMENT_LIMIT = (int) (($settings['COMMA_COMMENT_LIMIT'] ?? 0) ?: 100);
 
+    // 配列初期化
     if (!isset($threadStates['comma'])) {
         $threadStates['comma'] = [];
     }
 
-    // スレッド状態を更新
+    $countIsOver = false;
     $systemMessages = [];
-    foreach ($commandMatches as $matches) {
-        if ($matches[2] === 'kaijo') {
-            if (isset($threadStates['comma'][$matches[1]])) {
-                unset($threadStates['comma'][$matches[1]]);
-                $systemMessages[] = "★.{$matches[1]}を解除しました。";
+
+    $commentParts[0] = preg_replace_callback(
+        '/\!comma:([0-9]{1,3}):(.+?)(:h)?(?=(?:\<br\>|$))/',
+        function ($matches) use (
+            $COMMA_LIMIT,
+            $COMMA_COMMENT_LIMIT,
+            &$systemMessages,
+            &$threadStates,
+            &$countIsOver,
+        ) {
+            // コンマ解除
+            if ($matches[2] === 'kaijo') {
+                if (isset($threadStates['comma'][$matches[1]])) {
+                    unset($threadStates['comma'][$matches[1]]);
+                    unset($threadStates['comma_hide'][$matches[1]]);
+                    $systemMessages[] = "★.{$matches[1]}を解除しました。";
+                }
+                return $matches[0];
             }
-            continue;
-        }
-        if (!isset($threadStates['comma'][$matches[1]]) && count($threadStates['comma']) >= $COMMA_LIMIT) {
-            $systemMessages[] = "★コンマに設定可能なのは{$COMMA_LIMIT}個までです。";
-            break;
-        }
-        if (mb_strlen($matches[2]) > $COMMA_COMMENT_LIMIT) {
-            $systemMessages[] = "★コンマに設定可能な文字数は{$COMMA_COMMENT_LIMIT}までです。";
-            continue;
-        }
-        $comment = trim($matches[2]);
-        $threadStates['comma'][$matches[1]] = $comment;
-        $systemMessages[] = "★.{$matches[1]}に「{$comment}」を設定しました。";
-    }
+            // 個数上限スキップ
+            if ($countIsOver) {
+                return $matches[0];
+            }
+            // 個数上限チェック
+            if (!isset($threadStates['comma'][$matches[1]]) && count($threadStates['comma']) >= $COMMA_LIMIT) {
+                $systemMessages[] = "★コンマに設定可能なのは{$COMMA_LIMIT}個までです。";
+                $countIsOver = true;
+                return $matches[0];
+            }
+            // 文字数上限チェック
+            if (mb_strlen($matches[2]) > $COMMA_COMMENT_LIMIT) {
+                $systemMessages[] = "★コンマに設定可能な文字数は{$COMMA_COMMENT_LIMIT}までです。";
+                return $matches[0];
+            }
+
+            // スレ状態に適用
+            $comment = trim($matches[2]);
+            $threadStates['comma'][$matches[1]] = $comment;
+
+            // 隠蔽オプション
+            $option = $matches[3] ?? '';
+            if ($option === ':h') {
+                $threadStates['comma_hide'][$matches[1]] = true;
+                $systemMessages[] = "★.{$matches[1]}に「████」を設定しました。";
+                return "!comma:{$matches[1]}:████";
+            } else {
+                unset($threadStates['comma_hide'][$matches[1]]);
+                $systemMessages[] = "★.{$matches[1]}に「{$comment}」を設定しました。";
+                return $matches[0];
+            }
+        },
+        $commentParts[0]
+    );
+
+    // 本文変更
+    $_POST['comment'] = implode('<hr>', $commentParts);
 
     // 成功メッセージ出力(本文)
     if (!$newthread && !empty($systemMessages)) {
         addSystemMessage(implode('<br>', $systemMessages));
     }
     // >>1更新判定
-    $threadStatesReload = true;
-
+    if (!empty($systemMessages)) {
+        $threadStatesReload = true;
+    }
 }
 setCommaCommand(
     $SETTING,
