@@ -89,6 +89,10 @@ function showThreadStates(
         }
 
     }
+    // タイムインターバル追加
+    if (isset($threadStates['interval'])) {
+        $commentParts[2] .= "<font color=\"red\">※投稿間隔=</font>{$threadStates['interval']}秒<br>";
+    }
     // 分割された本文を統合
     $comment = implode('<hr>', $commentParts);
     $comment = preg_replace('/(<hr>)+$/', '', $comment);

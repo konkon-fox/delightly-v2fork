@@ -1399,6 +1399,7 @@ if ($ncolor) {
 
 // システムメッセージ用関数
 require_once './extend/extra-commands/utilities/add-system-message.php';
+
 // !ninkeyコマンド
 @include './extend/extra-commands/ninkey.php';
 // !stickyコマンド
@@ -1416,6 +1417,11 @@ require_once './extend/extra-commands/utilities/add-system-message.php';
 // !comma設定
 @include './extend/extra-commands/set-comma.php';
 
+// !interval適用
+@include './extend/extra-commands/apply-interval.php';
+// !interval設定
+@include './extend/extra-commands/set-interval.php';
+
 // !ngk適用
 @include './extend/extra-commands/apply-ngk.php';
 // !774適用
@@ -1426,10 +1432,11 @@ require_once './extend/extra-commands/utilities/add-system-message.php';
 @include './extend/extra-commands/rmj.php';
 // !gobi適用
 @include './extend/extra-commands/apply-gobi.php';
-// スレ状態更新処理
-@include './extend/extra-commands/utilities/show-threads-states.php';
 // !xDy(dice)コマンド
 @include './extend/extra-commands/dice.php';
+
+// スレ状態更新処理
+@include './extend/extra-commands/utilities/show-threads-states.php';
 
 // 曜日表示
 $daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
