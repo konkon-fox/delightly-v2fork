@@ -23,6 +23,8 @@ $settings['COMMA_LIMIT'] ??= '20';
 $settings['COMMA_COMMENT_LIMIT'] ??= '100';
 $settings['GOBI_MAX_GOBI_LENGTH'] ??= '100';
 $settings['RMJ_MIN_LV'] ??= '0';
+$settings['INTERVAL_MIN_SECOND'] ??= '0';
+$settings['INTERVAL_MAX_SECOND'] ??= '60';
 
 if ($_POST['edit'] === 'true') {
     foreach ($settings as $settingName => $_) {
@@ -163,6 +165,37 @@ if ($_POST['edit'] === 'true') {
 										name="GOBI_MAX_GOBI_LENGTH"
 										placeholder="100"
 										value="<?= htmlspecialchars($settings['GOBI_MAX_GOBI_LENGTH'], ENT_QUOTES, 'UTF-8'); ?>"
+									>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!--  -->
+					<div class="card">
+						<div class="card-header">!interval</div>
+						<div class="card-body">
+							<label for="INTERVAL_MIN_SECOND" class="form-label">設定可能な投稿間隔(秒)の最小値</label>
+							<div class="row">
+								<div class="col-4 col-md-2">
+									<input 
+										type="number"
+										class="form-control d-inline-block"
+										name="INTERVAL_MIN_SECOND"
+										placeholder="0"
+										value="<?= htmlspecialchars($settings['INTERVAL_MIN_SECOND'], ENT_QUOTES, 'UTF-8'); ?>"
+									>
+								</div>
+							</div>
+							<hr>
+							<label for="INTERVAL_MAX_SECOND" class="form-label">設定可能な投稿間隔(秒)の最大値</label>
+							<div class="row">
+								<div class="col-4 col-md-2">
+									<input 
+										type="number"
+										class="form-control d-inline-block"
+										name="INTERVAL_MAX_SECOND"
+										placeholder="60"
+										value="<?= htmlspecialchars($settings['INTERVAL_MAX_SECOND'], ENT_QUOTES, 'UTF-8'); ?>"
 									>
 								</div>
 							</div>

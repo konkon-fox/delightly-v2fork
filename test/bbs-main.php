@@ -626,13 +626,6 @@ if (!$tlonly) {
     @include './extend/commands.php';
 }
 
-// 直前の投稿からtimeinterval秒投稿禁止
-if ($SETTING['timeinterval'] && !$tlonly && !$newthread) {
-    if ($NOWTIME < filemtime($THREADFILE) + $SETTING['timeinterval']) {
-        Error('このスレッドでは直前の投稿から' . $SETTING['timeinterval'] . '秒経たなければ投稿することができません');
-    }
-}
-
 /**
  * スレ状態を管理するファイルです。
  * 現行スレ判定にも使用されます。
@@ -1406,6 +1399,7 @@ if ($ncolor) {
 
 // システムメッセージ用関数
 require_once './extend/extra-commands/utilities/add-system-message.php';
+
 // !ninkeyコマンド
 @include './extend/extra-commands/ninkey.php';
 // !stickyコマンド
@@ -1423,6 +1417,11 @@ require_once './extend/extra-commands/utilities/add-system-message.php';
 // !comma設定
 @include './extend/extra-commands/set-comma.php';
 
+// !interval適用
+@include './extend/extra-commands/apply-interval.php';
+// !interval設定
+@include './extend/extra-commands/set-interval.php';
+
 // !ngk適用
 @include './extend/extra-commands/apply-ngk.php';
 // !774適用
@@ -1433,10 +1432,11 @@ require_once './extend/extra-commands/utilities/add-system-message.php';
 @include './extend/extra-commands/rmj.php';
 // !gobi適用
 @include './extend/extra-commands/apply-gobi.php';
-// スレ状態更新処理
-@include './extend/extra-commands/utilities/show-threads-states.php';
 // !xDy(dice)コマンド
 @include './extend/extra-commands/dice.php';
+
+// スレ状態更新処理
+@include './extend/extra-commands/utilities/show-threads-states.php';
 
 // 曜日表示
 $daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
@@ -1450,6 +1450,13 @@ if (!$newthread && !$tlonly && $number > $maxResLimit) {
 }
 if (!$tlonly && $number >= $maxResLimit) {
     $isMax = true;
+}
+
+// 直前の投稿からtimeinterval秒投稿禁止
+if ($SETTING['timeinterval'] && !$tlonly && !$newthread) {
+    if ($NOWTIME < filemtime($THREADFILE) + $SETTING['timeinterval']) {
+        Error('このスレッドでは直前の投稿から' . $SETTING['timeinterval'] . '秒経たなければ投稿することができません');
+    }
 }
 
 // 名前入力チェックと補完

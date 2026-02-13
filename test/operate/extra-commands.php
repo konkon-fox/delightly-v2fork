@@ -1,5 +1,19 @@
 <?php
 
+// 初期値
+$SETTING['commands-max'] ??= 'checked';
+$SETTING['commands-dice'] ??= 'checked';
+$SETTING['commands-774'] ??= 'checked';
+$SETTING['commands-gobi'] ??= 'checked';
+$SETTING['commands-chtt'] ??= 'checked';
+$SETTING['commands-ninkey'] ??= 'checked';
+$SETTING['commands-pool'] ??= 'checked';
+$SETTING['commands-rmj'] ??= 'checked';
+$SETTING['commands-ngk'] ??= 'checked';
+$SETTING['commands-sticky'] ??= 'checked';
+$SETTING['commands-comma'] ??= 'checked';
+$SETTING['commands-interval'] ??= '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['edit'] === 'yes') {
     $extraCommandsList = [
       'commands-max',
@@ -13,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['edit'] === 'yes') {
       'commands-ngk',
       'commands-sticky',
       'commands-comma',
+      'commands-interval',
     ];
     foreach ($extraCommandsList as $settingName) {
         if (isset($_POST[$settingName])) {
@@ -71,7 +86,7 @@ $safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
           <div class="col-auto fw-bold">!chtt</div>
           <div class="col-auto">
             <label>
-              <input type="checkbox" value="checked" name="commands-chtt" <?= !isset($SETTING['commands-chtt']) || $SETTING['commands-chtt'] === 'checked' ? 'checked' : ''; ?>>
+              <input type="checkbox" value="checked" name="commands-chtt" <?= $SETTING['commands-chtt']; ?>>
               有効
             </label>
           </div>
@@ -81,7 +96,7 @@ $safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
           <div class="col-auto fw-bold">dice(!xDy)</div>
           <div class="col-auto">
             <label>
-              <input type="checkbox" value="checked" name="commands-dice" <?= !isset($SETTING['commands-dice']) || $SETTING['commands-dice'] === 'checked' ? 'checked' : ''; ?>>
+              <input type="checkbox" value="checked" name="commands-dice" <?= $SETTING['commands-dice']; ?>>
               有効
             </label>
           </div>
@@ -91,7 +106,7 @@ $safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
           <div class="col-auto fw-bold">!comma</div>
           <div class="col-auto">
             <label>
-              <input type="checkbox" value="checked" name="commands-comma" <?= !isset($SETTING['commands-comma']) || $SETTING['commands-comma'] === 'checked' ? 'checked' : ''; ?>>
+              <input type="checkbox" value="checked" name="commands-comma" <?= $SETTING['commands-comma']; ?>>
               有効
             </label>
           </div>
@@ -101,7 +116,17 @@ $safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
           <div class="col-auto fw-bold">!gobi</div>
           <div class="col-auto">
             <label>
-              <input type="checkbox" value="checked" name="commands-gobi" <?= !isset($SETTING['commands-gobi']) || $SETTING['commands-gobi'] === 'checked' ? 'checked' : ''; ?>>
+              <input type="checkbox" value="checked" name="commands-gobi" <?= $SETTING['commands-gobi']; ?>>
+              有効
+            </label>
+          </div>
+        </div>
+        <!--  -->
+        <div class="row">
+          <div class="col-auto fw-bold">!interval</div>
+          <div class="col-auto">
+            <label>
+              <input type="checkbox" value="checked" name="commands-interval" <?= $SETTING['commands-interval']; ?>>
               有効
             </label>
           </div>
@@ -111,7 +136,7 @@ $safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
           <div class="col-auto fw-bold">!max</div>
           <div class="col-auto">
             <label>
-              <input type="checkbox" value="checked" name="commands-max" <?= !isset($SETTING['commands-max']) || $SETTING['commands-max'] === 'checked' ? 'checked' : ''; ?>>
+              <input type="checkbox" value="checked" name="commands-max" <?= $SETTING['commands-max']; ?>>
               有効
             </label>
           </div>
@@ -121,7 +146,7 @@ $safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
           <div class="col-auto fw-bold">!ngk</div>
           <div class="col-auto">
             <label>
-              <input type="checkbox" value="checked" name="commands-ngk" <?= !isset($SETTING['commands-ngk']) || $SETTING['commands-ngk'] === 'checked' ? 'checked' : ''; ?>>
+              <input type="checkbox" value="checked" name="commands-ngk" <?= $SETTING['commands-ngk']; ?>>
               有効
             </label>
           </div>
@@ -131,7 +156,7 @@ $safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
           <div class="col-auto fw-bold">!ninkey</div>
           <div class="col-auto">
             <label>
-              <input type="checkbox" value="checked" name="commands-ninkey" <?= !isset($SETTING['commands-ninkey']) || $SETTING['commands-ninkey'] === 'checked' ? 'checked' : ''; ?>>
+              <input type="checkbox" value="checked" name="commands-ninkey" <?= $SETTING['commands-ninkey']; ?>>
               有効
             </label>
           </div>
@@ -141,7 +166,7 @@ $safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
           <div class="col-auto fw-bold">!pool</div>
           <div class="col-auto">
             <label>
-              <input type="checkbox" value="checked" name="commands-pool" <?= !isset($SETTING['commands-pool']) || $SETTING['commands-pool'] === 'checked' ? 'checked' : ''; ?>>
+              <input type="checkbox" value="checked" name="commands-pool" <?= $SETTING['commands-pool']; ?>>
               有効
             </label>
           </div>
@@ -151,27 +176,27 @@ $safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
           <div class="col-auto fw-bold">!rmj</div>
           <div class="col-auto">
             <label>
-              <input type="checkbox" value="checked" name="commands-rmj" <?= !isset($SETTING['commands-rmj']) || $SETTING['commands-rmj'] === 'checked' ? 'checked' : ''; ?>>
-              有効
-            </label>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-auto fw-bold">!sticky</div>
-          <div class="col-auto">
-            <label>
-              <input type="checkbox" value="checked" name="commands-sticky" <?= !isset($SETTING['commands-sticky']) || $SETTING['commands-sticky'] === 'checked' ? 'checked' : ''; ?>>
+              <input type="checkbox" value="checked" name="commands-rmj" <?= $SETTING['commands-rmj']; ?>>
               有効
             </label>
           </div>
         </div>
         <!--  -->
+        <div class="row">
+          <div class="col-auto fw-bold">!sticky</div>
+          <div class="col-auto">
+            <label>
+              <input type="checkbox" value="checked" name="commands-sticky" <?= $SETTING['commands-sticky']; ?>>
+              有効
+            </label>
+          </div>
+        </div>
         <!--  -->
         <div class="row">
           <div class="col-auto fw-bold">!774</div>
           <div class="col-auto">
             <label>
-              <input type="checkbox" value="checked" name="commands-774" <?= !isset($SETTING['commands-774']) || $SETTING['commands-774'] === 'checked' ? 'checked' : ''; ?>>
+              <input type="checkbox" value="checked" name="commands-774" <?= $SETTING['commands-774']; ?>>
               有効
             </label>
           </div>
