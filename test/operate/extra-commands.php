@@ -12,6 +12,7 @@ $SETTING['commands-rmj'] ??= 'checked';
 $SETTING['commands-ngk'] ??= 'checked';
 $SETTING['commands-sticky'] ??= 'checked';
 $SETTING['commands-comma'] ??= 'checked';
+$SETTING['commands-interval'] ??= '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['edit'] === 'yes') {
     $extraCommandsList = [
@@ -26,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['edit'] === 'yes') {
       'commands-ngk',
       'commands-sticky',
       'commands-comma',
+      'commands-interval',
     ];
     foreach ($extraCommandsList as $settingName) {
         if (isset($_POST[$settingName])) {
@@ -115,6 +117,16 @@ $safeBbs = htmlspecialchars($bbs, ENT_QUOTES, 'UTF-8');
           <div class="col-auto">
             <label>
               <input type="checkbox" value="checked" name="commands-gobi" <?= $SETTING['commands-gobi']; ?>>
+              有効
+            </label>
+          </div>
+        </div>
+        <!--  -->
+        <div class="row">
+          <div class="col-auto fw-bold">!interval</div>
+          <div class="col-auto">
+            <label>
+              <input type="checkbox" value="checked" name="commands-interval" <?= $SETTING['commands-interval']; ?>>
               有効
             </label>
           </div>
