@@ -75,7 +75,7 @@ function setIntervalCommand(
         return;
     }
 
-    // レス数上限を設定
+    // 投稿間隔を設定
     $threadStates['interval'] = $newInterval;
 
     // 成功メッセージ出力(スレ立て時は省略)
