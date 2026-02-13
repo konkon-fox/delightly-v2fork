@@ -672,54 +672,6 @@ if (!$newthread && !$tlonly) {
     }
 }
 
-// システムメッセージ用関数
-require_once './extend/extra-commands/utilities/add-system-message.php';
-// !ninkeyコマンド
-@include './extend/extra-commands/ninkey.php';
-// !stickyコマンド
-@include './extend/extra-commands/sticky.php';
-// !maxコマンド
-@include './extend/extra-commands/max.php';
-// !chttコマンド
-@include './extend/extra-commands/chtt.php';
-// !ngk設定
-@include './extend/extra-commands/set-ngk.php';
-// !774設定
-@include './extend/extra-commands/set-774.php';
-// !gobi設定
-@include './extend/extra-commands/set-gobi.php';
-// !comma設定
-@include './extend/extra-commands/set-comma.php';
-
-// !ngk適用
-@include './extend/extra-commands/apply-ngk.php';
-// !774適用
-@include './extend/extra-commands/apply-774.php';
-// !comma適用
-@include './extend/extra-commands/apply-comma.php';
-// !rmjコマンド
-@include './extend/extra-commands/rmj.php';
-// !gobi適用
-@include './extend/extra-commands/apply-gobi.php';
-// スレ状態更新処理
-@include './extend/extra-commands/utilities/show-threads-states.php';
-// !xDy(dice)コマンド
-@include './extend/extra-commands/dice.php';
-
-// 曜日表示
-$daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
-$dayOfWeek = $daysOfWeek[date('w')];
-$DATE .= " ({$dayOfWeek}) {$TIME}";
-
-// 上限超え
-$maxResLimit = isset($threadStates['max']) ? (int) $threadStates['max'] : (int) $SETTING['MAX_RES'];
-if (!$newthread && !$tlonly && $number > $maxResLimit) {
-    Error('このスレッドに投稿できる上限を超えました');
-}
-if (!$tlonly && $number >= $maxResLimit) {
-    $isMax = true;
-}
-
 // 画像禁止
 if ($SETTING['NOPIC'] === 'checked' && (preg_match('/.(gif|jpg|jpeg|png)/', $_POST['comment']) || strpos($_POST['comment'], 'imgur.com') !== false) && !$authorized) {
     Error('この掲示板・スレッドでは未承認ユーザーは画像リンクを投稿することができません');
@@ -1446,6 +1398,58 @@ $_POST['mail'] = str_replace('!no', '', $_POST['mail']);
 // キャップ色
 if ($ncolor) {
     $_POST['name'] = "<font color=\"$ncolor\">" . $_POST['name'] . '</font>';
+}
+
+// ------------------------------------
+// 追加コマンド類
+// ------------------------------------
+
+// システムメッセージ用関数
+require_once './extend/extra-commands/utilities/add-system-message.php';
+// !ninkeyコマンド
+@include './extend/extra-commands/ninkey.php';
+// !stickyコマンド
+@include './extend/extra-commands/sticky.php';
+// !maxコマンド
+@include './extend/extra-commands/max.php';
+// !chttコマンド
+@include './extend/extra-commands/chtt.php';
+// !ngk設定
+@include './extend/extra-commands/set-ngk.php';
+// !774設定
+@include './extend/extra-commands/set-774.php';
+// !gobi設定
+@include './extend/extra-commands/set-gobi.php';
+// !comma設定
+@include './extend/extra-commands/set-comma.php';
+
+// !ngk適用
+@include './extend/extra-commands/apply-ngk.php';
+// !774適用
+@include './extend/extra-commands/apply-774.php';
+// !comma適用
+@include './extend/extra-commands/apply-comma.php';
+// !rmjコマンド
+@include './extend/extra-commands/rmj.php';
+// !gobi適用
+@include './extend/extra-commands/apply-gobi.php';
+// スレ状態更新処理
+@include './extend/extra-commands/utilities/show-threads-states.php';
+// !xDy(dice)コマンド
+@include './extend/extra-commands/dice.php';
+
+// 曜日表示
+$daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
+$dayOfWeek = $daysOfWeek[date('w')];
+$DATE .= " ({$dayOfWeek}) {$TIME}";
+
+// 上限超え
+$maxResLimit = isset($threadStates['max']) ? (int) $threadStates['max'] : (int) $SETTING['MAX_RES'];
+if (!$newthread && !$tlonly && $number > $maxResLimit) {
+    Error('このスレッドに投稿できる上限を超えました');
+}
+if (!$tlonly && $number >= $maxResLimit) {
+    $isMax = true;
 }
 
 // 名前入力チェックと補完
