@@ -65,6 +65,7 @@ function setCommaCommand(
     }
 
     $countIsOver = false;
+    $alertMessages = [];
     $systemMessages = [];
 
     $commentParts[0] = preg_replace_callback(
@@ -72,6 +73,7 @@ function setCommaCommand(
         function ($matches) use (
             $COMMA_LIMIT,
             $COMMA_COMMENT_LIMIT,
+            &$alertMessages,
             &$systemMessages,
             &$threadStates,
             &$countIsOver,
@@ -91,13 +93,13 @@ function setCommaCommand(
             }
             // 個数上限チェック
             if (!isset($threadStates['comma'][$matches[1]]) && count($threadStates['comma']) >= $COMMA_LIMIT) {
-                $systemMessages[] = "★コンマに設定可能なのは{$COMMA_LIMIT}個までです。";
+                $alertMessages[] = "★コンマに設定可能なのは{$COMMA_LIMIT}個までです。";
                 $countIsOver = true;
                 return $matches[0];
             }
             // 文字数上限チェック
             if (mb_strlen($matches[2]) > $COMMA_COMMENT_LIMIT) {
-                $systemMessages[] = "★コンマに設定可能な文字数は{$COMMA_COMMENT_LIMIT}までです。";
+                $alertMessages[] = "★コンマに設定可能な文字数は{$COMMA_COMMENT_LIMIT}までです。";
                 return $matches[0];
             }
 
@@ -123,10 +125,16 @@ function setCommaCommand(
     // 本文変更
     $_POST['comment'] = implode('<hr>', $commentParts);
 
+    // 失敗メッセージ出力(本文)
+    if (!empty($alertMessages)) {
+        addSystemMessage(implode('<br>', $alertMessages));
+    }
+
     // 成功メッセージ出力(本文)
     if (!$newthread && !empty($systemMessages)) {
         addSystemMessage(implode('<br>', $systemMessages));
     }
+
     // >>1更新判定
     if (!empty($systemMessages)) {
         $threadStatesReload = true;
