@@ -1416,6 +1416,8 @@ require_once './extend/extra-commands/utilities/add-system-message.php';
 @include './extend/extra-commands/set-gobi.php';
 // !comma設定
 @include './extend/extra-commands/set-comma.php';
+// !replace設定
+@include './extend/extra-commands/set-replace.php';
 
 // !interval適用
 @include './extend/extra-commands/apply-interval.php';
@@ -1428,6 +1430,9 @@ require_once './extend/extra-commands/utilities/add-system-message.php';
 @include './extend/extra-commands/apply-774.php';
 // !comma適用
 @include './extend/extra-commands/apply-comma.php';
+// !replace適用
+@include './extend/extra-commands/apply-replace.php';
+
 // !rmjコマンド
 @include './extend/extra-commands/rmj.php';
 // !gobi適用
