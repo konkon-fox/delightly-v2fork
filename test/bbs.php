@@ -71,7 +71,7 @@ if (!$_POST['time']) {
 // # 23
 // Åâ 81 89
 // Åä 81 8a
-function emojiReplace(&$text)
+function emojiReplace($text)
 {
     $html_entity = '&#[0-9a-zA-Z]+?;';
     $emoji_base_chars = '(?:[0-9*#]|Åâ|Åä)';
@@ -80,10 +80,11 @@ function emojiReplace(&$text)
     $text = preg_replace($zwj_regexp, '$1&#65039;&#8205;', $text);
     $vs16_regexp = "/({$html_entity}|{$emoji_base_chars}){$byte_fc}{2}/";
     $text = preg_replace($vs16_regexp, '$1&#65039;', $text);
+    return $text;
 }
-emojiReplace($_POST['MESSAGE']);
-emojiReplace($_POST['subject']);
-emojiReplace($_POST['FROM']);
+$_POST['MESSAGE'] = emojiReplace($_POST['MESSAGE']);
+$_POST['subject'] = emojiReplace($_POST['subject']);
+$_POST['FROM'] = emojiReplace($_POST['FROM']);
 
 // Shift_JISÇ©ÇÁUTF-8Ç÷
 mb_convert_variables('UTF-8', 'SJIS-win', $_POST);
