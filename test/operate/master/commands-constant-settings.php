@@ -25,6 +25,10 @@ $settings['GOBI_MAX_GOBI_LENGTH'] ??= '100';
 $settings['RMJ_MIN_LV'] ??= '0';
 $settings['INTERVAL_MIN_SECOND'] ??= '0';
 $settings['INTERVAL_MAX_SECOND'] ??= '60';
+$settings['REPLACE_MIN_LV'] ??= '0';
+$settings['REPLACE_COUNT_LIMIT'] ??= '5';
+$settings['REPLACE_COMMENT_LIMIT'] ??= '100';
+$settings['REPLACE_ENABLE_CHANGE_FONT'] ??= 'checked';
 
 if ($_POST['edit'] === 'true') {
     foreach ($settings as $settingName => $_) {
@@ -216,6 +220,66 @@ if ($_POST['edit'] === 'true') {
 										value="<?= htmlspecialchars($settings['MAX_NEW_MAX'], ENT_QUOTES, 'UTF-8'); ?>"
 									>
 								</div>
+							</div>
+						</div>
+					</div>
+					<!--  -->
+					<div class="card">
+						<div class="card-header">!replace</div>
+						<div class="card-body">
+							<label for="REPLACE_MIN_LV" class="form-label">必要最低レベル</label>
+							<div class="row">
+								<div class="col-4 col-md-2">
+									<input 
+										type="number"
+										class="form-control d-inline-block"
+										name="REPLACE_MIN_LV"
+										placeholder="0"
+										value="<?= htmlspecialchars($settings['REPLACE_MIN_LV'], ENT_QUOTES, 'UTF-8'); ?>"
+									>
+								</div>
+							</div>
+							<hr>
+							<label for="REPLACE_COUNT_LIMIT" class="form-label">置換設定の上限数</label>
+							<div class="row">
+								<div class="col-4 col-md-2">
+									<input 
+										type="number"
+										class="form-control d-inline-block"
+										name="REPLACE_COUNT_LIMIT"
+										placeholder="5"
+										value="<?= htmlspecialchars($settings['REPLACE_COUNT_LIMIT'], ENT_QUOTES, 'UTF-8'); ?>"
+									>
+								</div>
+							</div>
+							<hr>
+							<label for="REPLACE_COMMENT_LIMIT" class="form-label">置換前後に使用可能なテキストの最大文字数</label>
+							<div class="row">
+								<div class="col-4 col-md-2">
+									<input 
+										type="number"
+										class="form-control d-inline-block"
+										name="REPLACE_COMMENT_LIMIT"
+										placeholder="100"
+										value="<?= htmlspecialchars($settings['REPLACE_COMMENT_LIMIT'], ENT_QUOTES, 'UTF-8'); ?>"
+									>
+								</div>
+							</div>
+							<hr>
+							<div>
+								<input
+									class="form-check-input"
+									type="checkbox"
+									value="checked"
+									<?= htmlspecialchars($settings['REPLACE_ENABLE_CHANGE_FONT'], ENT_QUOTES, 'UTF-8'); ?>
+									name="REPLACE_ENABLE_CHANGE_FONT"
+								/>
+								<label
+									class="form-check-label"
+									for="REPLACE_ENABLE_CHANGE_FONT"
+								>
+									置換後の文字列を青字太字にする
+								</label>
 							</div>
 						</div>
 					</div>

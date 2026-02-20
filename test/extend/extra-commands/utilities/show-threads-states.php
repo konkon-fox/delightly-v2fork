@@ -93,6 +93,12 @@ function showThreadStates(
     if (isset($threadStates['interval'])) {
         $commentParts[2] .= "<font color=\"red\">※投稿間隔=</font>{$threadStates['interval']}秒<br>";
     }
+    // replace追加
+    if (isset($threadStates['replace']) && count($threadStates['replace']) > 0) {
+        foreach ($threadStates['replace'] as $_) {
+            $commentParts[2] .= '<font color="red">※replace=</font>████→████<br>';
+        }
+    }
     // 分割された本文を統合
     $comment = implode('<hr>', $commentParts);
     $comment = preg_replace('/(<hr>)+$/', '', $comment);
