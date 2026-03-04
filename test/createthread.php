@@ -1,16 +1,18 @@
 <?php
 error_reporting(E_COMPILE_ERROR | E_RECOVERABLE_ERROR | E_ERROR | E_CORE_ERROR | E_PARSE);
 $msg = $subject = '';
-if (!$_GET['bbs']) exit;
+if (!$_GET['bbs']) {
+    exit;
+}
 if ($_GET['key']) {
- $thread_file = "../".$_GET['bbs']."/thread/".substr($_GET['key'], 0, 4)."/".$_GET['key'].".dat";
- if (is_file($thread_file)) {
-  $LOG = file($thread_file);
-  list(,,,$msg,$subject) = explode("<>",$LOG[0]);
-  $msg = str_replace("<br>", "\n", $msg);
-  $msg = strip_tags($msg, ['details', 'summary']);
-  $msg .= "\n\n前スレ\n".$subject."https://".$_SERVER['HTTP_HOST']."/#".$_GET['bbs']."/".$_GET['key']."/"; 
- }
+    $thread_file = '../' . $_GET['bbs'] . '/thread/' . substr($_GET['key'], 0, 4) . '/' . $_GET['key'] . '.dat';
+    if (is_file($thread_file)) {
+        $LOG = file($thread_file);
+        list(, , , $msg, $subject) = explode('<>', $LOG[0]);
+        $msg = str_replace('<br>', "\n", $msg);
+        $msg = strip_tags($msg, ['details', 'summary']);
+        $msg .= "\n\n前スレ\n" . $subject . 'https://' . $_SERVER['HTTP_HOST'] . '/#' . $_GET['bbs'] . '/' . $_GET['key'] . '/';
+    }
 }
 // 次スレ作成処理
 ?><!DOCTYPE html>
@@ -24,11 +26,13 @@ if ($_GET['key']) {
 <link href="/static/st.css" rel="stylesheet" type="text/css"><link href="/static/milligram.css" rel="stylesheet" type="text/css"><link href="/static/s.css" rel="stylesheet" type="text/css"><link href="/static/read.css" rel="stylesheet" type="text/css"></head>
 </head>
 <body>
-<div id="followheader" class="hidden maxwidth100 height2p5 stickymenu container" style="display: block;"><div class="row noflex maxwidth100 white padding0p5 maxheight2p5 borderbottomlightgrey"><div class="topmenu" id="header"><a class="menuitem" href="/<?=$_GET['bbs']?>/">TL</a><a class="menuitem" href="/<?=$_GET['bbs']?>/?m=subback">スレ一覧</a><a class="menuitem" href="/<?=$_GET['bbs']?>/?m=subback&mode=history">履歴</a><a class="menuitem" href="/<?=$_GET['bbs']?>/?m=subback&mode=unread">未読</a><b class="menuitem">スレ作成</b><div id="headtitle" class="menuitem" style="text-decoration: none;"></div></div></div></div>
+<div id="followheader" class="hidden maxwidth100 height2p5 stickymenu container" style="display: block;"><div class="row noflex maxwidth100 white padding0p5 maxheight2p5 borderbottomlightgrey"><div class="topmenu" id="header"><a class="menuitem" href="/<?=$_GET['bbs'];?>/">TL</a><a class="menuitem" href="/<?=$_GET['bbs'];?>/?m=subback">スレ一覧</a><a class="menuitem" href="/<?=$_GET['bbs'];?>/?m=subback&mode=history">履歴</a><a class="menuitem" href="/<?=$_GET['bbs'];?>/?m=subback&mode=unread">未読</a><b class="menuitem">スレ作成</b><div id="headtitle" class="menuitem" style="text-decoration: none;"></div></div></div></div>
 <div id="subbacktitle"></div>
 <div style="min-height:50px;margin-top: 3rem;" id="rule">■ ローカルルール<br></div>
 <div style="min-height:50px" id="kokuti">■ 告知欄<br></div>
-<div class="formbox" style="margin-top: 4rem;"><form method="POST" id="Form" accept-charset="UTF-8" action="/test/post-v2.php" style="display: block;margin-top: 2rem;"> <span class="fhead" style="border-radius: 3px 3px 0 0;color: #666;padding: 3px;text-align: left;"><span class="spformhead" style="display:inline !important;border-radius:3px 3px 0 0;color:#666;padding:3px;"><a id="iconlink" target="_blank" href="<?=$_COOKIE['homepage']?>"><img id="icon" class="icon" src="<?=$_COOKIE['icon']?>" width="50" height="50" align="left"></a><input name="name" placeholder="名前" class="formelem maxwidth" style="width:50%;margin-top:.5rem;"></span><span class="submitbtn" style="color: #000;float: right;font-size: 28px;font-weight: bold;cursor: pointer;display: inline-block;padding-right: 5px;"><input type="submit" value="新規投稿" name="submit" onclick="Post()"></span></span><input name="mail" size="19" value="" placeholder="E-mail" class="formelem maxwidth"><div class="backmsg" style="display: inline-block;"><input value="on" type="checkbox" id="seticon" name="icon" checked="" <?php if (!$_COOKIE['icon']) echo 'style="display:none"'; ?>><a href="/test/icon.html">アイコン</a> <a href="javascript:BackMSG()">下書きを復元</a></div><textarea rows="5" cols="70" name="comment" id="bbs-textarea" onchange="MSG()" class="formelem maxwidth" wrap="off"><?=$msg?></textarea><input name="title" size="19" value="<?=$subject?>" placeholder="スレッドタイトル" class="formelem maxwidth"><br>画像：<input id="uploadImage" type="file" name="file" size="50" onchange="upload();"><br><input type="hidden" name="board" value="<?=$_GET['bbs']?>"></form></div>
+<div class="formbox" style="margin-top: 4rem;"><form method="POST" id="Form" accept-charset="UTF-8" action="/test/post-v2.php" style="display: block;margin-top: 2rem;"> <span class="fhead" style="border-radius: 3px 3px 0 0;color: #666;padding: 3px;text-align: left;"><span class="spformhead" style="display:inline !important;border-radius:3px 3px 0 0;color:#666;padding:3px;"><a id="iconlink" target="_blank" href="<?=$_COOKIE['homepage'];?>"><img id="icon" class="icon" src="<?=$_COOKIE['icon'];?>" width="50" height="50" align="left"></a><input name="name" placeholder="名前" class="formelem maxwidth" style="width:50%;margin-top:.5rem;"></span><span class="submitbtn" style="color: #000;float: right;font-size: 28px;font-weight: bold;cursor: pointer;display: inline-block;padding-right: 5px;"><input type="submit" value="新規投稿" name="submit" onclick="Post()"></span></span><input name="mail" size="19" value="" placeholder="E-mail" class="formelem maxwidth"><div class="backmsg" style="display: inline-block;"><input value="on" type="checkbox" id="seticon" name="icon" checked="" <?php if (!$_COOKIE['icon']) {
+    echo 'style="display:none"';
+} ?>><a href="/test/icon.html">アイコン</a> <a href="javascript:BackMSG()">下書きを復元</a></div><textarea rows="5" cols="70" name="comment" id="bbs-textarea" onchange="MSG()" class="formelem maxwidth" wrap="off"><?=$msg;?></textarea><input name="title" size="19" value="<?=$subject;?>" placeholder="スレッドタイトル" class="formelem maxwidth"><br>画像：<input id="uploadImage" type="file" name="file" size="50" onchange="upload();"><br><input type="hidden" name="board" value="<?=$_GET['bbs'];?>"></form></div>
 <div class="tlnotice" id="ntxt"></div>
 <p style="margin:5rem 0;color:#333"><a href="https://git.3chan.cc/stat2/delightly-v2fork">スレッドフロート型掲示板「delightly」v2 fork</a>, <a href="https://delightly.xyz/">nore</a> +</p>
 <style>div.postbutton{display: none !important;}</style>
@@ -57,7 +61,7 @@ if (localStorage.getItem('darkmode') == "true" || (localStorage.getItem('autodar
   let imgurkey = '';
   if (localStorage.getItem('text2') === null) localStorage.setItem('text2', '');
 
-let bbs = "<?=$_GET['bbs']?>";
+let bbs = "<?=$_GET['bbs'];?>";
 setfile = '/'+bbs+'/setting.json';
 rulefile = '/'+bbs+'/head.txt';
 kokutifile = '/'+bbs+'/kokuti.txt';
