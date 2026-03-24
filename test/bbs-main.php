@@ -224,6 +224,14 @@ $whiteList = [
     '\x{1FADC}',
     '\x{1FA89}',
     '\x{1FA8F}',
+    // Unicode 17.0 絵文字
+    '\x{1FAEA}',
+    '\x{1FAEF}',
+    '\x{1FAC8}',
+    '\x{1FACD}',
+    '\x{1F6D8}',
+    '\x{1FA8A}',
+    '\x{1FA8E}',
     // other
     '\x{06DD}',
 ];
