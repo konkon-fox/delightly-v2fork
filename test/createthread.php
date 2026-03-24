@@ -34,7 +34,7 @@ if ($_GET['key']) {
     echo 'style="display:none"';
 } ?>><a href="/test/icon.html">アイコン</a> <a href="javascript:BackMSG()">下書きを復元</a></div><textarea rows="5" cols="70" name="comment" id="bbs-textarea" onchange="MSG()" class="formelem maxwidth" wrap="off"><?=$msg;?></textarea><input name="title" size="19" value="<?=$subject;?>" placeholder="スレッドタイトル" class="formelem maxwidth"><br>画像：<input id="uploadImage" type="file" name="file" size="50" onchange="upload();"><br><input type="hidden" name="board" value="<?=$_GET['bbs'];?>"></form></div>
 <div class="tlnotice" id="ntxt"></div>
-<p style="margin:5rem 0;color:#333"><a href="https://git.3chan.cc/stat2/delightly-v2fork">スレッドフロート型掲示板「delightly」v2 fork</a>, <a href="https://delightly.xyz/">nore</a> +</p>
+<p style="margin:5rem 0;color:#333"><a href="https://github.com/konkon-fox/delightly-v2fork">スレッドフロート型掲示板「delightly-v2fork」</a>, nore +</p>
 <style>div.postbutton{display: none !important;}</style>
 <script src="/static/textarea.js"></script>
 <script src="/static/jquery-1.11.3.min.js"></script>
